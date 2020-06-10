@@ -26,7 +26,7 @@ namespace Testsun
             EditorBuildSettings.scenes = factoryAndOriginalScenes.Item2;
         }
         [UnityTest, Performance, Version(version)]
-        [Timeout(2000)]
+        [Timeout(TestSettings.defaultSmallTest)]
         public IEnumerator GeometryVisionGetsCreatedWithoutFactory([ValueSource(typeof(TestUtilities), nameof(TestUtilities.GetScenesFromPath))] string scenePath)
         {
             factoryAndOriginalScenes = TestUtilities.SetupScene(scenePath);
@@ -56,7 +56,7 @@ namespace Testsun
         }
 
         [UnityTest, Performance, Version(version)]
-        [Timeout(2000)]
+        [Timeout(TestSettings.defaultSmallTest)]
         public IEnumerator GeometryVisionGetsCreatedWithFactory([ValueSource(typeof(TestUtilities), nameof(TestUtilities.GetScenesFromPath))] string scenePath)
         {
             factoryAndOriginalScenes = TestUtilities.SetupScene(scenePath);

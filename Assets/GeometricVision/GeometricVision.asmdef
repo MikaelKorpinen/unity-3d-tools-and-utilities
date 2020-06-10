@@ -1,0 +1,20 @@
+{
+    "name": "GeometricVision",
+    "references": [],
+    "includePlatforms": [
+        "Editor",
+        "iOS",
+        "LinuxStandalone64",
+        "WebGL",
+        "WindowsStandalone32",
+        "WindowsStandalone64"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": false,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

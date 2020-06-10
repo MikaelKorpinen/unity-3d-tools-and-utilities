@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ContentModelStore">
+    <e p="C:\GitProjects\unity-3d-tools-and-utilities" t="IncludeRecursive">
+      <e p="Assets" t="Include">
+        <e p="GeometricVision" t="Include">
+          <e p="Debugging" t="Include">
+            <e p="EyeDebugger.cs" t="Include" />
+          </e>
+          <e p="EdgeComparer.cs" t="Include" />
+          <e p="GeometricVision.asmdef" t="Include" />
+          <e p="GeometryDataModels.cs" t="Include" />
+          <e p="GeometryVisionBrain.cs" t="Include" />
+          <e p="GeometryVisionEye.cs" t="Include" />
+          <e p="GeometryVisionFactory.cs" t="Include" />
+          <e p="GeometryVisionHead.cs" t="Include" />
+          <e p="GeometryVisionSettings.cs" t="Include" />
+          <e p="Info.cs" t="Include" />
+          <e p="Interfaces" t="Include">
+            <e p="IGeoBrain.cs" t="Include" />
+          </e>
+          <e p="Jobs" t="Include">
+            <e p="EdgeJobs.cs" t="Include" />
+          </e>
+          <e p="TestSettings.cs" t="Include" />
+          <e p="UI" t="Include">
+            <e p="VisionTypeDrawer.cs" t="Include" />
+          </e>
+          <e p="Utilities" t="Include">
+            <e p="MeshUtilities.cs" t="Include" />
+          </e>
+        </e>
+        <e p="Tests" t="Include">
+          <e p="CreationalTests.cs" t="Include" />
+          <e p="FrustumTestsGeometry.cs" t="Include" />
+          <e p="FrustumTestsObjects.cs" t="Include" />
+          <e p="GeoUtilitiesTests.cs" t="Include" />
+          <e p="ProcessingTestsObjects.cs" t="Include" />
+          <e p="Tests.asmdef" t="Include" />
+          <e p="TestUtilities.cs" t="Include" />
+        </e>
+      </e>
+      <e p="GeometricVision.csproj" t="IncludeRecursive" />
+      <e p="obj" t="ExcludeRecursive" />
+      <e p="Packages" t="ExcludeRecursive" />
+      <e p="Temp\bin" t="ExcludeRecursive" />
+      <e p="Tests.csproj" t="IncludeRecursive" />
+      <e p="unity-3d-tools-and-utilities.sln" t="IncludeFlat" />
+    </e>
+    <e p="C:\Users\Crystalizer\AppData\Local\JetBrains\Rider2020.1\extResources" t="IncludeRecursive" />
+    <e p="C:\Users\Crystalizer\AppData\Local\JetBrains\Rider2020.1\resharper-host\Local\Transient\ReSharperHost\v201\SolutionCaches\_unity-3d-tools-and-utilities.-1664064511.00" t="ExcludeRecursive" />
+  </component>
+</project>

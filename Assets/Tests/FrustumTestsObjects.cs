@@ -25,7 +25,7 @@ namespace Tests
         }
         
         [UnityTest, Performance, Version(version)]
-        [Timeout(2000)]
+        [Timeout(TestSettings.defaultSmallTest)]
         public IEnumerator GameObjectIsPickedIfInsideFrustum([ValueSource(typeof(TestUtilities), nameof(TestUtilities.GetScenesFromPath))] string scenePath)
         {
             factoryAndOriginalScenes = TestUtilities.SetupScene(scenePath);
@@ -41,7 +41,7 @@ namespace Tests
 
 
         [UnityTest, Performance, Version(version)]
-        [Timeout(2000)]
+        [Timeout(TestSettings.defaultSmallTest)]
         public IEnumerator GameObjectIsRemovedAndAddedBackIfOutsideFrustum([ValueSource(typeof(TestUtilities), nameof(TestUtilities.GetScenesFromPath))] string scenePath)
         {
 
