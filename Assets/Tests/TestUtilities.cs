@@ -51,12 +51,7 @@ public static class TestUtilities
     public static IEnumerable GetScenesFromPath()
     {
         var sceneFolderPath =Application.dataPath+ "/Tests/TestScenes/";
-        Debug.Log("Search path scene: " +sceneFolderPath); 
         List<string> scenePaths= GetSceneFilePaths(sceneFolderPath).ToList();
-        foreach (var scenePath in scenePaths)
-        {
-            Debug.Log("Found scene: " +scenePath); 
-        }
 
         return scenePaths;
     }
@@ -70,7 +65,6 @@ public static class TestUtilities
         {
             var scenePath = scenePaths[index].Name;
             scenePaths2[index] = "Assets/Tests/TestScenes/"+scenePath;
-            Debug.Log(scenePath);
         }
 
         return scenePaths2;
