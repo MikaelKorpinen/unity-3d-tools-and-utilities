@@ -10,9 +10,11 @@ namespace Plugins.GeometricVision
     {
         public bool onOff = true;
         public GeometryType type;
-        [ExposeProperty("Targeting"), SerializeField] public ReactiveProperty<bool> targeting = new ReactiveProperty<bool>();
-        [SerializeField] public BoolReactiveProperty target;
+    
+        [SerializeField] private BoolReactiveProperty target = new BoolReactiveProperty();
         [SerializeField, Layer] private int targetLayer = 31;
+        public IGeoTargeting TargetingSystem { get; set; }
+        public bool Subscribed { get; set; }
 
         public int TargetLayer
         {
@@ -26,20 +28,20 @@ namespace Plugins.GeometricVision
             set { type = value; }
         }
 
-        public bool Targeting 
+        public BoolReactiveProperty Target
         {
-            get {
-                return targeting.Value;
-            } 
-            set {
-                targeting.Value = value;
-            }
+            get { return target; }
+            set { target = value; }
         }
 
-        public VisionTarget(GeometryType geoType, int layerIndex)
+
+        public VisionTarget(GeometryType geoType, int layerIndex, IGeoTargeting targetingSystem)
         {
             GeometryType = geoType;
             targetLayer = layerIndex;
+            this.TargetingSystem = targetingSystem;
+            
+            Target.Value = true;
         }
     }
 

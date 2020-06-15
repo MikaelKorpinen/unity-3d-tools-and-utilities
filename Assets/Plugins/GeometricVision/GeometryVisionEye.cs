@@ -7,6 +7,7 @@ using Plugins.GeometricVision;
 using UniRx;
 using Unity.Jobs;
 using UnityEngine;
+using UnityEngine.Serialization;
 using Plane = UnityEngine.Plane;
 
 /// <summary>
@@ -17,108 +18,110 @@ using Plane = UnityEngine.Plane;
 public class GeometryVisionEye : MonoBehaviour
 {
     [SerializeField] private bool debugMode;
-
-    
-    public VisionTarget[] GeometryTypes
-    {
-        get { return geometryTypes; }
-        set { geometryTypes = value; }
-    }
-
     [SerializeField] private bool hideEdgesOutsideFieldOfView = true;
     [SerializeField] private bool showSeenEdges = true;
     
     [SerializeField] private float fieldOfView = 25f;
     [SerializeField] private int lastCount = 0;
-    [SerializeField] private List<GeometryDataModels.GeoInfo> _seenGeoInfos = new List<GeometryDataModels.GeoInfo>();
-    [SerializeField] private IGeoBrain _controllerBrain;
-    private Camera camera;
-    public Plane[] _planes = new Plane[6];
-    [SerializeField] public HashSet<Transform> SeenObjects;
+    [SerializeField] private List<GeometryDataModels.GeoInfo> seenGeoInfos = new List<GeometryDataModels.GeoInfo>();
+    [SerializeField] private IGeoBrain controllerBrain;
+    private new Camera camera;
+    public Plane[] planes = new Plane[6];
+    [SerializeField] public HashSet<Transform> seenObjects;
     private EyeDebugger _debugger;
     private bool _addedByFactory;
-    [SerializeField] private VisionTarget[] geometryTypes;
-
-    public List<GeometryDataModels.GeoInfo> SeenGeoInfos
-    {
-        get { return _seenGeoInfos; }
-        set { _seenGeoInfos = value; }
-    }
-
-    public struct filterPlane
-    {
-        public Vector3 positiom;
-        public Quaternion rotation;
-        public Vector3 direction;
-        public Transform rootObject;
-    }
-
-
-    public Plane[] Planes
-    {
-        get { return _planes; }
-        set { _planes = value; }
-    }
-
-    public Camera Camera1
-    {
-        get { return camera; }
-        set { camera = value; }
-    }
-
-    public IGeoBrain ControllerBrain
-    {
-        get { return _controllerBrain; }
-        set { _controllerBrain = value; }
-    }
-
+    [SerializeField] private VisionTarget[] targetedGeometries;//TODO: Make it reactive and dispose subscribers on array resize in case they are not cleaned up by the gc
     public GeometryVisionHead Head { get; set; }
-
-
-    private void Awake()
-    {
-        if (gameObject.GetComponent<Camera>() != null)
-        {
-            Camera1 = gameObject.GetComponent<Camera>();
-        }
-
-        _seenGeoInfos = new List<GeometryDataModels.GeoInfo>();
-    }
     
+    void Reset()
+    {
+        Initialize();
+    }
+
     // Start is called before the first frame update
     void Start()
     {
+        Initialize();
+    }
+
+    private void Initialize()
+    {
+        if (targetedGeometries == null)
+        {
+            targetedGeometries = new VisionTarget[1];
+            IGeoTargeting targeting = new GeometryObjectTargeting();
+            targetedGeometries[0] = new VisionTarget(GeometryType.Objects_,0, targeting);
+        }
         if (gameObject.GetComponent<Camera>() == null)
         {
             gameObject.AddComponent<Camera>();
             Camera1 = gameObject.GetComponent<Camera>();
         }
-
-
-        ControllerBrain = GeometryVisionUtilities.getControllerFromGeometryManager( FindObjectOfType<GeometryVisionHead>(), this);
+        seenGeoInfos = new List<GeometryDataModels.GeoInfo>();
+        ControllerBrain = GeometryVisionUtilities.getControllerFromGeometryManager(FindObjectOfType<GeometryVisionHead>(), this);
 
         _debugger = new EyeDebugger();
-        SeenObjects = new HashSet<Transform>();
+        seenObjects = new HashSet<Transform>();
         Camera1.enabled = false;
-        _debugger.Planes = RegenerateVisionArea(fieldOfView, _planes);
-        handLeTargeting();
-
-    }
-
-    void handLeTargeting()
-    {
-        foreach (var geometryType in   GeometryTypes)
+        
+        if (debugMode)
         {
-            UnityEngine.Debug.Log(geometryType);
+            _debugger.Planes = RegenerateVisionArea(fieldOfView, planes);
         }
-            
+
+        HandleTargeting();
     }
 
+    void HandleTargeting()
+    {
+        foreach (var geometryType in TargetedGeometries)
+        {
+            UnityEngine.Debug.Log(geometryType.Target);
+            if (geometryType.Target.Value == true)
+            {
+                var geoTargeting = gameObject.GetComponent<GeometryTargeting>();
+                if ( gameObject.GetComponent<GeometryTargeting>() == null)
+                {
+                    gameObject.AddComponent<GeometryTargeting>();
+                    geoTargeting = gameObject.GetComponent<GeometryTargeting>();
+
+                }
+
+                OnTargetingEnabled(geometryType, geoTargeting);
+            }
+        }
+    }
+    /// <summary>
+    /// Add targeting implementation based on, if it is enabled on the inspector.
+    /// Subscribes the targeting toggle button to functionality than handles creation of targeting implementation for the
+    /// targeted geometry type
+    /// </summary>
+    /// <param name="geometryType"></param>
+    /// <param name="geoTargeting"></param>
+    private void OnTargetingEnabled(VisionTarget geometryType, GeometryTargeting geoTargeting)
+    {
+        if (!geometryType.Subscribed)
+        {
+            geometryType.Target.Subscribe(targeting =>
+            {
+                if (targeting)
+                {
+                    geoTargeting.AddTarget(geometryType);
+                }
+                else
+                {
+                    geoTargeting.RemoveTarget(geometryType);
+                }
+            });
+            geometryType.Subscribed = true;
+        }
+    }
+    
     // Update is called once per frame
     void Update()
     {
-        _planes = RegenerateVisionArea(fieldOfView, _planes);
-        UpdateVisibility(SeenObjects, _seenGeoInfos);
+        planes = RegenerateVisionArea(fieldOfView, planes);
+        UpdateVisibility(seenObjects, seenGeoInfos);
         Debug();
     }
 
@@ -129,8 +132,8 @@ public class GeometryVisionEye : MonoBehaviour
     /// <param name="seenGeoInfos"></param>
     private void UpdateVisibility(HashSet<Transform> seenObjects, List<GeometryDataModels.GeoInfo> seenGeoInfos)
     {
-        SeenObjects = UpdateObjectVisibility(ControllerBrain.getAllObjects(), seenObjects);
-        SeenGeoInfos = UpdateGeometryVisibility(_planes, ControllerBrain.GeoInfos(), seenGeoInfos);
+        this.seenObjects = UpdateObjectVisibility(ControllerBrain.getAllObjects(), seenObjects);
+        SeenGeoInfos = UpdateGeometryVisibility(planes, ControllerBrain.GeoInfos(), seenGeoInfos);
     }
 
     /// <summary>
@@ -159,7 +162,7 @@ public class GeometryVisionEye : MonoBehaviour
 
         UpdateSeenGeometryObjects(allGeoInfos, seenGeometry, geoCount);
 
-        foreach (var geometryType in GeometryTypes)
+        foreach (var geometryType in TargetedGeometries)
         {
             if (geometryType.GeometryType == GeometryType.Edges)
             {
@@ -186,7 +189,7 @@ public class GeometryVisionEye : MonoBehaviour
             {
                 var geInfo = allGeoInfos[i];
 
-                if (GeometryUtility.TestPlanesAABB(_planes, allGeoInfos[i].renderer.bounds) &&
+                if (GeometryUtility.TestPlanesAABB(planes, allGeoInfos[i].renderer.bounds) &&
                     hideEdgesOutsideFieldOfView)
                 {
                     seenGeometry.Add(geInfo);
@@ -202,7 +205,7 @@ public class GeometryVisionEye : MonoBehaviour
     private bool geometryIsTargeted()
     {
         bool found = false;
-        foreach (var visionTarget in GeometryTypes)
+        foreach (var visionTarget in TargetedGeometries)
         {
             if (visionTarget.GeometryType == GeometryType.Edges || visionTarget.GeometryType == GeometryType.Vertices)
             {
@@ -240,7 +243,7 @@ public class GeometryVisionEye : MonoBehaviour
     {
         Camera1.enabled = true;
         Camera1.fieldOfView = fieldOfView;
-        _planes = GeometryUtility.CalculateFrustumPlanes(Camera1);
+        planes = GeometryUtility.CalculateFrustumPlanes(Camera1);
         Camera1.enabled = false;
     }
 
@@ -248,7 +251,7 @@ public class GeometryVisionEye : MonoBehaviour
     {
         foreach (var transform in allTransforms)
         {
-            if (MeshUtilities.IsInsideFrustum(transform.position, _planes))
+            if (MeshUtilities.IsInsideFrustum(transform.position, planes))
             {
                 seenTransforms.Add(transform);
                 lastCount = seenTransforms.Count;
@@ -277,5 +280,35 @@ public class GeometryVisionEye : MonoBehaviour
         {
             _debugger.Debug(Camera1, SeenGeoInfos, true);
         }
+    }
+    
+    public VisionTarget[] TargetedGeometries
+    {
+        get { return targetedGeometries; }
+        set { targetedGeometries = value; }
+    }
+
+    public List<GeometryDataModels.GeoInfo> SeenGeoInfos
+    {
+        get { return seenGeoInfos; }
+        set { seenGeoInfos = value; }
+    }
+    
+    public Plane[] Planes
+    {
+        get { return planes; }
+        set { planes = value; }
+    }
+
+    public Camera Camera1
+    {
+        get { return camera; }
+        set { camera = value; }
+    }
+
+    public IGeoBrain ControllerBrain
+    {
+        get { return controllerBrain; }
+        set { controllerBrain = value; }
     }
 }

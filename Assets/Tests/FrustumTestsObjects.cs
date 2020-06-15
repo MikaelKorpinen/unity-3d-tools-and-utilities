@@ -36,7 +36,7 @@ namespace Tests
             GameObject geoVision= factoryAndOriginalScenes.Item1.CreateGeometryVision(new Vector3(0f, 0f, -6f), Quaternion.identity, 25, GeometryType.Edges, 0);
             yield return null;
             var geoEye = geoVision.GetComponent<GeometryVisionEye>();
-            Assert.AreEqual(expectedObjectCount, geoEye.SeenObjects.Count);
+            Assert.AreEqual(expectedObjectCount, geoEye.seenObjects.Count);
         }
 
 
@@ -55,7 +55,7 @@ namespace Tests
             GameObject geoVision= factoryAndOriginalScenes.Item1.CreateGeometryVision(new Vector3(0f, 0f, -6f), Quaternion.identity, 25, GeometryType.Edges, 0);
             yield return null;
             
-            Assert.AreEqual(expectedObjectCount, geoVision.GetComponent<GeometryVisionEye>().SeenObjects.Count);  
+            Assert.AreEqual(expectedObjectCount, geoVision.GetComponent<GeometryVisionEye>().seenObjects.Count);  
 
             geoVision.transform.position = new Vector3(10f,10f,10);//Move Object outside the cube
             
@@ -63,11 +63,11 @@ namespace Tests
             
             yield return null;         
             
-            Assert.AreEqual(expectedObjectCount2, geoVision.GetComponent<GeometryVisionEye>().SeenObjects.Count);
+            Assert.AreEqual(expectedObjectCount2, geoVision.GetComponent<GeometryVisionEye>().seenObjects.Count);
             
             geoVision.transform.position = new Vector3(0f,0f,-6f);//Move Object back to the cube
             yield return null;
-            Assert.AreEqual(expectedObjectCount3, geoVision.GetComponent<GeometryVisionEye>().SeenObjects.Count);
+            Assert.AreEqual(expectedObjectCount3, geoVision.GetComponent<GeometryVisionEye>().seenObjects.Count);
         }
     }
 }

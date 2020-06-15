@@ -21,7 +21,6 @@ namespace GeometricVision
             geoVision.transform.position = startingPosition;
             geoVision.transform.rotation = rotation;
 
-
             return geoVision;
         }
 
