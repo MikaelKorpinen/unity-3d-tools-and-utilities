@@ -12,7 +12,7 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.TestTools;
 
-namespace Testsun
+namespace Tests
 {
     public class CreationalTests : MonoBehaviour
     {
@@ -26,7 +26,7 @@ namespace Testsun
             EditorBuildSettings.scenes = factoryAndOriginalScenes.Item2;
         }
         [UnityTest, Performance, Version(version)]
-        [Timeout(2000)]
+        [Timeout(TestSettings.defaultSmallTest)]
         public IEnumerator GeometryVisionGetsCreatedWithoutFactory([ValueSource(typeof(TestUtilities), nameof(TestUtilities.GetScenesFromPath))] string scenePath)
         {
             factoryAndOriginalScenes = TestUtilities.SetupScene(scenePath);
@@ -41,10 +41,7 @@ namespace Testsun
             //TODO: Find out how to measure stuff happening in the start and awake from here to get the real estimate
 
             go.AddComponent<GeometryVisionEye>();
-
-            
             yield return null;
-
             int amountOfObjectsInScene = 0;
             int expectedObjectCount1 = TestUtilities.GetObjectCountFromScene();
             
@@ -56,7 +53,7 @@ namespace Testsun
         }
 
         [UnityTest, Performance, Version(version)]
-        [Timeout(2000)]
+        [Timeout(TestSettings.defaultSmallTest)]
         public IEnumerator GeometryVisionGetsCreatedWithFactory([ValueSource(typeof(TestUtilities), nameof(TestUtilities.GetScenesFromPath))] string scenePath)
         {
             factoryAndOriginalScenes = TestUtilities.SetupScene(scenePath);
@@ -75,7 +72,89 @@ namespace Testsun
             Debug.Log("total objects: " + amountOfObjectsInScene);
             Assert.AreEqual(expectedObjectCount1, amountOfObjectsInScene);
         }
+        
+        [UnityTest, Performance, Version(TestSettings.Version)]
+        [Timeout(TestSettings.defaultPerformanceTests)]
+        public IEnumerator TargetingParentComponentGetsAddedAfterAddingEyeComponent([ValueSource(typeof(TestUtilities), nameof(TestUtilities.GetScenesFromPath))] string scenePath)
+        {
+            factoryAndOriginalScenes = TestUtilities.SetupScene(scenePath);
+            for (int i = 0; i < 50; i++)
+            {
+                yield return null;
+                
+            }
+            GameObject geoVision = new GameObject("geoTesting");
+            geoVision.AddComponent<GeometryVisionEye>();
+            yield return null;
+            yield return null;
+            int AmountOfTargetingSystemsRegistered = 0;
+            int expectedObjectCount1 = 1;
+            Measure.Method(() => { AmountOfTargetingSystemsRegistered = geoVision.GetComponents<GeometryTargeting>().Length; }).Run();
 
+            Debug.Log("total targeting systems: " + AmountOfTargetingSystemsRegistered);
+            Assert.AreEqual(expectedObjectCount1, AmountOfTargetingSystemsRegistered);
+        }
+        
+        [UnityTest, Performance, Version(TestSettings.Version)]
+        [Timeout(TestSettings.defaultPerformanceTests)]
+        public IEnumerator TargetingParentComponentGetsAddedAfterCreatedWithFactory([ValueSource(typeof(TestUtilities), nameof(TestUtilities.GetScenesFromPath))] string scenePath)
+        {
+            factoryAndOriginalScenes = TestUtilities.SetupScene(scenePath);
+            for (int i = 0; i < 50; i++)
+            {
+                yield return null;
+                
+            }
+            GameObject geoVision = factoryAndOriginalScenes.Item1.CreateGeometryVision(new Vector3(0f, 0f, -6f), Quaternion.identity, 25, GeometryType.Edges, 0);
+            yield return null;
+            yield return null;
+            int AmountOfTargetingSystemsRegistered = 0;
+            int expectedObjectCount1 = 1;
+            Measure.Method(() => { AmountOfTargetingSystemsRegistered = geoVision.GetComponents<GeometryTargeting>().Length; }).Run();
 
+            Debug.Log("total targeting systems: " + AmountOfTargetingSystemsRegistered);
+            Assert.AreEqual(expectedObjectCount1, AmountOfTargetingSystemsRegistered);
+        }
+
+        [UnityTest, Performance, Version(TestSettings.Version)]
+        [Timeout(TestSettings.defaultPerformanceTests)]
+        public IEnumerator TargetingSystemGetsAddedAfterAddingEyeComponent([ValueSource(typeof(TestUtilities), nameof(TestUtilities.GetScenesFromPath))] string scenePath)
+        {
+            factoryAndOriginalScenes = TestUtilities.SetupScene(scenePath);
+            for (int i = 0; i < 50; i++)
+            {
+                yield return null;
+            }
+            GameObject geoVision = new GameObject("geoTesting");
+            geoVision.AddComponent<GeometryVisionEye>();
+            yield return null;
+            yield return null;
+            int AmountOfTargetingSystemsRegistered = 0;
+            int expectedObjectCount1 = 1;
+            Measure.Method(() => { AmountOfTargetingSystemsRegistered = geoVision.GetComponent<GeometryTargeting>().TargetingPrograms.Count; }).Run();
+
+            Debug.Log("total targeting systems: " + AmountOfTargetingSystemsRegistered);
+            Assert.AreEqual(expectedObjectCount1, AmountOfTargetingSystemsRegistered);
+        }
+
+        [UnityTest, Performance, Version(TestSettings.Version)]
+        [Timeout(TestSettings.defaultPerformanceTests)]
+        public IEnumerator TargetingSystemGetsAddedAfterAfterCreatedWithFactory([ValueSource(typeof(TestUtilities), nameof(TestUtilities.GetScenesFromPath))] string scenePath)
+        {
+            factoryAndOriginalScenes = TestUtilities.SetupScene(scenePath);
+            for (int i = 0; i < 50; i++)
+            {
+                yield return null;
+            }
+            GameObject geoVision = factoryAndOriginalScenes.Item1.CreateGeometryVision(new Vector3(0f, 0f, -6f), Quaternion.identity, 25, GeometryType.Edges, 0);
+            yield return null;
+            yield return null;
+            int AmountOfTargetingSystemsRegistered = 0;
+            int expectedObjectCount1 = 1;
+            Measure.Method(() => { AmountOfTargetingSystemsRegistered = geoVision.GetComponent<GeometryTargeting>().TargetingPrograms.Count; }).Run();
+
+            Debug.Log("total targeting systems: " + AmountOfTargetingSystemsRegistered);
+            Assert.AreEqual(expectedObjectCount1, AmountOfTargetingSystemsRegistered);
+        }
     }
 }

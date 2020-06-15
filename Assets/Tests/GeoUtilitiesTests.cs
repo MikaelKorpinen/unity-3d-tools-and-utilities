@@ -10,7 +10,7 @@ using UnityEditor;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.TestTools;
-using static GeometryDataModels.Boolean;
+using static GeometricVision.GeometryDataModels.Boolean;
 using Object = UnityEngine.Object;
 
 namespace Tests
@@ -82,7 +82,7 @@ namespace Tests
 
             /////Put camera at position where it can only see text cube 3d model partially
             var position = new Vector3(-0.69f, 0.352f, -4.34f);
-            //Need to wait till update loop finishes updating. Most likely issue with slow pc's.
+            //Need to wait till update loop finishes updating. Most likely issue with slow computers.
             yield return null;
 
             var visibleEdgeCount =

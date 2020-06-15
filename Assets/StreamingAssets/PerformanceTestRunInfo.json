@@ -1,0 +1,57 @@
+{
+    "PlayerSystemInfo": {
+        "OperatingSystem": "",
+        "DeviceModel": "",
+        "DeviceName": "",
+        "ProcessorType": "",
+        "ProcessorCount": 0,
+        "GraphicsDeviceName": "",
+        "SystemMemorySize": 0,
+        "XrModel": "",
+        "XrDevice": ""
+    },
+    "EditorVersion": {
+        "FullVersion": "2020.1.0a18 (630f9adc3455)",
+        "DateSeconds": 1576584870,
+        "Branch": "trunk",
+        "RevisionValue": 6492058
+    },
+    "BuildSettings": {
+        "Platform": "",
+        "BuildTarget": "StandaloneLinux64",
+        "DevelopmentPlayer": false,
+        "AndroidBuildSystem": "Gradle"
+    },
+    "ScreenSettings": {
+        "ScreenWidth": 0,
+        "ScreenHeight": 0,
+        "ScreenRefreshRate": 0,
+        "Fullscreen": false
+    },
+    "QualitySettings": {
+        "Vsync": 0,
+        "AntiAliasing": 0,
+        "ColorSpace": "",
+        "AnisotropicFiltering": "",
+        "BlendWeights": ""
+    },
+    "PlayerSettings": {
+        "ScriptingBackend": "IL2CPP",
+        "VrSupported": false,
+        "MtRendering": true,
+        "GraphicsJobs": true,
+        "GpuSkinning": true,
+        "GraphicsApi": "OpenGLCore",
+        "Batchmode": "False",
+        "StereoRenderingPath": "MultiPass",
+        "RenderThreadingMode": "GraphicsJobs",
+        "AndroidMinimumSdkVersion": "AndroidApiLevel19",
+        "AndroidTargetSdkVersion": "AndroidApiLevelAuto",
+        "EnabledXrTargets": [],
+        "ScriptingRuntimeVersion": ""
+    },
+    "TestSuite": "",
+    "StartTime": 1586208484485.672,
+    "EndTime": 0.0,
+    "Results": []
+}

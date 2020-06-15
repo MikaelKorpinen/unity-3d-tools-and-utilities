@@ -26,7 +26,7 @@ namespace Tests
         }
 
         [UnityTest, Performance, Version(version)]
-        [Timeout(2000)]
+        [Timeout(TestSettings.defaultSmallTest)]
         public IEnumerator ObjectWithRendererIsPickedIfInsideFrustum([ValueSource(typeof(TestUtilities), nameof(TestUtilities.GetScenesFromPath))] string scenePath)
         {
             factoryAndOriginalScenes = TestUtilities.SetupScene(scenePath);
@@ -45,7 +45,7 @@ namespace Tests
         }
 
         [UnityTest, Performance, Version(version)]
-        [Timeout(2000)]
+        [Timeout(TestSettings.defaultSmallTest)]
         public IEnumerator ObjectWithRendererIsRemovedAndAddedBackIfOutsideFrustum(
             [ValueSource(typeof(TestUtilities), nameof(TestUtilities.GetScenesFromPath))] string scenePath)
         {
@@ -76,7 +76,7 @@ namespace Tests
         }
 
         [UnityTest, Performance, Version(version)]
-        [Timeout(2000)]
+        [Timeout(TestSettings.defaultSmallTest)]
         public IEnumerator ObjectWithRendererIsRemovedIfOutsideFrustum(
             [ValueSource(typeof(TestUtilities), nameof(TestUtilities.GetScenesFromPath))] string scenePath)
         {
