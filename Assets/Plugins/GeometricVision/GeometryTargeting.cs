@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using Plugins.GeometricVision;
+using Plugins.GeometricVision.Interfaces.Implementations;
 using UnityEngine;
 using UnityEngine.Serialization;
 

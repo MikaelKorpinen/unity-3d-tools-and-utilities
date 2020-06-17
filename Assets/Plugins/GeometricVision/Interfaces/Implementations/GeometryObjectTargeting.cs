@@ -1,25 +1,27 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using GeometricVision;
 using UnityEngine;
 
-public class GeometryObjectTargeting : IGeoTargeting
+namespace Plugins.GeometricVision.Interfaces.Implementations
 {
-    public Vector3 ClosestPointOnRay(Vector3 rayLocation, Vector3 rayDirection, List<GeometryDataModels.GeoInfo> targets)
+    public class GeometryObjectTargeting : IGeoTargeting
     {
-        foreach (var target in targets)
+        public Vector3 ClosestPointOnRay(Vector3 rayLocation, Vector3 rayDirection, List<GeometryDataModels.GeoInfo> targets)
         {
-            Vector3 point =  target.transform.position;
-            Vector3 rayDirectionEndPoint = rayDirection;
-            point = VectorToRaySpace(rayLocation, point);
-            rayDirectionEndPoint = VectorToRaySpace(rayLocation, rayDirection);
-            Vector3 projection = Vector3.Project(point, rayDirectionEndPoint);
+            foreach (var target in targets)
+            {
+                Vector3 point =  target.transform.position;
+                Vector3 rayDirectionEndPoint = rayDirection;
+                point = VectorToRaySpace(rayLocation, point);
+                rayDirectionEndPoint = VectorToRaySpace(rayLocation, rayDirection);
+                Vector3 projection = Vector3.Project(point, rayDirectionEndPoint);
+            }
+            return Vector3.back;
         }
-        return Vector3.back;
-    }
 
-    private Vector3 VectorToRaySpace(Vector3 rayLocation,  Vector3 target)
-    {
-        return target - rayLocation;
+        private Vector3 VectorToRaySpace(Vector3 rayLocation,  Vector3 target)
+        {
+            return target - rayLocation;
+        }
     }
 }
