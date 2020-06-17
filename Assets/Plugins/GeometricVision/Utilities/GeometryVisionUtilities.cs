@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using GeometricVision;
+using Plugins.GeometricVision;
 using UnityEngine;
 
 public static class GeometryVisionUtilities
@@ -12,8 +13,10 @@ public static class GeometryVisionUtilities
         if (head == null)
         {
             var factory = new GeometryVisionFactory();
+            var geoTypesToTarget = new List<GeometryType>();
+            geoTypesToTarget.Add(GeometryType.Objects_);
             var headObject = factory.CreateGeometryVision(new Vector3(0f, 0f, 0f), Quaternion.identity, 25, eye,
-                GeometryType.Edges, 0);
+                geoTypesToTarget, 0);
             return headObject.GetComponent<GeometryVisionBrain>();
         }
 

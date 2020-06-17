@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using Plugins.GeometricVision;
 using UnityEngine;
 [DisallowMultipleComponent]
 public class GeometryVisionHead : MonoBehaviour
