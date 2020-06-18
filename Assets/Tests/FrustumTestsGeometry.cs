@@ -35,9 +35,7 @@ namespace Tests
                 yield return null;
             }
             int expectedObjectCount = GameObject.FindObjectsOfType<Renderer>().Length;
-            var geoTypesToTarget = new List<GeometryType>();
-            geoTypesToTarget.Add(GeometryType.Objects_);
-            GameObject geoVision = factoryAndOriginalScenes.Item1.CreateGeometryVision(new Vector3(0f, 0f, -6f), Quaternion.identity, 25, geoTypesToTarget, 0);
+            var geoVision = TestUtilities.SetupGeoVision(new Vector3(0f, 0f, -6f), factoryAndOriginalScenes, false);
 
             yield return null;
             yield return null;
@@ -59,9 +57,7 @@ namespace Tests
 
             int expectedObjectCount2 = 0;
             int expectedObjectCount3 = expectedObjectCount1;
-            var geoTypesToTarget = new List<GeometryType>();
-            geoTypesToTarget.Add(GeometryType.Edges);
-            GameObject geoVision = factoryAndOriginalScenes.Item1.CreateGeometryVision(new Vector3(0f, 0f, -6f), Quaternion.identity, 25, geoTypesToTarget, 0);
+            var geoVision = TestUtilities.SetupGeoVision(new Vector3(0f, 0f, -6f), factoryAndOriginalScenes, false);
             
             yield return null;
             yield return null;
@@ -89,9 +85,7 @@ namespace Tests
             {
                 yield return null;
             }
-            var geoTypesToTarget = new List<GeometryType>();
-            geoTypesToTarget.Add(GeometryType.Edges);
-            GameObject geoVision = factoryAndOriginalScenes.Item1.CreateGeometryVision(new Vector3(0f, 0f, -6f), Quaternion.identity, 25, geoTypesToTarget, 0);
+            var geoVision = TestUtilities.SetupGeoVision(new Vector3(0f, 0f, -6f), factoryAndOriginalScenes, false);
             yield return null;
             geoVision.transform.position = new Vector3(10f, 10f, 10f);
             yield return null;

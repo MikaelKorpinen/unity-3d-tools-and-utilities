@@ -8,7 +8,7 @@ namespace Plugins.GeometricVision
     [Serializable]
     public class VisionTarget
     {
-        public bool onOff = true;
+        public bool enabled = true;
         public GeometryType type;
     
         [SerializeField] private BoolReactiveProperty target = new BoolReactiveProperty();
@@ -32,6 +32,12 @@ namespace Plugins.GeometricVision
         {
             get { return target; }
             set { target = value; }
+        }
+
+        public bool Enabled
+        {
+            get => enabled;
+            set => enabled = value;
         }
 
 

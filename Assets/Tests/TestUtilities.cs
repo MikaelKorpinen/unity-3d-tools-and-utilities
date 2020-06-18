@@ -55,7 +55,22 @@ public static class TestUtilities
 
         return scenePaths;
     }
-    
+
+    public static GameObject SetupGeoVision(Vector3 position,
+        Tuple<GeometryVisionFactory, EditorBuildSettingsScene[]> factoryAndOriginalScenes, bool edgesTargeted)
+    {
+        var geoTypesToTarget = new List<GeometryType>();
+        geoTypesToTarget.Add(GeometryType.Objects_);
+        if (edgesTargeted)
+        {
+            geoTypesToTarget.Add(GeometryType.Edges);
+        }
+
+        GameObject geoVision = factoryAndOriginalScenes.Item1.CreateGeometryVision(position,
+            Quaternion.identity, 25,
+            geoTypesToTarget, 0, true);
+        return geoVision;
+    }
     public static string[] GetSceneFilePaths( string sceneFolderPath)
     {
         DirectoryInfo d = new DirectoryInfo(@sceneFolderPath);

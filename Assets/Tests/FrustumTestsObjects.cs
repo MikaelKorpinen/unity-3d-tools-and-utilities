@@ -32,9 +32,7 @@ namespace Tests
 
             var expectedObjectCount = TestUtilities.GetObjectCountFromScene(Vector3.zero);
             yield return null;
-            var geoTypesToTarget = new List<GeometryType>();
-            geoTypesToTarget.Add(GeometryType.Objects_);
-            GameObject geoVision= factoryAndOriginalScenes.Item1.CreateGeometryVision(new Vector3(0f, 0f, -6f), Quaternion.identity, 25, geoTypesToTarget, 0);
+            var geoVision = TestUtilities.SetupGeoVision(new Vector3(0f, 0f, -6f), factoryAndOriginalScenes, false);
             yield return null;
             var geoEye = geoVision.GetComponent<GeometryVisionEye>();
             Assert.AreEqual(expectedObjectCount, geoEye.seenTransforms.Count);
@@ -51,9 +49,7 @@ namespace Tests
             var expectedObjectCount = TestUtilities.GetObjectCountFromScene(Vector3.zero);
             int expectedObjectCount2 = 0;
             int expectedObjectCount3 = expectedObjectCount;
-            var geoTypesToTarget = new List<GeometryType>();
-            geoTypesToTarget.Add(GeometryType.Objects_);
-            GameObject geoVision= factoryAndOriginalScenes.Item1.CreateGeometryVision(new Vector3(0f, 0f, -6f), Quaternion.identity, 25, geoTypesToTarget, 0);
+            var geoVision = TestUtilities.SetupGeoVision(new Vector3(0f, 0f, -6f), factoryAndOriginalScenes, false);
             yield return null;
             
             Assert.AreEqual(expectedObjectCount, geoVision.GetComponent<GeometryVisionEye>().seenTransforms.Count);  

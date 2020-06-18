@@ -68,18 +68,14 @@ public class GeometryVisionEye : MonoBehaviour
         seenGeoInfos = new List<GeometryDataModels.GeoInfo>();
         ControllerBrain =
             GeometryVisionUtilities.getControllerFromGeometryManager(FindObjectOfType<GeometryVisionHead>(), this);
-
-        _debugger = new EyeDebugger();
+        Debugger = new EyeDebugger();
         seenTransforms = new HashSet<Transform>();
         Camera1.enabled = false;
-
-        if (debugMode)
-        {
-            _debugger.Planes = RegenerateVisionArea(fieldOfView, planes);
-        }
+        Debugger.Planes = RegenerateVisionArea(fieldOfView, planes);
 
         HandleTargeting();
     }
+
     /// <summary>
     /// Checks if objects are targeted. At least one GeometryType.Objects_ needs to be in the list in order for the plugin to see something that it can use
     /// </summary>
@@ -195,7 +191,7 @@ public class GeometryVisionEye : MonoBehaviour
 
         foreach (var geometryType in TargetedGeometries)
         {
-            if (geometryType.GeometryType == GeometryType.Edges)
+            if (geometryType.GeometryType == GeometryType.Edges && geometryType.Enabled)
             {
                 MeshUtilities.UpdateEdgesVisibilityParallel(planes, seenGeometry);
             }
@@ -270,25 +266,12 @@ public class GeometryVisionEye : MonoBehaviour
 
         return seenTransforms;
     }
-
-
-    private void RemoveAt(ref Renderer[] renderer, int indexToRemove)
+    
+    public void Debug()
     {
-        for (int i = indexToRemove; i < renderer.Length - 1; i++)
+        if (DebugMode)
         {
-            renderer[i] = renderer[i + 1];
-        }
-
-        Destroy(gameObject.GetComponent<Camera>());
-
-        Array.Resize(ref renderer, renderer.Length - 1);
-    }
-
-    private void Debug()
-    {
-        if (debugMode)
-        {
-            _debugger.Debug(Camera1, SeenGeoInfos, true);
+            Debugger.Debug(Camera1, SeenGeoInfos, true);
         }
     }
 
@@ -319,5 +302,17 @@ public class GeometryVisionEye : MonoBehaviour
     {
         get { return controllerBrain; }
         set { controllerBrain = value; }
+    }
+
+    public bool DebugMode
+    {
+        get { return debugMode; }
+        set { debugMode = value; }
+    }
+
+    public EyeDebugger Debugger
+    {
+        get { return _debugger; }
+        set { _debugger = value; }
     }
 }

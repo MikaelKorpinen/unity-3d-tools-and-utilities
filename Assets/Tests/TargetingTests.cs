@@ -32,9 +32,7 @@ namespace Tests
             {
                 yield return null;
             }
-            var geoTypesToTarget = new List<GeometryType>();
-            geoTypesToTarget.Add(GeometryType.Objects_);
-            GameObject geoVision = factoryAndOriginalScenes.Item1.CreateGeometryVision(new Vector3(0f, 0f, -6f), Quaternion.identity, 25, geoTypesToTarget, 0);
+            var geoVision = TestUtilities.SetupGeoVision(new Vector3(0f, 0f, -6f), factoryAndOriginalScenes, false);
             yield return null;
             yield return null;
             int AmountOfTargetingSystemsRegistered = 0;
