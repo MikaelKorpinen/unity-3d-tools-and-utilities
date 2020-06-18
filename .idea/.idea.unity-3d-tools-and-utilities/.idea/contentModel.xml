@@ -320,6 +320,7 @@
         </e>
         <e p="Tests" t="Include">
           <e p="CreationalTests.cs" t="Include" />
+          <e p="EyeDebuggerTests.cs" t="Include" />
           <e p="FrustumTestsGeometry.cs" t="Include" />
           <e p="FrustumTestsObjects.cs" t="Include" />
           <e p="GeoUtilitiesTests.cs" t="Include" />

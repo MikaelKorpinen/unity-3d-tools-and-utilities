@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using GeometricVision;
+using UnityEditor.Graphs;
 using UnityEngine;
 using static GeometricVision.GeometryDataModels.Boolean;
 using Plane = GeometricVision.GeometryDataModels.Plane;
@@ -11,12 +12,13 @@ public class EyeDebugger
 {
     List<GameObject> debugPlanes = new List<GameObject>();
     public UnityEngine.Plane[] _planes;
-
+    private int amountOfSeenEdges = 0;
     public UnityEngine.Plane[] Planes
     {
         get { return _planes; }
         set { _planes = value; }
     }
+    
     public struct Root
     {
         public Vector3 positiom;
@@ -26,13 +28,18 @@ public class EyeDebugger
         public GameObject[] debugPlanes;
         public UnityEngine.Plane[] Planes;
     }
-
     public List<GameObject> DebugPlanes
     {
         get { return debugPlanes; }
         set { debugPlanes = value; }
     }
-    
+
+    public int AmountOfSeenEdges
+    {
+        get { return amountOfSeenEdges; }
+        set { amountOfSeenEdges = value; }
+    }
+
     internal void CreateDebugPlanes(float fieldOfView, Vector3[] frustumCornersNear, Vector3[] frustumCornersFar, Camera camera, UnityEngine.Plane[] planes)
     {
         _planes = planes;
@@ -106,13 +113,14 @@ public class EyeDebugger
         }
     }
 
-    private static void DrawEdges(GeometryDataModels.GeoInfo geoItem)
+    private void DrawEdges(GeometryDataModels.GeoInfo geoItem)
     {
         foreach (var edge in geoItem.edges)
         {
             if (edge.isVisible == True)
             {
                 UnityEngine.Debug.DrawLine(edge.firstVertex, edge.secondVertex, Color.blue, 1);
+                amountOfSeenEdges++;
             }
         }
     }
@@ -127,7 +135,7 @@ public class EyeDebugger
                 CreateDebugPlanes(25, _frustumCornersNear, _frustumCornersFar, camera, _planes);
             }
         }
-
+        amountOfSeenEdges = 0;
         DrawEdgesOnAllObjects(geoInfos, DrawEdges);
         
     }

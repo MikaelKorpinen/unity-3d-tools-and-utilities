@@ -28,7 +28,7 @@ public class VisionTypeDrawerUIE : PropertyDrawer
     {
         var container = new VisualElement();
 
-        var toggleField = new PropertyField(property.FindPropertyRelative("onOff"));
+        var toggleField = new PropertyField(property.FindPropertyRelative("enabled"));
         var visionTypeField = new PropertyField(property.FindPropertyRelative("type"));
         var layerField = new PropertyField(property.FindPropertyRelative("targetLayer"));
        
@@ -67,7 +67,7 @@ public class VisionTypeDrawer : PropertyDrawer
         var toggleRectTargeting = new Rect(position.x + 420, position.y, 70, position.height);
         
         EditorGUI.LabelField(labelRect, "enabled:");
-        EditorGUI.PropertyField(toggleRect, property.FindPropertyRelative("onOff"), GUIContent.none);
+        EditorGUI.PropertyField(toggleRect, property.FindPropertyRelative("enabled"), GUIContent.none);
 
         EditorGUI.LabelField(seeLabelRect, "See:");
         EditorGUI.PropertyField(typeRect, property.FindPropertyRelative("type"), GUIContent.none);

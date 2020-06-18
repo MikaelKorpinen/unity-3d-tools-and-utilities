@@ -38,7 +38,7 @@ namespace GeometricVision
         /// <param name="layerIndex"></param>
         /// <returns></returns>
         public GameObject CreateGeometryVision(Vector3 startingPosition, Quaternion rotation, float fieldOfView,
-            List<GeometryType> geoTypes, int layerIndex)
+            List<GeometryType> geoTypes, int layerIndex, bool debugModeEnabled)
         {
             GameObject geoVision = GameObject.Find("geoVision");
             if (geoVision == null)
@@ -49,6 +49,7 @@ namespace GeometricVision
             var head = CreateHead(geoVision);
             head.Brain = CreateBrain(geoVision);
             head.Eye = CreateEye(geoVision, fieldOfView);
+            head.Eye.DebugMode = debugModeEnabled;
             head.Eye.Head = geoVision.GetComponent<GeometryVisionHead>();
             head.Eye.ControllerBrain = geoVision.GetComponent<GeometryVisionHead>().Brain;
             
