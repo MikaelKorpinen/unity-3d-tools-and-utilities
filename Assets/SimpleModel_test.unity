@@ -591,6 +591,7 @@ MonoBehaviour:
     target:
       value: 1
     targetLayer: 0
+  - enabled: 1
     type: 2
     target:
       value: 1
