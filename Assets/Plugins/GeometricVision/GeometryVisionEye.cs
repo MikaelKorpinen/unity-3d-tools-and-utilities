@@ -34,7 +34,7 @@ namespace Plugins.GeometricVision
         [SerializeField] public HashSet<Transform> seenTransforms;
         private EyeDebugger _debugger;
         private bool _addedByFactory;
-
+        [SerializeField,  Tooltip(" Geometry is extracted from collider instead of renderers mesh")] private bool targetColliderMeshes;
         [SerializeField] private List<VisionTarget>
             targetedGeometries =
                 new List<VisionTarget>(); //TODO: Make it reactive and dispose subscribers on array resize in case they are not cleaned up by the gc
@@ -99,6 +99,7 @@ namespace Plugins.GeometricVision
                     OnTargetingEnabled(geometryType, geoTargeting);
                 }
             }
+            RefreshTargeting(targets);
         }
 
         private GeometryTargeting AssignGeometryTargeting()
@@ -173,9 +174,8 @@ namespace Plugins.GeometricVision
             }
         }
 
-        private static void RefreshTargeting(List<VisionTarget> targets, string message)
+        private static void RefreshTargeting(List<VisionTarget> targets)
         {
-            UnityEngine.Debug.Log(message);
             foreach (var visionTarget in targets)
             {
                 if (visionTarget.TargetingSystem == null)
@@ -380,6 +380,12 @@ namespace Plugins.GeometricVision
         {
             get { return _debugger; }
             set { _debugger = value; }
+        }
+        
+        public bool TargetColliderMeshes
+        {
+            get { return targetColliderMeshes; }
+            set { targetColliderMeshes = value; }
         }
     }
 }

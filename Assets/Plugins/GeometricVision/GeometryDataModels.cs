@@ -36,6 +36,7 @@ namespace GeometricVision
             public GeometryDataModels.Edge[] edges;
             public Mesh mesh;
             private Vector3[] BoundsCorners;
+            public Mesh colliderMesh;
         }
 
         public struct NativeEdge

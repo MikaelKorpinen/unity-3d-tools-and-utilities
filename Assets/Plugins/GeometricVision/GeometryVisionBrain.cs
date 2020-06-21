@@ -19,6 +19,7 @@ namespace Plugins.GeometricVision
         [SerializeField] private List<GeometryDataModels.GeoInfo> _geoInfos = new List<GeometryDataModels.GeoInfo>();
         public HashSet<Transform> AllObjects;
         public List<GameObject> RootObjects;
+        private bool collidersTargeted;
 
         List<GeometryDataModels.GeoInfo> IGeoBrain.GeoInfos()
         {
@@ -159,7 +160,15 @@ namespace Plugins.GeometricVision
                     geoInfo.mesh = seenObject.GetComponent<MeshFilter>().mesh;
                     if (geometryIsTargeted(targetedGeometries))
                     {
-                        geoInfo.edges = MeshUtilities.GetEdgesFromMesh(geoInfo.renderer, geoInfo.mesh);
+                        if (!collidersTargeted)
+                        {
+                            geoInfo.edges = MeshUtilities.GetEdgesFromMesh(geoInfo.renderer, geoInfo.mesh); 
+                        }
+                        else
+                        {
+                            geoInfo.colliderMesh = seenObject.GetComponent<MeshCollider>().sharedMesh;
+                            geoInfo.edges = MeshUtilities.GetEdgesFromMesh(geoInfo.renderer, geoInfo.mesh);
+                        }
                     }
 
                     geoInfos.Add(geoInfo);

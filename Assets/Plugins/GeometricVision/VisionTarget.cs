@@ -70,7 +70,6 @@ namespace Plugins.GeometricVision
             get { return targetHidden; }
             set { targetHidden = value; }
         }
-
     }
 
     public class ExposePropertyAttribute : PropertyAttribute {

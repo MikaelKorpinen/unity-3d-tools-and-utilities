@@ -29,14 +29,14 @@ namespace Plugins.GeometricVision.UI
             var layerField = new PropertyField(property.FindPropertyRelative("targetLayer"));
             var targetField = new PropertyField(property.FindPropertyRelative("target"));
             var targetField2 = new PropertyField(property.FindPropertyRelative("targetHidden"));
-            var onSomethingHappenedEvent = new PropertyField(property.FindPropertyRelative("targetingActions"));
+            var actionsTemplate = new PropertyField(property.FindPropertyRelative("targetingActions"));
 
             container.Add(toggleField);
             container.Add(visionTypeField);
             container.Add(layerField);
             container.Add(targetField);
             container.Add(targetField2);
-            container.Add(onSomethingHappenedEvent);
+            container.Add(actionsTemplate);
 
             return container;
         }
