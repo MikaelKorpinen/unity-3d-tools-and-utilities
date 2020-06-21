@@ -3,9 +3,9 @@ using UnityEngine;
 using System;
 using System.Linq;
 using GeometricVision;
-using GeometricVision.Utilities;
 using NUnit.Framework;
 using Plugins.GeometricVision;
+using Plugins.GeometricVision.Utilities;
 using Unity.PerformanceTesting;
 using UnityEditor;
 using UnityEngine.TestTools;
@@ -50,7 +50,7 @@ namespace Tests
             yield return null;
             GeometryDataModels.Edge[] edges;
             var geoEye = geoVision.GetComponent<GeometryVisionEye>();
-            geoEye.TargetedGeometries.Add(new VisionTarget(GeometryType.Edges, 0, null));
+            geoEye.TargetedGeometries.Add(new VisionTarget(GeometryType.Lines, 0, null));
             /////Put camera at position where it can only see text cube 3d model partially
             var position = new Vector3(-0.69f, 0.352f, -4.34f);
             //Need to wait till update loop finishes for frustum to update. On windows machines not happen as fast as on Linux for some reason.
@@ -86,7 +86,7 @@ namespace Tests
             yield return null;
             GeometryDataModels.Edge[] edges;
             var geoEye = geoVision.GetComponent<GeometryVisionEye>();
-            geoEye.TargetedGeometries.Add(new VisionTarget(GeometryType.Edges, 0, null));
+            geoEye.TargetedGeometries.Add(new VisionTarget(GeometryType.Lines, 0, null));
             /////Put camera at position where it can only see text cube 3d model partially(3 edges of side of the cube)
             var position = new Vector3(-0.69f, 0.352f, -4.34f);
             var visibleEdgeCount =

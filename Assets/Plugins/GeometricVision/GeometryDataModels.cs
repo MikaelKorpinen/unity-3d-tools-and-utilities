@@ -9,9 +9,8 @@ namespace GeometricVision
     {
         all,
         Vertices,
-        Edges,
-        Objects_,
-        Colliders
+        Lines,
+        Objects
     }
 
 

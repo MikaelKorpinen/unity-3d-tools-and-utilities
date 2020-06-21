@@ -11,10 +11,10 @@ namespace GeometricVision
     {
         [SerializeField] private bool debugMode;
         private GeometryVisionEye eye;
-        private HashSet<IGeoTargeting> targetingPrograms =new HashSet<IGeoTargeting>();
+        [SerializeField]private List<IGeoTargeting> targetingPrograms =new List<IGeoTargeting>();
         [SerializeField] private int targetingSystemsCount = 0;
 
-        public HashSet<IGeoTargeting> TargetingPrograms
+        public List<IGeoTargeting> TargetingPrograms
         {
             get { return targetingPrograms; }
             set { targetingPrograms = value; }
@@ -37,7 +37,7 @@ namespace GeometricVision
         {
             if (TargetingPrograms == null)
             {
-                TargetingPrograms = new HashSet<IGeoTargeting>();
+                TargetingPrograms = new List<IGeoTargeting>();
             }
 
             if (GetComponent<GeometryVisionEye>() == null)
@@ -56,7 +56,7 @@ namespace GeometricVision
 
         public void AddTarget(VisionTarget geometryContainer)
         {
-            if (geometryContainer.type == GeometryType.Objects_)
+            if (geometryContainer.GeometryType == GeometryType.Objects)
             {
                 IGeoTargeting targetingSystem = new GeometryObjectTargeting();
                 geometryContainer.TargetingSystem = targetingSystem;

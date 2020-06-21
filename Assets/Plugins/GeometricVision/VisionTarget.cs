@@ -1,20 +1,45 @@
 ﻿using System;
 using GeometricVision;
+using Plugins.GeometricVision.Interfaces.Implementations;
+using Plugins.GeometricVision.UI;
+using Plugins.GeometricVision.UniRx.Scripts.UnityEngineBridge;
 using UniRx;
 using UnityEngine;
+using UnityEngine.Events;
 
 namespace Plugins.GeometricVision
 {
     [Serializable]
+    public class TargetingEvents : UnityEvent{ }
+    [Serializable]
     public class VisionTarget
     {
         public bool enabled = true;
-        public GeometryType type;
+        [SerializeField,  Tooltip("Choose what geometry to target or use.")] private GeometryType type;
     
         [SerializeField] private BoolReactiveProperty target = new BoolReactiveProperty();
-        [SerializeField, Layer] private int targetLayer = 31;
-        public IGeoTargeting TargetingSystem { get; set; }
+        //Cannot get Reactive value from serialized property, so this boolean variable handles it job on the inspector gui under the hood.
+        //It is not visible on the inspector but removing serialization makes it un findable
+        [SerializeField] private bool targetHidden;
+        [SerializeField] private Action actionToPerform;
+        [SerializeField, Layer, Tooltip("Choose what layer from unity layers settings to use")] private int targetLayer = 31;
         public bool Subscribed { get; set; }
+        public ActionsTemplateObject targetingActions;
+        private IGeoTargeting targetingSystem = null;
+
+        public VisionTarget(GeometryType geoType, int layerIndex, IGeoTargeting targetingSystem)
+        {
+            GeometryType = geoType;
+            targetLayer = layerIndex;
+            this.TargetingSystem = targetingSystem;
+            
+            Target.Value = true;
+        }
+        public IGeoTargeting TargetingSystem
+        {
+            get { return targetingSystem; }
+            set { targetingSystem = value; }
+        }
 
         public int TargetLayer
         {
@@ -36,19 +61,16 @@ namespace Plugins.GeometricVision
 
         public bool Enabled
         {
-            get => enabled;
-            set => enabled = value;
+            get { return enabled; }
+            set { enabled = value; }
         }
 
-
-        public VisionTarget(GeometryType geoType, int layerIndex, IGeoTargeting targetingSystem)
+        public bool TargetHidden
         {
-            GeometryType = geoType;
-            targetLayer = layerIndex;
-            this.TargetingSystem = targetingSystem;
-            
-            Target.Value = true;
+            get { return targetHidden; }
+            set { targetHidden = value; }
         }
+
     }
 
     public class ExposePropertyAttribute : PropertyAttribute {

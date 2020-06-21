@@ -1,12 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using GeometricVision;
 using GeometricVision.Jobs;
 using Unity.Collections;
 using Unity.Jobs;
 using UnityEngine;
 using static GeometricVision.GeometryDataModels.Boolean;
 
-namespace GeometricVision.Utilities
+namespace Plugins.GeometricVision.Utilities
 {
     public class MeshUtilities
     {
@@ -236,7 +237,6 @@ namespace GeometricVision.Utilities
 
         public static void UpdateEdgesVisibility(UnityEngine.Plane[] planes, List<GeometryDataModels.GeoInfo> seenGeometry)
         {
-            var edge = new GeometryDataModels.Edge();
             for (var index = 0; index < seenGeometry.Count; index++)
             {
                 var geoInfo = seenGeometry[index];

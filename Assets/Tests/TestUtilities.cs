@@ -60,10 +60,10 @@ public static class TestUtilities
         Tuple<GeometryVisionFactory, EditorBuildSettingsScene[]> factoryAndOriginalScenes, bool edgesTargeted)
     {
         var geoTypesToTarget = new List<GeometryType>();
-        geoTypesToTarget.Add(GeometryType.Objects_);
+        geoTypesToTarget.Add(GeometryType.Objects);
         if (edgesTargeted)
         {
-            geoTypesToTarget.Add(GeometryType.Edges);
+            geoTypesToTarget.Add(GeometryType.Lines);
         }
 
         GameObject geoVision = factoryAndOriginalScenes.Item1.CreateGeometryVision(position,

@@ -22,6 +22,7 @@
               <e p="IGeoBrain.cs" t="Include" />
               <e p="IGeoTargeting.cs" t="Include" />
               <e p="Implementations" t="Include">
+                <e p="GeometryLineTargeting.cs" t="Include" />
                 <e p="GeometryObjectTargeting.cs" t="Include" />
               </e>
             </e>
@@ -30,6 +31,9 @@
             </e>
             <e p="TestSettings.cs" t="Include" />
             <e p="UI" t="Include">
+              <e p="Actions.uss" t="Include" />
+              <e p="Actions.uxml" t="Include" />
+              <e p="ActionsTemplateObject.cs" t="Include" />
               <e p="VisionTypeDrawer.cs" t="Include" />
             </e>
             <e p="UniRx" t="Include">

@@ -1,26 +1,38 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using GeometricVision;
-using Plugins.GeometricVision;
+using UniRx;
 using UnityEngine;
 
-public interface IGeoBrain
+namespace Plugins.GeometricVision.Interfaces
 {
-    //Contains seen information about geometry objects that are seen by eyes/cameras
-    List<GeometryDataModels.GeoInfo> GeoInfos();
-    int CountSceneObjects();
-    /// <summary>
-    /// Gets all the transforms from list of objects
-    /// </summary>
-    /// <param name="rootObjects"></param>
-    /// <param name="targetTransforms"></param>
-    /// <returns></returns>
-    HashSet<Transform> GetTransforms(List<GameObject> objs);
-    List<Transform> GetAllObjects();
+    public interface IGeoBrain
+    {
+        /// <summary>
+        /// Contains seen information about geometry objects that are seen by eyes/cameras
+        /// </summary>
+        /// <returns></returns>
+        List<GeometryDataModels.GeoInfo> GeoInfos();
     
-    /// <summary>
-    /// Ask the manager brain to update it knowledge about targeted geometries
-    /// </summary>
-    /// <param name="targetedGeometries"></param>
-    void CheckSceneChanges(List<VisionTarget> targetedGeometries);
+        /// <summary>
+        /// Counts all the scene objects in the current active scene. Not including objects on Dont destroy on load atm.
+        /// </summary>
+        /// <returns></returns>
+        int CountSceneObjects();
+    
+        /// <summary>
+        /// Gets all the transforms from list of objects
+        /// </summary>
+        /// <param name="rootObjects"></param>
+        /// <param name="targetTransforms"></param>
+        /// <returns></returns>
+        HashSet<Transform> GetTransforms(List<GameObject> objs);
+    
+        List<Transform> GetAllObjects();
+    
+        /// <summary>
+        /// Ask the manager brain to update it knowledge about targeted geometries
+        /// </summary>
+        /// <param name="targetedGeometries"></param>
+        void CheckSceneChanges(List<VisionTarget> targetedGeometries);
+    }
 }

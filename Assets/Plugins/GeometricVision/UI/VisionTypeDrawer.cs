@@ -1,86 +1,124 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
+using System.Text.RegularExpressions;
 using Plugins.GeometricVision;
+using Plugins.GeometricVision.UniRx.Scripts.UnityEngineBridge;
+using UniRx;
 using UnityEditor;
 using UnityEditor.UIElements;
 using UnityEngine;
 using UnityEngine.UIElements;
 
-public class LayerAttribute : PropertyAttribute
+namespace Plugins.GeometricVision.UI
 {
-}
-
-[CustomPropertyDrawer(typeof(VisionTarget))]
-public class LayerAttributeEditor : PropertyDrawer
-{
-    public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
+    public class LayerAttribute : PropertyAttribute
     {
-        property.intValue = EditorGUI.LayerField(position, label, property.intValue);
     }
-}
 
-[CustomPropertyDrawer(typeof(VisionTarget))]
-public class VisionTypeDrawerUIE : PropertyDrawer
-{
-    public override VisualElement CreatePropertyGUI(SerializedProperty property)
+    [CustomPropertyDrawer(typeof(VisionTarget))]
+    public class VisionTypeDrawerUIE : PropertyDrawer
     {
-        var container = new VisualElement();
+        public override VisualElement CreatePropertyGUI(SerializedProperty property)
+        {
+            var container = new VisualElement();
+            var toggleField = new PropertyField(property.FindPropertyRelative("enabled"));
+            var visionTypeField = new PropertyField(property.FindPropertyRelative("type"));
+            var layerField = new PropertyField(property.FindPropertyRelative("targetLayer"));
+            var targetField = new PropertyField(property.FindPropertyRelative("target"));
+            var targetField2 = new PropertyField(property.FindPropertyRelative("targetHidden"));
+            var onSomethingHappenedEvent = new PropertyField(property.FindPropertyRelative("targetingActions"));
 
-        var toggleField = new PropertyField(property.FindPropertyRelative("enabled"));
-        var visionTypeField = new PropertyField(property.FindPropertyRelative("type"));
-        var layerField = new PropertyField(property.FindPropertyRelative("targetLayer"));
-       
-     
-        container.Add(toggleField);
-        container.Add(visionTypeField);
-        container.Add(layerField);
+            container.Add(toggleField);
+            container.Add(visionTypeField);
+            container.Add(layerField);
+            container.Add(targetField);
+            container.Add(targetField2);
+            container.Add(onSomethingHappenedEvent);
 
-
-        return container;
+            return container;
+        }
     }
-}
 
-[CustomPropertyDrawer(typeof(VisionTarget))]
-public class VisionTypeDrawer : PropertyDrawer
-{
-    public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
+    [CustomEditor(typeof(GeometryVisionEye))]
+    public class SomeScriptEditor : Editor
     {
-        label.text = "Seen target type:";
-        EditorGUI.BeginProperty(position, label, property);
-        position = EditorGUI.PrefixLabel(position, GUIUtility.GetControlID(FocusType.Passive), label);
+        public override void OnInspectorGUI()
+        {
+            DrawDefaultInspector();
+            GeometryVisionEye myScript = (GeometryVisionEye) target;
 
-        var intend = EditorGUI.indentLevel;
-        EditorGUI.indentLevel = 0;
-        
-        var labelRect = new Rect(position.x , position.y, 70, position.height);
-        var toggleRect = new Rect(position.x + 55, position.y, 70, position.height);
-        
-        var seeLabelRect = new Rect(position.x +80, position.y, 111, position.height);
-        var typeRect = new Rect(position.x + 110, position.y, 70, position.height);
-        
-        var labelLayerRect = new Rect(position.x +190, position.y, 111, position.height);
-        var layerRect = new Rect(position.x +230, position.y, 111, position.height);
+            if (GUILayout.Button("Create a new actions template for targeting."))
+            {
+                var newActionsTemplate = CreateInstance<ActionsTemplateObject>();
+                newActionsTemplate.name = newActionsTemplate.name;
 
-        var labelRectTargeting = new Rect(position.x +360, position.y, 70, position.height);
-        var toggleRectTargeting = new Rect(position.x + 420, position.y, 70, position.height);
-        
-        EditorGUI.LabelField(labelRect, "enabled:");
-        EditorGUI.PropertyField(toggleRect, property.FindPropertyRelative("enabled"), GUIContent.none);
 
-        EditorGUI.LabelField(seeLabelRect, "See:");
-        EditorGUI.PropertyField(typeRect, property.FindPropertyRelative("type"), GUIContent.none);
-        GUIContent label2 = new GUIContent("");
-        
-        EditorGUI.LabelField(labelLayerRect, "Layer:");
-        property.FindPropertyRelative("targetLayer").intValue = EditorGUI.LayerField(layerRect, label2, property.FindPropertyRelative("targetLayer").intValue);
-      
-        EditorGUI.LabelField(labelRectTargeting, "Targeting:");
-        EditorGUI.PropertyField(toggleRectTargeting, property.FindPropertyRelative("target"), GUIContent.none);
+                AssetDatabase.CreateAsset(newActionsTemplate, "Assets/NewActionsAssetForTargeting.asset");
+                AssetDatabase.SaveAssets();
 
-        EditorGUI.indentLevel = intend;
-        EditorGUI.EndProperty();
-        
+                EditorUtility.FocusProjectWindow();
+
+                Selection.activeObject = newActionsTemplate;
+            }
+        }
+    }
+
+    [CustomPropertyDrawer(typeof(VisionTarget))]
+    public class VisionTypeDrawer : PropertyDrawer
+    {
+        public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
+        {
+            label.text = "Seen target type: " + property.displayName;
+            EditorGUI.BeginProperty(position, label, property);
+            position = EditorGUI.PrefixLabel(position, GUIUtility.GetControlID(FocusType.Passive), label);
+
+            var intend = EditorGUI.indentLevel;
+            EditorGUI.indentLevel = 0;
+            var offset = position.height / 2 - 6;
+            var labelRect = new Rect(position.x, position.y - offset, 70, position.height);
+            var toggleRect = new Rect(position.x + 55, position.y - offset, 70, position.height);
+
+            var seeLabelRect = new Rect(position.x + 75, position.y - offset, 111, position.height);
+            var typeRect = new Rect(position.x + 105, position.y, 70, position.height);
+
+            var labelLayerRect = new Rect(position.x + 180, position.y - offset, 111, position.height);
+            var layerRect = new Rect(position.x + 220, position.y, 111, position.height);
+
+            var labelRectTargeting = new Rect(position.x + 340, position.y - offset, 70, position.height);
+            var toggleRectTargeting = new Rect(position.x + 400, position.y, 70, position.height);
+
+            var labelRectOnTargetFound = new Rect(position.x + 420, position.y - offset, 120, position.height);
+            var onSomethingHappenedEvent = new Rect(position.x + 520, position.y, 200, position.height);
+
+            EditorGUI.LabelField(labelRect, "enabled:");
+            EditorGUI.PropertyField(toggleRect, property.FindPropertyRelative("enabled"), GUIContent.none);
+
+            EditorGUI.LabelField(seeLabelRect, "See:");
+            EditorGUI.PropertyField(typeRect, property.FindPropertyRelative("type"), GUIContent.none);
+            GUIContent label2 = new GUIContent("");
+
+            EditorGUI.LabelField(labelLayerRect, "Layer:");
+            property.FindPropertyRelative("targetLayer").intValue = EditorGUI.LayerField(layerRect, label2,
+                property.FindPropertyRelative("targetLayer").intValue);
+
+            EditorGUI.LabelField(labelRectTargeting, "Targeting:");
+            EditorGUI.PropertyField(toggleRectTargeting, property.FindPropertyRelative("target"), GUIContent.none);
+
+            var istarget = property.FindPropertyRelative("targetHidden").boolValue;
+
+            if (istarget)
+            {
+                EditorGUI.LabelField(labelRectOnTargetFound, "On target found:");
+                EditorGUI.PropertyField(onSomethingHappenedEvent, property.FindPropertyRelative("targetingActions"),
+                    GUIContent.none);
+            }
+
+
+            EditorGUI.indentLevel = intend;
+            EditorGUI.EndProperty();
+        }
     }
 }

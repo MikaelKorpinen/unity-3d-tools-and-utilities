@@ -1,4 +1,4 @@
-﻿using GeometricVision.Utilities;
+﻿using Plugins.GeometricVision.Utilities;
 using Unity.Collections;
 using Unity.Jobs;
 using UnityEngine;
