@@ -17,9 +17,10 @@ namespace GeometricVision
                 geoVision = new GameObject("geoVision");
             }
 
-            CreateHead(geoVision);
+            var head =CreateHead(geoVision);
             geoVision.GetComponent<GeometryVisionHead>().Brain = CreateBrain(geoVision);
             geoVision.GetComponent<GeometryVisionHead>().Eye = eye;
+            geoVision.GetComponent<GeometryVisionHead>().Eye.Head = head;
             geoVision.GetComponent<GeometryVisionHead>().Eye.ControllerBrain =
                 geoVision.GetComponent<GeometryVisionHead>().Brain;
             geoVision.transform.position = startingPosition;
@@ -50,7 +51,7 @@ namespace GeometricVision
             head.Brain = CreateBrain(geoVision);
             head.Eye = CreateEye(geoVision, fieldOfView);
             head.Eye.DebugMode = debugModeEnabled;
-            head.Eye.Head = geoVision.GetComponent<GeometryVisionHead>();
+            head.Eye.Head = head;
             head.Eye.ControllerBrain = geoVision.GetComponent<GeometryVisionHead>().Brain;
             
             foreach (var geoType in geoTypes)
@@ -67,7 +68,11 @@ namespace GeometricVision
 
         private GeometryVisionHead CreateHead(GameObject geoVision)
         {
-            geoVision.AddComponent<GeometryVisionHead>();
+            if (geoVision.GetComponent<GeometryVisionHead>() == null)
+            {
+                geoVision.AddComponent<GeometryVisionHead>();
+            }
+
             return geoVision.GetComponent<GeometryVisionHead>();
         }
 
@@ -82,7 +87,11 @@ namespace GeometricVision
 
         private GeometryVisionBrain CreateBrain(GameObject geoVision)
         {
-            geoVision.AddComponent<GeometryVisionBrain>();
+            if (geoVision.GetComponent<GeometryVisionBrain>() == null)
+            {
+                geoVision.AddComponent<GeometryVisionBrain>();
+            }
+
             return geoVision.GetComponent<GeometryVisionBrain>();
         }
     }

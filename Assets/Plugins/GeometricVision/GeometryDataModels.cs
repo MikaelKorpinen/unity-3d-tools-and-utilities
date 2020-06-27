@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using Unity.Collections;
 using Unity.Jobs;
 using UnityEngine;
 
@@ -33,24 +34,12 @@ namespace GeometricVision
             public GameObject gameObject;
             public Renderer renderer;
             public Transform transform;
-            public GeometryDataModels.Edge[] edges;
+            public NativeArray<GeometryDataModels.Edge> edges;
             public Mesh mesh;
             private Vector3[] BoundsCorners;
             public Mesh colliderMesh;
         }
-
-        public struct NativeEdge
-        {
-            public int firstEdgePointIndex;
-            public int secondEdgePointIndex;
-            public int edgeIndex;
-            public Vector3 firstVertex;
-            public Vector3 secondVertex;
-            public float lengthNonSquared;
-            public Vector3 closestPoint;
-            public byte isVisible;
-        }
-
+        
         public enum Plane : ushort
         {
             left = 0,

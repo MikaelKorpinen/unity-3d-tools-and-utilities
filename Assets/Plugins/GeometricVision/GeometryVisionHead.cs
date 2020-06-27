@@ -1,14 +1,16 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using Plugins.GeometricVision;
+using Plugins.GeometricVision.Interfaces;
+using Plugins.GeometricVision.Interfaces.Implementations;
 using UnityEngine;
 [DisallowMultipleComponent]
 public class GeometryVisionHead : MonoBehaviour
 {
     private GeometryVisionEye _eye;
-    private GeometryVisionBrain _brain;
+    private IGeoBrain _brain;
 
-    public GeometryVisionBrain Brain
+    public IGeoBrain Brain
     {
         get { return _brain; }
         set { _brain = value; }

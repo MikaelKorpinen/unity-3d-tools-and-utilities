@@ -14,36 +14,36 @@ using UnityEngine.Rendering;
 namespace Plugins.GeometricVision
 {
     /// <summary>
-    /// Class that is responsible for seeing objects and geometry.
-    /// It checks, if object is inside visibility area and filters out unwanted objects and geometry.
+    /// Class that shows up as a controller for the user.
+    /// It runs user enabled modules and systems.
     ///
-    /// Usage: Add to objects you want it to. The component will handle the rest. Component has list of geometry types.
-    /// These are used to see certain type of objects and clicking the targeting option from the inspector UI the user can
-    /// add option to find the closest element of this type.
+    /// Usage: Add to objects you want to act as a camera/eye for geometry vision. The component will handle the rest. 
+    /// A lot of the settings are meant to be adjusted from the inspector UI
     /// </summary>
-    public class GeometryVisionEye : MonoBehaviour, IGeoEye
+    public class GeometryVision : MonoBehaviour
     {
         [SerializeField] private bool debugMode;
         [SerializeField] private bool hideEdgesOutsideFieldOfView = true;
         [SerializeField] private float fieldOfView = 25f;
         [SerializeField] private int lastCount = 0;
         [SerializeField] private List<GeometryDataModels.GeoInfo> seenGeoInfos = new List<GeometryDataModels.GeoInfo>();
-        [SerializeField] private IGeoBrain controllerBrain;
+        [SerializeField] private List<IGeoBrain> geometryProcessors;
         private new Camera camera;
         public Plane[] planes = new Plane[6];
         [SerializeField] public HashSet<Transform> seenTransforms;
         private EyeDebugger _debugger;
-        private bool _addedByFactory;
         [SerializeField,  Tooltip(" Geometry is extracted from collider instead of renderers mesh")] private bool targetColliderMeshes;
-        [SerializeField] private List<VisionTarget>
-            targetedGeometries =
-                new List<VisionTarget>(); //TODO: Make it reactive and dispose subscribers on array resize in case they are not cleaned up by the gc
+        [SerializeField] private List<VisionTarget> targetedGeometries = new List<VisionTarget>(); //TODO: Make it reactive and dispose subscribers on array resize in case they are not cleaned up by the gc
 
-        private IDisposable entityToggleObservable = null;
+
         [SerializeField, Tooltip("Will enable the system to use entities")]private BoolReactiveProperty entityBasedProcessing = new BoolReactiveProperty();
         [SerializeField, Tooltip("Will enable the system to use GameObjects")]private BoolReactiveProperty gameObjectProcessing = new BoolReactiveProperty();
+        private IDisposable gameObjectProcessingObservable = null;
+        private IDisposable entityToggleObservable = null;
         public GeometryVisionHead Head { get; set; }
-
+        private List<IGeoEye> eyes;
+        public IGeoEye Eye { get; set; }
+        public IGeoEye EntityEye { get; set; }
         void Reset()
         {
             Initialize();
@@ -58,7 +58,7 @@ namespace Plugins.GeometricVision
         // On validate is called when there is a change in the UI
         void OnValidate()
         {
-
+            InitializeTargeting(TargetedGeometries);
         }
 
         private void Initialize()
@@ -70,14 +70,25 @@ namespace Plugins.GeometricVision
                 targetedGeometries.Add(new VisionTarget(GeometryType.Objects, 0, targeting));
             }
 
+
             InitCameraForEye();
             seenGeoInfos = new List<GeometryDataModels.GeoInfo>();
-            ControllerBrain = GeometryVisionUtilities.getControllerFromGeometryManager(Head, this);
+            GeometryProcessors = GeometryVisionUtilities.getControllerFromGeometryManager(Head, this);
             Debugger = new EyeDebugger();
             seenTransforms = new HashSet<Transform>();
-            
-        }
 
+            Debugger.Planes = RegenerateVisionArea(fieldOfView, planes);
+         
+            InitEntitySwitch();
+            InitGameObjectSwitch();
+            InitializeTargeting(TargetedGeometries);
+        }
+        
+        private void InitEntityEye()
+        {
+            
+            EntityEye =  new GeometryVisionEntityEye();
+        }
         private void InitCameraForEye()
         {
             Camera1 = gameObject.GetComponent<Camera>();
@@ -89,8 +100,73 @@ namespace Plugins.GeometricVision
 
             Camera1.enabled = false;
         }
+        private void InitGameObjectSwitch()
+        {
+            if (gameObjectProcessingObservable == null)
+            {
+                gameObjectProcessingObservable = gameObjectProcessing.Subscribe(x => { InitGameObjectBasedSystem(); });
+            }
+        }
 
+        private void InitGameObjectBasedSystem()
+        {
+            gameObject.AddComponent<GeometryVisionEye>();
+            Eye= gameObject.GetComponent<GeometryVisionEye>();
+            SwitchBrain(false);
+            
+        }
 
+        private void InitEntitySwitch()
+        {
+            if (entityToggleObservable == null)
+            {
+                entityToggleObservable = EntityBasedProcessing.Subscribe(x => { InitEntities(EntityBasedProcessing.Value); });
+            }
+        }
+
+        /// <summary>
+        /// Handles target initialization. Adds needed components and subscribes changing variables to logic that updates the targeting system.
+        /// So it can keep working under use.
+        /// </summary>
+        void InitializeTargeting(List<VisionTarget> targets)
+        {
+            foreach (var geometryType in targets)
+            {
+                if (geometryType.Target.Value == true)
+                {
+                    var geoTargeting = AssignGeometryTargeting();
+                    AssignActionsForTargeting(geometryType, targets.IndexOf(geometryType));
+                    OnTargetingEnabled(geometryType, geoTargeting);
+                }
+            }
+            RefreshTargeting(targets);
+        }
+        
+        void InitEntities(bool switchToEntities)
+        {                
+            UnityEngine.Debug.Log("initializing entities");
+
+            SwitchBrain(switchToEntities);
+            
+        }
+
+        private void SwitchBrain(bool toEntities)
+        {
+            if (Head.gameObject.GetComponent<GeometryVisionBrain>() != null)
+            {
+                DestroyImmediate(Head.gameObject.GetComponent<GeometryVisionBrain>());
+            }
+            if (toEntities)
+            {
+                Head.Brain = new GeometryVisionEntityBrain();
+            }
+            else
+            {
+                Head.gameObject.AddComponent<GeometryVisionBrain>();
+                Head.Brain = Head.GetComponent<GeometryVisionBrain>();
+            }
+            geometryProcessors = Head.Brain;
+        }
         
         private GeometryTargeting AssignGeometryTargeting()
         {
@@ -199,87 +275,20 @@ namespace Plugins.GeometricVision
         void Update()
         {
             planes = RegenerateVisionArea(fieldOfView, planes);
-            if (gameObjectProcessing.Value == true)
+            foreach (var geoEye in eyes)
             {
-                UpdateVisibility(seenTransforms, seenGeoInfos);
-                Debug(); 
+                geoEye.UpdateVisibility();
             }
-        }
+            foreach (var processor in geometryProcessors)
+            {            
+                //TODO: Check if this will be performance issue in case many eyes/cameras are present
+                processor.CheckSceneChanges(targetedGeometries);
 
-        /// <summary>
-        /// Updates visibility of the objects in the eye and brain/manager
-        /// </summary>
-        /// <param name="seenTransforms"></param>
-        /// <param name="seenGeoInfos"></param>
-        private void UpdateVisibility(HashSet<Transform> seenTransforms, List<GeometryDataModels.GeoInfo> seenGeoInfos)
-        {
-            //TODO: Check if this will be performance issue in case many eyes/cameras are present
-            controllerBrain.CheckSceneChanges(targetedGeometries);
-
-            this.seenTransforms = UpdateObjectVisibility(ControllerBrain.GetAllObjects(), seenTransforms);
-            SeenGeoInfos = UpdateGeometryVisibility(planes, ControllerBrain.GeoInfos(), seenGeoInfos);
-        }
-
-        /// <summary>
-        /// Update gameobject visibility. Object that do not have geometry in it
-        /// </summary>
-        private HashSet<Transform> UpdateObjectVisibility(List<Transform> listToCheck,
-            HashSet<Transform> seenTransforms)
-        {
-            seenTransforms = new HashSet<Transform>();
-
-            seenTransforms = GetObjectsInsideFrustum(seenTransforms, listToCheck);
-
-
-            return seenTransforms;
-        }
-
-        /// <summary>
-        /// Hides Edges, vertices, geometryObject outside th frustum
-        /// </summary>
-        /// <param name="planes"></param>
-        /// <param name="allGeoInfos"></param>
-        private List<GeometryDataModels.GeoInfo> UpdateGeometryVisibility(Plane[] planes,
-            List<GeometryDataModels.GeoInfo> allGeoInfos, List<GeometryDataModels.GeoInfo> seenGeometry)
-        {
-            int geoCount = allGeoInfos.Count;
-            seenGeometry = new List<GeometryDataModels.GeoInfo>();
-
-            UpdateSeenGeometryObjects(allGeoInfos, seenGeometry, geoCount);
-
-            foreach (var geometryType in TargetedGeometries)
-            {
-                if (geometryType.GeometryType == GeometryType.Lines && geometryType.Enabled)
-                {
-                    MeshUtilities.UpdateEdgesVisibilityParallel(planes, seenGeometry);
-                }
             }
 
-            return seenGeometry;
         }
-
-        /// <summary>
-        /// Updates object collection containing geometry and data related to seen object. Usage is to internally update seen geometry objects by checking objects renderer bounds
-        /// against eyes/cameras frustum
-        /// </summary>
-        /// <param name="allGeoInfos"></param>
-        /// <param name="seenGeometry"></param>
-        /// <param name="geoCount"></param>
-        private void UpdateSeenGeometryObjects(List<GeometryDataModels.GeoInfo> allGeoInfos,
-            List<GeometryDataModels.GeoInfo> seenGeometry, int geoCount)
-        {
-            for (var i = 0; i < geoCount; i++)
-            {
-                var geInfo = allGeoInfos[i];
-
-                if (GeometryUtility.TestPlanesAABB(planes, allGeoInfos[i].renderer.bounds) &&
-                    hideEdgesOutsideFieldOfView)
-                {
-                    seenGeometry.Add(geInfo);
-                }
-            }
-        }
-
+        
+        
         /// <summary>
         /// When the camera is moved, rotated or both the frustum planes that
         /// hold the system together needs to be refreshes/regenerated
@@ -330,7 +339,7 @@ namespace Plugins.GeometricVision
         {
             if (DebugMode)
             {
-                Debugger.Debug(Camera1, controllerBrain, true);
+                Debugger.Debug(Camera1, geometryProcessors, true);
             }
         }
 
@@ -357,10 +366,10 @@ namespace Plugins.GeometricVision
             set { camera = value; }
         }
 
-        public IGeoBrain ControllerBrain
+        public List<IGeoBrain> GeometryProcessors
         {
-            get { return controllerBrain; }
-            set { controllerBrain = value; }
+            get { return geometryProcessors; }
+            set { geometryProcessors = value; }
         }
 
         public bool DebugMode
@@ -385,6 +394,12 @@ namespace Plugins.GeometricVision
         {
             get { return entityBasedProcessing; }
             set { entityBasedProcessing = value; }
+        }
+        
+        public BoolReactiveProperty GameObjectBasedProcessing
+        {
+            get { return gameObjectProcessing; }
+            set { gameObjectProcessing = value; }
         }
     }
 }

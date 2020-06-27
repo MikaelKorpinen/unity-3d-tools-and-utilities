@@ -8,6 +8,7 @@ using Plugins.GeometricVision.UI;
 using Plugins.GeometricVision.UniRx.Scripts.UnityEngineBridge;
 using Plugins.GeometricVision.Utilities;
 using UniRx;
+using Unity.Entities;
 using UnityEngine;
 using UnityEngine.Rendering;
 
@@ -21,12 +22,11 @@ namespace Plugins.GeometricVision
     /// These are used to see certain type of objects and clicking the targeting option from the inspector UI the user can
     /// add option to find the closest element of this type.
     /// </summary>
-    public class GeometryVisionEye : MonoBehaviour, IGeoEye
+    public class GeometryVisionEntityEye : SystemBase, IGeoEye
     {
         [SerializeField] private bool debugMode;
         [SerializeField] private bool hideEdgesOutsideFieldOfView = true;
         [SerializeField] private float fieldOfView = 25f;
-        [SerializeField] private int lastCount = 0;
         [SerializeField] private List<GeometryDataModels.GeoInfo> seenGeoInfos = new List<GeometryDataModels.GeoInfo>();
         [SerializeField] private IGeoBrain controllerBrain;
         private new Camera camera;
@@ -40,26 +40,7 @@ namespace Plugins.GeometricVision
                 new List<VisionTarget>(); //TODO: Make it reactive and dispose subscribers on array resize in case they are not cleaned up by the gc
 
         private IDisposable entityToggleObservable = null;
-        [SerializeField, Tooltip("Will enable the system to use entities")]private BoolReactiveProperty entityBasedProcessing = new BoolReactiveProperty();
-        [SerializeField, Tooltip("Will enable the system to use GameObjects")]private BoolReactiveProperty gameObjectProcessing = new BoolReactiveProperty();
-        public GeometryVisionHead Head { get; set; }
-
-        void Reset()
-        {
-            Initialize();
-        }
-
-        // Start is called before the first frame update
-        void Start()
-        {
-            Initialize();
-        }
-
-        // On validate is called when there is a change in the UI
-        void OnValidate()
-        {
-
-        }
+        private int lastCount;
 
         private void Initialize()
         {
@@ -69,50 +50,15 @@ namespace Plugins.GeometricVision
                 IGeoTargeting targeting = new GeometryObjectTargeting();
                 targetedGeometries.Add(new VisionTarget(GeometryType.Objects, 0, targeting));
             }
-
-            InitCameraForEye();
+            
             seenGeoInfos = new List<GeometryDataModels.GeoInfo>();
-            ControllerBrain = GeometryVisionUtilities.getControllerFromGeometryManager(Head, this);
             Debugger = new EyeDebugger();
             seenTransforms = new HashSet<Transform>();
-            
+
+            Debugger.Planes = RegenerateVisionArea(fieldOfView, planes);
+
         }
-
-        private void InitCameraForEye()
-        {
-            Camera1 = gameObject.GetComponent<Camera>();
-            if (Camera1 == null)
-            {
-                gameObject.AddComponent<Camera>();
-                Camera1 = gameObject.GetComponent<Camera>();
-            }
-
-            Camera1.enabled = false;
-        }
-
-
         
-        private GeometryTargeting AssignGeometryTargeting()
-        {
-            var geoTargeting = gameObject.GetComponent<GeometryTargeting>();
-            if (gameObject.GetComponent<GeometryTargeting>() == null)
-            {
-                gameObject.AddComponent<GeometryTargeting>();
-                geoTargeting = gameObject.GetComponent<GeometryTargeting>();
-            }
-
-            return geoTargeting;
-        }
-
-        private void AssignActionsForTargeting(VisionTarget geometryType, int indexOf)
-        {
-            if (geometryType.targetingActions == null)
-            {
-                var newActions = ScriptableObject.CreateInstance<ActionsTemplateObject>();
-                newActions.name += "_" + indexOf;
-                geometryType.targetingActions = newActions;
-            }
-        }
 
         /// <summary>
         /// Checks if objects are targeted. At least one GeometryType.Objects_ needs to be in the list in order for the plugin to see something that it can use
@@ -124,7 +70,6 @@ namespace Plugins.GeometricVision
             bool objectsTargetingTypeFound = false;
             foreach (var geometryType in targetedGeometries)
             {
-                UnityEngine.Debug.Log(geometryType.Target);
                 if (geometryType.GeometryType == GeometryType.Objects)
                 {
                     objectsTargetingTypeFound = true;
@@ -134,76 +79,13 @@ namespace Plugins.GeometricVision
             return objectsTargetingTypeFound;
         }
 
-        /// <summary>
-        /// Add targeting implementation based on, if it is enabled on the inspector.
-        /// Subscribes the targeting toggle button to functionality than handles creation of targeting implementation for the
-        /// targeted geometry type
-        /// </summary>
-        /// <param name="geometryType"></param>
-        /// <param name="geoTargeting"></param>
-        private void OnTargetingEnabled(VisionTarget geometryType, GeometryTargeting geoTargeting)
-        {
-            if (!geometryType.Subscribed)
-            {
-                geometryType.Target.Subscribe(targeting =>
-                {
-                    if (targeting)
-                    {
-                        //Cannot get Reactive value from serialized property, so this boolean variable handles it job on the inspector gui under the hood.
-                        //The other way is to find out how to get reactive value out of serialized property
-                        geometryType.TargetHidden = true;
-                        geoTargeting.AddTarget(geometryType);
-                    }
-                    else
-                    {
-                        geometryType.TargetHidden = false;
-                        geoTargeting.RemoveTarget(geometryType);
-                    }
-                });
-                geometryType.Subscribed = true;
-            }
-        }
-
-        private static void RefreshTargeting(List<VisionTarget> targets)
-        {
-            foreach (var visionTarget in targets)
-            {
-                if (visionTarget.TargetingSystem == null)
-                {
-                    if (visionTarget.GeometryType == GeometryType.Objects)
-                    {
-                        visionTarget.TargetingSystem = new GeometryObjectTargeting();
-                    }
-
-                    if (visionTarget.GeometryType == GeometryType.Lines)
-                    {
-                        visionTarget.TargetingSystem = new GeometryLineTargeting();
-                    }
-                }
-                else if (visionTarget.GeometryType != visionTarget.TargetingSystem.TargetedType)
-                {
-                    if (visionTarget.GeometryType == GeometryType.Objects)
-                    {
-                        visionTarget.TargetingSystem = new GeometryObjectTargeting();
-                    }
-
-                    if (visionTarget.GeometryType == GeometryType.Lines)
-                    {
-                        visionTarget.TargetingSystem = new GeometryLineTargeting();
-                    }
-                }
-            }
-        }
-
-        // Update is called once per frame
-        void Update()
+        protected override void OnUpdate()
         {
             planes = RegenerateVisionArea(fieldOfView, planes);
-            if (gameObjectProcessing.Value == true)
-            {
-                UpdateVisibility(seenTransforms, seenGeoInfos);
-                Debug(); 
-            }
+
+            UpdateVisibility(seenTransforms, seenGeoInfos);
+            Debug(); 
+            
         }
 
         /// <summary>

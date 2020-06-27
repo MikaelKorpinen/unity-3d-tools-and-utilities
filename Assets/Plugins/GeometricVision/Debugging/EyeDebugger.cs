@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using GeometricVision;
+using Plugins.GeometricVision.Interfaces;
 using UnityEditor.Graphs;
 using UnityEngine;
 using static GeometricVision.GeometryDataModels.Boolean;
@@ -125,7 +126,7 @@ public class EyeDebugger
         }
     }
     
-    public void Debug(Camera camera, List<GeometryDataModels.GeoInfo> geoInfos, bool geometryOnly)
+    public void Debug(Camera camera, IGeoBrain brain, bool geometryOnly)
     {
         if (geometryOnly == false)
         {
@@ -136,7 +137,7 @@ public class EyeDebugger
             }
         }
         amountOfSeenEdges = 0;
-        DrawEdgesOnAllObjects(geoInfos, DrawEdges);
+        DrawEdgesOnAllObjects(brain.GeoInfos(), DrawEdges);
         
     }
     private void RefreshFrustumCorners(Camera camera)

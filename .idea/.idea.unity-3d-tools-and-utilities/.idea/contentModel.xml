@@ -2,17 +2,32 @@
 <project version="4">
   <component name="ContentModelStore">
     <e p="C:\GitProjects\unity-3d-tools-and-utilities" t="IncludeRecursive">
+      <e p="Assembly-CSharp.csproj" t="IncludeRecursive" />
       <e p="Assets" t="Include">
+        <e p="NewBehaviourScript.cs" t="Include" />
         <e p="Plugins" t="Include">
           <e p="GeometricVision" t="Include">
             <e p="Debugging" t="Include">
               <e p="EyeDebugger.cs" t="Include" />
             </e>
             <e p="EdgeComparer.cs" t="Include" />
+            <e p="EntityScripts" t="Include">
+              <e p="LifeTimeSystem.cs" t="Include" />
+              <e p="MeshRenderingAuthoring.cs" t="Include" />
+              <e p="RotationSpeed_ForEach.cs" t="Include" />
+              <e p="RotationSpeed_IJobChunk.cs" t="Include" />
+              <e p="RotationSpeed_SpawnAndRemove.cs" t="Include" />
+              <e p="RotationSpeedAuthoring_IJobChunk.cs" t="Include" />
+              <e p="RotationSpeedSystem_ForEach.cs" t="Include" />
+              <e p="RotationSpeedSystem_IJobChunk.cs" t="Include" />
+              <e p="Spawner_SpawnAndRemove.cs" t="Include" />
+              <e p="SpawnerAuthoring_SpawnAndRemove.cs" t="Include" />
+            </e>
             <e p="GeometricVision.asmdef" t="Include" />
             <e p="GeometryDataModels.cs" t="Include" />
             <e p="GeometryTargeting.cs" t="Include" />
-            <e p="GeometryVisionBrain.cs" t="Include" />
+            <e p="GeometryVision.cs" t="Include" />
+            <e p="GeometryVisionEntityEye.cs" t="Include" />
             <e p="GeometryVisionEye.cs" t="Include" />
             <e p="GeometryVisionFactory.cs" t="Include" />
             <e p="GeometryVisionHead.cs" t="Include" />
@@ -20,10 +35,13 @@
             <e p="Info.cs" t="Include" />
             <e p="Interfaces" t="Include">
               <e p="IGeoBrain.cs" t="Include" />
+              <e p="IGeoEye.cs" t="Include" />
               <e p="IGeoTargeting.cs" t="Include" />
               <e p="Implementations" t="Include">
                 <e p="GeometryLineTargeting.cs" t="Include" />
                 <e p="GeometryObjectTargeting.cs" t="Include" />
+                <e p="GeometryVisionBrain.cs" t="Include" />
+                <e p="GeometryVisionEntityBrain.cs" t="Include" />
               </e>
             </e>
             <e p="Jobs" t="Include">
@@ -317,6 +335,7 @@
             </e>
             <e p="Utilities" t="Include">
               <e p="GeometryVisionUtilities.cs" t="Include" />
+              <e p="InterfaceUtilities.cs" t="Include" />
               <e p="MeshUtilities.cs" t="Include" />
             </e>
             <e p="VisionTarget.cs" t="Include" />

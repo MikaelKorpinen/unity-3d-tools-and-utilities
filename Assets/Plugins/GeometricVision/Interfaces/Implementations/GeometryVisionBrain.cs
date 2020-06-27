@@ -1,14 +1,12 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using GeometricVision;
-using Plugins.GeometricVision.Interfaces;
 using Plugins.GeometricVision.Utilities;
-using UniRx;
+using Unity.Collections;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-namespace Plugins.GeometricVision
+namespace Plugins.GeometricVision.Interfaces.Implementations
 {
     /// <inheritdoc />
     [DisallowMultipleComponent]
@@ -24,12 +22,6 @@ namespace Plugins.GeometricVision
         List<GeometryDataModels.GeoInfo> IGeoBrain.GeoInfos()
         {
             return _geoInfos;
-        }
-
-        public int CountSceneObjects()
-        {
-            SceneManager.GetActiveScene().GetRootGameObjects(RootObjects);
-            return CountObjectsInHierarchy(RootObjects);
         }
 
         public HashSet<Transform> GetTransforms(List<GameObject> objs)
@@ -57,7 +49,13 @@ namespace Plugins.GeometricVision
             AllObjects = new HashSet<Transform>();
             RootObjects = new List<GameObject>();
         }
-
+        
+        public int CountSceneObjects()
+        {
+            SceneManager.GetActiveScene().GetRootGameObjects(RootObjects);
+            return CountObjectsInHierarchy(RootObjects);
+        }
+        
         /// <summary>
         /// Used to check, if things inside scene has changed. Like if new object has been removed or moved.
         /// </summary>
@@ -75,7 +73,7 @@ namespace Plugins.GeometricVision
         }
 
         /// <summary>
-        /// Goes through all the root objects and counts their children
+        /// Goes through all the root objects and counts their children.
         /// </summary>
         /// <param name="rootGameObjects"></param>
         /// <returns></returns>
@@ -155,7 +153,7 @@ namespace Plugins.GeometricVision
                     GeometryDataModels.GeoInfo geoInfo = new GeometryDataModels.GeoInfo();
                     geoInfo.gameObject = seenObject.gameObject;
                     geoInfo.transform = seenObject;
-                    geoInfo.edges = new GeometryDataModels.Edge[0];
+                    geoInfo.edges = new NativeArray<GeometryDataModels.Edge>();
                     geoInfo.renderer = renderer;
                     geoInfo.mesh = seenObject.GetComponent<MeshFilter>().mesh;
                     if (geometryIsTargeted(targetedGeometries))
