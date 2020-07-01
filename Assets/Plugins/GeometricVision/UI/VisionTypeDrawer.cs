@@ -4,9 +4,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Text.RegularExpressions;
+using GeometricVision;
 using Plugins.GeometricVision;
+using Plugins.GeometricVision.Interfaces.Implementations;
 using Plugins.GeometricVision.UniRx.Scripts.UnityEngineBridge;
 using UniRx;
+using Unity.EditorCoroutines.Editor;
 using UnityEditor;
 using UnityEditor.UIElements;
 using UnityEngine;
@@ -42,13 +45,12 @@ namespace Plugins.GeometricVision.UI
         }
     }
 
-    [CustomEditor(typeof(GeometryVisionEye))]
-    public class SomeScriptEditor : Editor
+    [CustomEditor(typeof(GeometryVision))]
+    public class GeometryVisionInspectorGUI : Editor
     {
         public override void OnInspectorGUI()
         {
             DrawDefaultInspector();
-            GeometryVisionEye myScript = (GeometryVisionEye) target;
 
             if (GUILayout.Button("Create a new actions template for targeting."))
             {
@@ -63,6 +65,41 @@ namespace Plugins.GeometricVision.UI
 
                 Selection.activeObject = newActionsTemplate;
             }
+        }
+    }
+
+
+    [CustomEditor(typeof(GeometryVisionEye))]
+    public class ClearComponents : Editor
+    {
+        public override void OnInspectorGUI()
+        {
+            var go = Selection.activeGameObject;
+            if (go.GetComponent<GeometryVision>() == null)
+            {
+                EditorCoroutineUtility.StartCoroutine(RemoveAddedComponents(go), this);
+            }
+        }
+
+        private IEnumerator RemoveAddedComponents(GameObject go)
+        {
+            if (go.GetComponent<Camera>() != null)
+            {
+                DestroyImmediate(go.GetComponent<Camera>());
+            }
+
+            if (go.GetComponent<GeometryVisionEye>() != null)
+            {
+                DestroyImmediate(go.GetComponent<GeometryVisionEye>());
+            }
+
+            if (go.GetComponent<GeometryTargeting>() != null)
+            {
+                DestroyImmediate(go.GetComponent<GeometryTargeting>());
+            }
+
+
+            yield return null;
         }
     }
 

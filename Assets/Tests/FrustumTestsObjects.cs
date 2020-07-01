@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using GeometricVision;
 using NUnit.Framework;
 using Plugins.GeometricVision;
+using Plugins.GeometricVision.Interfaces.Implementations;
 using Unity.PerformanceTesting;
 using UnityEditor;
 using UnityEngine;
@@ -57,7 +58,7 @@ namespace Tests
 
             geoVision.transform.position = new Vector3(10f,10f,10);//Move Object outside the cube
             
-            geoVision.GetComponent<GeometryVisionEye>().RegenerateVisionArea(25);
+            geoVision.GetComponent<GeometryVision>().RegenerateVisionArea(25);
             
             yield return null;         
             

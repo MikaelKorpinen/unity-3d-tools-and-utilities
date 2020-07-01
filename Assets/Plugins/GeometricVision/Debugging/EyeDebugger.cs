@@ -4,6 +4,8 @@ using System.Collections.Generic;
 using System.Linq;
 using GeometricVision;
 using Plugins.GeometricVision.Interfaces;
+using Plugins.GeometricVision.Interfaces.Implementations;
+using Unity.Collections;
 using UnityEditor.Graphs;
 using UnityEngine;
 using static GeometricVision.GeometryDataModels.Boolean;
@@ -103,20 +105,12 @@ public class EyeDebugger
         return mesh;
     }
     
-    private void DrawEdgesOnAllObjects(List<GeometryDataModels.GeoInfo> geoInfos, Action<GeometryDataModels.GeoInfo> draw)
-    {
-        if (geoInfos.Count != 0)
-        {
-            foreach (var geoItem in geoInfos)
-            {
-                draw(geoItem);
-            }
-        }
-    }
 
-    private void DrawEdges(GeometryDataModels.GeoInfo geoItem)
+
+    private void DrawEdges(NativeArray<GeometryDataModels.Edge> edges)
     {
-        foreach (var edge in geoItem.edges)
+
+        foreach (var edge in edges)
         {
             if (edge.isVisible == True)
             {
@@ -126,8 +120,9 @@ public class EyeDebugger
         }
     }
     
-    public void Debug(Camera camera, IGeoBrain brain, bool geometryOnly)
+    public void Debug(Camera camera, IGeoEye iGeoEye, bool geometryOnly)
     {
+        GeometryVisionEye eye = iGeoEye as GeometryVisionEye;
         if (geometryOnly == false)
         {
             RefreshFrustumCorners(camera);
@@ -137,15 +132,30 @@ public class EyeDebugger
             }
         }
         amountOfSeenEdges = 0;
-        DrawEdgesOnAllObjects(brain.GeoInfos(), DrawEdges);
         
+        if (eye != null)
+        {
+            DrawEdges(iGeoEye.GetSeenEdges());
+        }
     }
+    
+
     private void RefreshFrustumCorners(Camera camera)
     {
         camera.CalculateFrustumCorners(new Rect(0, 0, 1, 1), camera.farClipPlane,
             Camera.MonoOrStereoscopicEye.Mono, _frustumCornersFar);
         camera.CalculateFrustumCorners(new Rect(0, 0, 1, 1), camera.nearClipPlane,
             Camera.MonoOrStereoscopicEye.Mono, _frustumCornersNear);
+    }
+    private void DrawElementsFromGivenData<T>(List<T> ListToDraw, Action<T> draw)
+    {
+        if (ListToDraw.Count != 0)
+        {
+            foreach (var geoItem in ListToDraw)
+            {
+                draw(geoItem);
+            }
+        }
     }
     
     Vector3[] _frustumCornersFar = new Vector3[4];

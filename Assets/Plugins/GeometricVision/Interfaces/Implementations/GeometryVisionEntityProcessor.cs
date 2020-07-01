@@ -15,7 +15,7 @@ using Random = UnityEngine.Random;
 namespace Plugins.GeometricVision.Interfaces.Implementations
 {
     /// <inheritdoc />
-    public class GeometryVisionEntityBrain : SystemBase, IGeoBrain
+    public class GeometryVisionEntityProcessor : SystemBase, IGeoProcessor
     {
         [SerializeField] private int lastCount = 0;
         [SerializeField] private List<GeometryDataModels.GeoInfo> _geoInfos = new List<GeometryDataModels.GeoInfo>();
@@ -28,7 +28,9 @@ namespace Plugins.GeometricVision.Interfaces.Implementations
         BeginInitializationEntityCommandBufferSystem m_EntityCommandBufferSystem;
         private int currentObjectCount;
         private List<VisionTarget> _targetedGeometries;
-        public GeometryVisionEntityBrain()
+        private GeometryVision geometryVisiom;
+
+        public GeometryVisionEntityProcessor()
         {
             GeoInfos = new List<GeometryDataModels.GeoInfo>();
             AllObjects = new HashSet<Transform>();
@@ -105,14 +107,13 @@ namespace Plugins.GeometricVision.Interfaces.Implementations
 
             EntityQuery entityQuery = GetEntityQuery(query);
             this.currentObjectCount = entityQuery.CalculateEntityCount();
-            CheckSceneChanges(_targetedGeometries);
+            CheckSceneChanges(geometryVisiom);
             if (extractGeometry)
             {
                 ExtractGeometry(commandBuffer, GeoInfos, _targetedGeometries);
                 extractGeometry = false;
             }
-
-            currentObjectCount = currentObjectCount;
+            
         }
         
         /// <summary>
@@ -145,13 +146,14 @@ namespace Plugins.GeometricVision.Interfaces.Implementations
         /// <summary>
         /// Used to check, if things inside scene has changed. Like if new object has been removed or moved.
         /// </summary>
-        public void CheckSceneChanges(List<VisionTarget> targetedGeometries)
+        public void CheckSceneChanges(GeometryVision geoVision)
         {
+            geometryVisiom = geoVision;
             if (currentObjectCount != lastCount)
             {
                 lastCount = currentObjectCount;
                 extractGeometry = true;
-                _targetedGeometries = targetedGeometries;
+               // _targetedGeometries = targetedGeometries;
             }
         }
 
@@ -210,8 +212,13 @@ namespace Plugins.GeometricVision.Interfaces.Implementations
         {
             return currentObjectCount;
         }
-        
-        List<GeometryDataModels.GeoInfo> IGeoBrain.GeoInfos()
+
+        public void Debug(GeometryVision geoVisions)
+        {
+            
+        }
+
+        List<GeometryDataModels.GeoInfo> IGeoProcessor.GeoInfos()
         {
             return _geoInfos;
         }

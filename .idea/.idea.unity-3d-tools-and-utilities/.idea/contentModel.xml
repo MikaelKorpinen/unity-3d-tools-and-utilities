@@ -27,21 +27,21 @@
             <e p="GeometryDataModels.cs" t="Include" />
             <e p="GeometryTargeting.cs" t="Include" />
             <e p="GeometryVision.cs" t="Include" />
-            <e p="GeometryVisionEntityEye.cs" t="Include" />
-            <e p="GeometryVisionEye.cs" t="Include" />
             <e p="GeometryVisionFactory.cs" t="Include" />
             <e p="GeometryVisionHead.cs" t="Include" />
             <e p="GeometryVisionSettings.cs" t="Include" />
             <e p="Info.cs" t="Include" />
             <e p="Interfaces" t="Include">
-              <e p="IGeoBrain.cs" t="Include" />
               <e p="IGeoEye.cs" t="Include" />
+              <e p="IGeoProcessor.cs" t="Include" />
               <e p="IGeoTargeting.cs" t="Include" />
               <e p="Implementations" t="Include">
                 <e p="GeometryLineTargeting.cs" t="Include" />
                 <e p="GeometryObjectTargeting.cs" t="Include" />
-                <e p="GeometryVisionBrain.cs" t="Include" />
-                <e p="GeometryVisionEntityBrain.cs" t="Include" />
+                <e p="GeometryVisionEntityEye.cs" t="Include" />
+                <e p="GeometryVisionEntityProcessor.cs" t="Include" />
+                <e p="GeometryVisionEye.cs" t="Include" />
+                <e p="GeometryVisionProcessor.cs" t="Include" />
               </e>
             </e>
             <e p="Jobs" t="Include">

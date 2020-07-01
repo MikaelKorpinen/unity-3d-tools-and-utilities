@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using GeometricVision;
 using NUnit.Framework;
 using Plugins.GeometricVision;
+using Plugins.GeometricVision.Interfaces.Implementations;
 using Unity.PerformanceTesting;
 using UnityEditor;
 using UnityEngine;
@@ -38,7 +39,7 @@ namespace Tests
             yield return null;
             int amountOfObjectsInScene = 0;
             int expectedObjectCount1 = TestUtilities.GetObjectCountFromScene();
-            Measure.Method(() => { amountOfObjectsInScene = geoVision.GetComponent<GeometryVisionEye>().ControllerBrain.CountSceneObjects(); }).Run();
+            Measure.Method(() => { amountOfObjectsInScene = geoVision.GetComponent<GeometryVisionEye>().ControllerProcessor.CountSceneObjects(); }).Run();
 
             Debug.Log("total objects: " + amountOfObjectsInScene);
             Assert.AreEqual(expectedObjectCount1, amountOfObjectsInScene);
@@ -109,7 +110,7 @@ namespace Tests
 
             Measure.Method(() =>
             {
-                result = geoVision.GetComponent<GeometryVisionEye>().ControllerBrain.GetTransforms(rootGameObjects);
+                result = geoVision.GetComponent<GeometryVisionEye>().ControllerProcessor.GetTransforms(rootGameObjects);
             }).Run();
             
             Debug.Log("total objects: " + result.Count);

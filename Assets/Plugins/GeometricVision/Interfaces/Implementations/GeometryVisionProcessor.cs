@@ -10,7 +10,7 @@ namespace Plugins.GeometricVision.Interfaces.Implementations
 {
     /// <inheritdoc />
     [DisallowMultipleComponent]
-    public class GeometryVisionBrain : MonoBehaviour, IGeoBrain
+    public class GeometryVisionProcessor : MonoBehaviour, IGeoProcessor
     {
         [SerializeField] private int lastCount = 0;
 
@@ -19,7 +19,7 @@ namespace Plugins.GeometricVision.Interfaces.Implementations
         public List<GameObject> RootObjects;
         private bool collidersTargeted;
 
-        List<GeometryDataModels.GeoInfo> IGeoBrain.GeoInfos()
+        List<GeometryDataModels.GeoInfo> IGeoProcessor.GeoInfos()
         {
             return _geoInfos;
         }
@@ -59,7 +59,7 @@ namespace Plugins.GeometricVision.Interfaces.Implementations
         /// <summary>
         /// Used to check, if things inside scene has changed. Like if new object has been removed or moved.
         /// </summary>
-        public void CheckSceneChanges(List<VisionTarget> targetedGeometries)
+        public void CheckSceneChanges(GeometryVision geoVision)
         {
             SceneManager.GetActiveScene().GetRootGameObjects(RootObjects);
 
@@ -68,8 +68,13 @@ namespace Plugins.GeometricVision.Interfaces.Implementations
             {
                 lastCount = currentObjectCount;
                 UpdateSceneObjects(RootObjects, AllObjects);
-                ExtractGeometry(AllObjects, GeoInfos, targetedGeometries);
+                ExtractGeometry(AllObjects, GeoInfos, geoVision.TargetedGeometries);
             }
+        }
+
+        public void Debug(GeometryVision geoVisions)
+        {
+            
         }
 
         /// <summary>
@@ -142,6 +147,7 @@ namespace Plugins.GeometricVision.Interfaces.Implementations
         /// </summary>
         /// <param name="seenObjects"></param>
         /// <param name="geoInfos"></param>
+        /// <param name="targetedGeometries"></param>
         private void ExtractGeometry(HashSet<Transform> seenObjects, List<GeometryDataModels.GeoInfo> geoInfos,
             List<VisionTarget> targetedGeometries)
         {
@@ -150,28 +156,41 @@ namespace Plugins.GeometricVision.Interfaces.Implementations
                 var renderer = seenObject.GetComponent<Renderer>();
                 if (renderer)
                 {
-                    GeometryDataModels.GeoInfo geoInfo = new GeometryDataModels.GeoInfo();
-                    geoInfo.gameObject = seenObject.gameObject;
-                    geoInfo.transform = seenObject;
-                    geoInfo.edges = new NativeArray<GeometryDataModels.Edge>();
-                    geoInfo.renderer = renderer;
-                    geoInfo.mesh = seenObject.GetComponent<MeshFilter>().mesh;
-                    if (geometryIsTargeted(targetedGeometries))
-                    {
-                        if (!collidersTargeted)
-                        {
-                            geoInfo.edges = MeshUtilities.GetEdgesFromMesh(geoInfo.renderer, geoInfo.mesh); 
-                        }
-                        else
-                        {
-                            geoInfo.colliderMesh = seenObject.GetComponent<MeshCollider>().sharedMesh;
-                            geoInfo.edges = MeshUtilities.GetEdgesFromMesh(geoInfo.renderer, geoInfo.mesh);
-                        }
-                    }
+                    var geoInfo = CreateGeoInfoObject(seenObject, renderer);
+                    geoInfo = GetGeoInfoGeometryData(targetedGeometries, geoInfo, seenObject);
 
                     geoInfos.Add(geoInfo);
                 }
             }
+        }
+
+        private GeometryDataModels.GeoInfo GetGeoInfoGeometryData(List<VisionTarget> targetedGeometries, GeometryDataModels.GeoInfo geoInfo, Transform seenObject)
+        {
+            if (geometryIsTargeted(targetedGeometries))
+            {
+                if (!collidersTargeted)
+                {
+                    geoInfo.edges = MeshUtilities.GetEdgesFromMesh(geoInfo.renderer, geoInfo.mesh);
+                }
+                else
+                {
+                    geoInfo.colliderMesh = seenObject.GetComponent<MeshCollider>().sharedMesh;
+                    geoInfo.edges = MeshUtilities.GetEdgesFromMesh(geoInfo.renderer, geoInfo.mesh);
+                }
+            }
+
+            return geoInfo;
+        }
+
+        private static GeometryDataModels.GeoInfo CreateGeoInfoObject(Transform seenObject, Renderer renderer)
+        {
+            GeometryDataModels.GeoInfo geoInfo = new GeometryDataModels.GeoInfo();
+            geoInfo.gameObject = seenObject.gameObject;
+            geoInfo.transform = seenObject;
+            geoInfo.edges = new NativeArray<GeometryDataModels.Edge>();
+            geoInfo.renderer = renderer;
+            geoInfo.mesh = seenObject.GetComponent<MeshFilter>().mesh;
+            return geoInfo;
         }
 
         /// <summary>
@@ -212,5 +231,7 @@ namespace Plugins.GeometricVision.Interfaces.Implementations
                 }
             }
         }
+        
+
     }
 }

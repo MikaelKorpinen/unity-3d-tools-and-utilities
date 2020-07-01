@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using GeometricVision;
+using Plugins.GeometricVision;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;

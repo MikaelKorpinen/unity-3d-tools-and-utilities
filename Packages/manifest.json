@@ -5,6 +5,7 @@
     "com.unity.cinemachine": "2.5.0",
     "com.unity.collections": "0.9.0-preview.6",
     "com.unity.dots.editor": "0.8.0-preview.1",
+    "com.unity.editorcoroutines": "1.0.0",
     "com.unity.entities": "0.11.1-preview.4",
     "com.unity.ide.rider": "1.2.1",
     "com.unity.jobs": "0.2.10-preview.12",

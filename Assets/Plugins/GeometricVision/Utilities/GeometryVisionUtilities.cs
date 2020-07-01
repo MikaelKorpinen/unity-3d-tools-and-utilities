@@ -9,19 +9,16 @@ namespace Plugins.GeometricVision.Utilities
     public static class GeometryVisionUtilities
     {
         // Start is called before the first frame update
-        public static IGeoBrain getControllerFromGeometryManager(GeometryVisionHead head, GeometryVisionEye eye)
+        public static void CreateGeometryVision(GeometryVisionHead head, GeometryVision geoVision)
         {
             if (head == null)
             {
                 var factory = new GeometryVisionFactory();
                 var geoTypesToTarget = new List<GeometryType>();
                 geoTypesToTarget.Add(GeometryType.Objects);
-                GameObject headObject = factory.CreateGeometryVision(new Vector3(0f, 0f, 0f), Quaternion.identity, 25, eye,
+                factory.CreateGeometryVision(new Vector3(0f, 0f, 0f), Quaternion.identity, 25, geoVision,
                     geoTypesToTarget, 0);
-                return headObject.GetComponent<GeometryVisionBrain>();
             }
-
-            return head.GetComponent<GeometryVisionBrain>();
         }
     }
 }

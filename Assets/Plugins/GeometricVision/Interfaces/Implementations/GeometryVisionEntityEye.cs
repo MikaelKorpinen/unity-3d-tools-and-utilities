@@ -1,18 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using GeometricVision;
-using GeometricVision.Jobs;
-using Plugins.GeometricVision.Interfaces;
-using Plugins.GeometricVision.Interfaces.Implementations;
-using Plugins.GeometricVision.UI;
-using Plugins.GeometricVision.UniRx.Scripts.UnityEngineBridge;
 using Plugins.GeometricVision.Utilities;
-using UniRx;
+using Unity.Collections;
 using Unity.Entities;
 using UnityEngine;
-using UnityEngine.Rendering;
 
-namespace Plugins.GeometricVision
+namespace Plugins.GeometricVision.Interfaces.Implementations
 {
     /// <summary>
     /// Class that is responsible for seeing objects and geometry.
@@ -28,16 +22,14 @@ namespace Plugins.GeometricVision
         [SerializeField] private bool hideEdgesOutsideFieldOfView = true;
         [SerializeField] private float fieldOfView = 25f;
         [SerializeField] private List<GeometryDataModels.GeoInfo> seenGeoInfos = new List<GeometryDataModels.GeoInfo>();
-        [SerializeField] private IGeoBrain controllerBrain;
-        private new Camera camera;
+        [SerializeField] private IGeoProcessor controllerProcessor;
+        public GeometryVision GeoVision { get; }
         public Plane[] planes = new Plane[6];
         [SerializeField] public HashSet<Transform> seenTransforms;
         private EyeDebugger _debugger;
         private bool _addedByFactory;
         [SerializeField,  Tooltip(" Geometry is extracted from collider instead of renderers mesh")] private bool targetColliderMeshes;
-        [SerializeField] private List<VisionTarget>
-            targetedGeometries =
-                new List<VisionTarget>(); //TODO: Make it reactive and dispose subscribers on array resize in case they are not cleaned up by the gc
+        [SerializeField] private List<VisionTarget> targetedGeometries = new List<VisionTarget>(); 
 
         private IDisposable entityToggleObservable = null;
         private int lastCount;
@@ -54,9 +46,7 @@ namespace Plugins.GeometricVision
             seenGeoInfos = new List<GeometryDataModels.GeoInfo>();
             Debugger = new EyeDebugger();
             seenTransforms = new HashSet<Transform>();
-
-            Debugger.Planes = RegenerateVisionArea(fieldOfView, planes);
-
+            
         }
         
 
@@ -81,25 +71,28 @@ namespace Plugins.GeometricVision
 
         protected override void OnUpdate()
         {
-            planes = RegenerateVisionArea(fieldOfView, planes);
-
-            UpdateVisibility(seenTransforms, seenGeoInfos);
-            Debug(); 
-            
+            UpdateVisibility();
+            Debug();
         }
+
+        public string Id { get; set; }
 
         /// <summary>
         /// Updates visibility of the objects in the eye and brain/manager
         /// </summary>
         /// <param name="seenTransforms"></param>
         /// <param name="seenGeoInfos"></param>
-        private void UpdateVisibility(HashSet<Transform> seenTransforms, List<GeometryDataModels.GeoInfo> seenGeoInfos)
+        public void UpdateVisibility()
         {
             //TODO: Check if this will be performance issue in case many eyes/cameras are present
-            controllerBrain.CheckSceneChanges(targetedGeometries);
+            controllerProcessor.CheckSceneChanges(GeoVision);
+            this.seenTransforms = UpdateObjectVisibility(controllerProcessor.GetAllObjects(), seenTransforms);
+            SeenGeoInfos = UpdateGeometryVisibility(planes, controllerProcessor.GeoInfos(), seenGeoInfos);
+        }
 
-            this.seenTransforms = UpdateObjectVisibility(ControllerBrain.GetAllObjects(), seenTransforms);
-            SeenGeoInfos = UpdateGeometryVisibility(planes, ControllerBrain.GeoInfos(), seenGeoInfos);
+        public NativeArray<GeometryDataModels.Edge> GetSeenEdges()
+        {
+            throw new NotImplementedException();
         }
 
         /// <summary>
@@ -161,38 +154,7 @@ namespace Plugins.GeometricVision
                 }
             }
         }
-
-        /// <summary>
-        /// When the camera is moved, rotated or both the frustum planes that
-        /// hold the system together needs to be refreshes/regenerated
-        /// </summary>
-        /// <param name="fieldOfView"></param>
-        /// <returns>Plane[]</returns>
-        /// <remarks>Faster way to get the current situation for planes might be to store planes into an object and move them with the eye</remarks>
-        private Plane[] RegenerateVisionArea(float fieldOfView, Plane[] planes)
-        {
-            Camera1.enabled = true;
-            Camera1.fieldOfView = fieldOfView;
-            planes = GeometryUtility.CalculateFrustumPlanes(Camera1);
-            Camera1.enabled = false;
-            return planes;
-        }
-
-        /// <summary>
-        /// When the camera is moved, rotated or both the frustum planes that
-        /// hold the system together needs to be refreshes/regenerated
-        /// </summary>
-        /// <param name="fieldOfView"></param>
-        /// <returns>void</returns>
-        /// <remarks>Faster way to get the current situation for planes might be to store planes into an object and move them with the eye</remarks>
-        public void RegenerateVisionArea(float fieldOfView)
-        {
-            Camera1.enabled = true;
-            Camera1.fieldOfView = fieldOfView;
-            planes = GeometryUtility.CalculateFrustumPlanes(Camera1);
-            Camera1.enabled = false;
-        }
-
+        
         private HashSet<Transform> GetObjectsInsideFrustum(HashSet<Transform> seenTransforms,
             List<Transform> allTransforms)
         {
@@ -212,7 +174,7 @@ namespace Plugins.GeometricVision
         {
             if (DebugMode)
             {
-                Debugger.Debug(Camera1, controllerBrain, true);
+                Debugger.Debug(GeoVision.Camera1, this, true);
             }
         }
 
@@ -233,16 +195,14 @@ namespace Plugins.GeometricVision
             set { planes = value; }
         }
 
-        public Camera Camera1
+        public GeometryVisionEntityProcessor ControllerProcessor
         {
-            get { return camera; }
-            set { camera = value; }
-        }
+            get
+            {
+                return GeoVision.Head.GetProcessor<GeometryVisionEntityProcessor>();
 
-        public IGeoBrain ControllerBrain
-        {
-            get { return controllerBrain; }
-            set { controllerBrain = value; }
+            }
+            set { controllerProcessor = value; }
         }
 
         public bool DebugMode
@@ -262,11 +222,6 @@ namespace Plugins.GeometricVision
             get { return targetColliderMeshes; }
             set { targetColliderMeshes = value; }
         }
-
-        public BoolReactiveProperty EntityBasedProcessing
-        {
-            get { return entityBasedProcessing; }
-            set { entityBasedProcessing = value; }
-        }
+        
     }
 }

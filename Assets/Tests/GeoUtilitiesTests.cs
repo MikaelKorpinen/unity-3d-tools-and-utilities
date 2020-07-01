@@ -5,6 +5,7 @@ using System.Linq;
 using GeometricVision;
 using NUnit.Framework;
 using Plugins.GeometricVision;
+using Plugins.GeometricVision.Interfaces.Implementations;
 using Plugins.GeometricVision.Utilities;
 using Unity.PerformanceTesting;
 using UnityEditor;
@@ -210,8 +211,8 @@ namespace Tests
             edges = new GeometryDataModels.Edge[0];
             var edgesT = edges;
             geoVision.transform.position = position;
-            geoEye.RegenerateVisionArea(25);
-            geoEye.ControllerBrain.CheckSceneChanges(geoEye.TargetedGeometries);
+            geoVision.GetComponent<GeometryVision>().RegenerateVisionArea(25);
+            geoEye.ControllerProcessor.CheckSceneChanges(geoEye.GeoVision);
             Measure.Method(() => { MeshUtilities.UpdateEdgesVisibility(geoEye.Planes, geoEye.SeenGeoInfos); }).Run();
             var visibleEdgeCount = 0;
 
@@ -229,7 +230,7 @@ namespace Tests
             edges = new GeometryDataModels.Edge[0];
             var edgesT = edges;
             geoVision.transform.position = position;
-            geoEye.RegenerateVisionArea(25);
+            geoVision.GetComponent<GeometryVision>().RegenerateVisionArea(25);
             var renderer = cube.GetComponent<Renderer>();
 
             Measure.Method(() =>

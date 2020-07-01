@@ -1,7 +1,9 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using Plugins.GeometricVision;
 using Plugins.GeometricVision.Interfaces.Implementations;
+using Unity.EditorCoroutines.Editor;
 using UnityEngine;
 using UnityEngine.Serialization;
 
@@ -29,7 +31,39 @@ namespace GeometricVision
         {
             InitializeTargeting();
         }
+        void OnValidate () {
 
+            if (this.GetComponent<GeometryVision>()== null)
+            {
+                // The really important part, using the library
+                EditorCoroutineUtility.StartCoroutine(DestroyThis(), this);
+            }
+        }
+
+
+        IEnumerator DestroyThis()
+        {
+            RemoveAddedComponents();
+            yield return new WaitForEndOfFrame();
+        }
+
+        private void RemoveAddedComponents()
+        {
+            if (this.GetComponent<Camera>() != null)
+            {
+                DestroyImmediate(this.GetComponent<Camera>());
+            }
+            
+            if (this.GetComponent<GeometryVisionEye>() != null)
+            {
+                DestroyImmediate(GetComponent<GeometryVisionEye>());
+            }
+
+            if (this.GetComponent<GeometryTargeting>() != null)
+            {
+                DestroyImmediate(GetComponent<GeometryTargeting>());
+            }
+        }
         /// <summary>
         /// Initializes the geometry vision eye, which handles setting up the geometry vision plugin.
         /// </summary>

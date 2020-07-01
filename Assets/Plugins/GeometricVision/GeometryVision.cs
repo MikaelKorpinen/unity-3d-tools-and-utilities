@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using GeometricVision;
 using GeometricVision.Jobs;
@@ -8,6 +9,7 @@ using Plugins.GeometricVision.UI;
 using Plugins.GeometricVision.UniRx.Scripts.UnityEngineBridge;
 using Plugins.GeometricVision.Utilities;
 using UniRx;
+using Unity.EditorCoroutines.Editor;
 using UnityEngine;
 using UnityEngine.Rendering;
 
@@ -27,23 +29,20 @@ namespace Plugins.GeometricVision
         [SerializeField] private float fieldOfView = 25f;
         [SerializeField] private int lastCount = 0;
         [SerializeField] private List<GeometryDataModels.GeoInfo> seenGeoInfos = new List<GeometryDataModels.GeoInfo>();
-        [SerializeField] private List<IGeoBrain> geometryProcessors;
-        private new Camera camera;
-        public Plane[] planes = new Plane[6];
         [SerializeField] public HashSet<Transform> seenTransforms;
-        private EyeDebugger _debugger;
-        [SerializeField,  Tooltip(" Geometry is extracted from collider instead of renderers mesh")] private bool targetColliderMeshes;
-        [SerializeField] private List<VisionTarget> targetedGeometries = new List<VisionTarget>(); //TODO: Make it reactive and dispose subscribers on array resize in case they are not cleaned up by the gc
+        [SerializeField, Tooltip("Use the mesh from collider")]private bool targetColliderMeshes;
+        [SerializeField] private List<VisionTarget> targetedGeometries = new List<VisionTarget>();
+        [SerializeField, Tooltip("Include entities")] private BoolReactiveProperty entityBasedProcessing = new BoolReactiveProperty();
+        [SerializeField, Tooltip("Will enable the system to use GameObjects")]
+        private BoolReactiveProperty gameObjectProcessing = new BoolReactiveProperty();
 
-
-        [SerializeField, Tooltip("Will enable the system to use entities")]private BoolReactiveProperty entityBasedProcessing = new BoolReactiveProperty();
-        [SerializeField, Tooltip("Will enable the system to use GameObjects")]private BoolReactiveProperty gameObjectProcessing = new BoolReactiveProperty();
         private IDisposable gameObjectProcessingObservable = null;
         private IDisposable entityToggleObservable = null;
         public GeometryVisionHead Head { get; set; }
-        private List<IGeoEye> eyes;
-        public IGeoEye Eye { get; set; }
-        public IGeoEye EntityEye { get; set; }
+        private List<IGeoEye> eyes = new List<IGeoEye>();
+        private new Camera camera;
+        public Plane[] planes = new Plane[6];
+
         void Reset()
         {
             Initialize();
@@ -58,10 +57,24 @@ namespace Plugins.GeometricVision
         // On validate is called when there is a change in the UI
         void OnValidate()
         {
+            InitUnityCamera();
             InitializeTargeting(TargetedGeometries);
         }
 
         private void Initialize()
+        {
+            CreateDefaultTargeting();
+            seenTransforms = new HashSet<Transform>();
+            seenGeoInfos = new List<GeometryDataModels.GeoInfo>();
+            
+            InitUnityCamera();
+            GeometryVisionUtilities.CreateGeometryVision(Head, this);
+            InitEntitySwitch();
+            InitGameObjectSwitch();
+            InitializeTargeting(TargetedGeometries);
+        }
+
+        private void CreateDefaultTargeting()
         {
             if (isObjectsTargeted(targetedGeometries) == false)
             {
@@ -69,27 +82,9 @@ namespace Plugins.GeometricVision
                 IGeoTargeting targeting = new GeometryObjectTargeting();
                 targetedGeometries.Add(new VisionTarget(GeometryType.Objects, 0, targeting));
             }
-
-
-            InitCameraForEye();
-            seenGeoInfos = new List<GeometryDataModels.GeoInfo>();
-            GeometryProcessors = GeometryVisionUtilities.getControllerFromGeometryManager(Head, this);
-            Debugger = new EyeDebugger();
-            seenTransforms = new HashSet<Transform>();
-
-            Debugger.Planes = RegenerateVisionArea(fieldOfView, planes);
-         
-            InitEntitySwitch();
-            InitGameObjectSwitch();
-            InitializeTargeting(TargetedGeometries);
         }
-        
-        private void InitEntityEye()
-        {
-            
-            EntityEye =  new GeometryVisionEntityEye();
-        }
-        private void InitCameraForEye()
+
+        public void InitUnityCamera()
         {
             Camera1 = gameObject.GetComponent<Camera>();
             if (Camera1 == null)
@@ -98,29 +93,57 @@ namespace Plugins.GeometricVision
                 Camera1 = gameObject.GetComponent<Camera>();
             }
 
+            planes = RegenerateVisionArea(fieldOfView, planes);
             Camera1.enabled = false;
         }
+
         private void InitGameObjectSwitch()
         {
             if (gameObjectProcessingObservable == null)
             {
-                gameObjectProcessingObservable = gameObjectProcessing.Subscribe(x => { InitGameObjectBasedSystem(); });
+                gameObjectProcessingObservable = gameObjectProcessing.Subscribe(gameObjectProcessing =>
+                {
+                    InitGameObjectBasedSystem(gameObjectProcessing);
+                });
             }
         }
 
-        private void InitGameObjectBasedSystem()
+        private void InitGameObjectBasedSystem(bool objectProcessing)
         {
-            gameObject.AddComponent<GeometryVisionEye>();
-            Eye= gameObject.GetComponent<GeometryVisionEye>();
-            SwitchBrain(false);
-            
+            var geoEye = GetComponent<GeometryVisionEye>();
+            if (objectProcessing)
+            {
+                DestroyEye(geoEye);
+                gameObject.AddComponent<GeometryVisionEye>();
+                eyes.Add(gameObject.GetComponent<GeometryVisionEye>());
+                ReplaceProcessor(false);
+            }
+            else if (objectProcessing == false && geoEye)
+            {
+                DestroyEye(geoEye);
+            }
+        }
+
+        private static void DestroyEye(GeometryVisionEye geoEye)
+        {
+            if (Application.isPlaying && geoEye != null)
+            {
+                Destroy(geoEye);
+            }
+            else if(Application.isPlaying == false && geoEye != null) 
+            {
+                DestroyImmediate(geoEye); 
+            }
         }
 
         private void InitEntitySwitch()
         {
             if (entityToggleObservable == null)
             {
-                entityToggleObservable = EntityBasedProcessing.Subscribe(x => { InitEntities(EntityBasedProcessing.Value); });
+                entityToggleObservable = EntityBasedProcessing.Subscribe(x =>
+                {
+                    InitEntities(EntityBasedProcessing.Value);
+                });
             }
         }
 
@@ -134,41 +157,54 @@ namespace Plugins.GeometricVision
             {
                 if (geometryType.Target.Value == true)
                 {
-                    var geoTargeting = AssignGeometryTargeting();
+                    var geoTargeting = HandleAddingGeometryTargetingComponent();
                     AssignActionsForTargeting(geometryType, targets.IndexOf(geometryType));
                     OnTargetingEnabled(geometryType, geoTargeting);
                 }
             }
-            RefreshTargeting(targets);
+
+            RefreshTargetingSystems(targets);
+        }
+
+        void InitEntities(bool switchToEntities)
+        {
+            
+            ReplaceProcessor(switchToEntities);
+            InitEntityEye(Head.GetProcessor<GeometryVisionEntityProcessor>());
         }
         
-        void InitEntities(bool switchToEntities)
-        {                
-            UnityEngine.Debug.Log("initializing entities");
-
-            SwitchBrain(switchToEntities);
-            
-        }
-
-        private void SwitchBrain(bool toEntities)
+        private void InitEntityEye(GeometryVisionEntityProcessor eProcessor)
         {
-            if (Head.gameObject.GetComponent<GeometryVisionBrain>() != null)
-            {
-                DestroyImmediate(Head.gameObject.GetComponent<GeometryVisionBrain>());
-            }
+            var eEye = new GeometryVisionEntityEye();
+            eEye.ControllerProcessor = eProcessor;
+            eEye.Id = new Hash128().ToString();
+            Head.Eyes.Add(eEye);
+            Eyes.Add(eEye);
+        }
+        private void ReplaceProcessor(bool toEntities)
+        {
+
             if (toEntities)
             {
-                Head.Brain = new GeometryVisionEntityBrain();
+                Head.RemoveProcessor<GeometryVisionEntityProcessor>();
+                Head.AddProcessor<GeometryVisionEntityProcessor>();
             }
             else
             {
-                Head.gameObject.AddComponent<GeometryVisionBrain>();
-                Head.Brain = Head.GetComponent<GeometryVisionBrain>();
+                //TODO: Make it single line to remove the monobehaviour
+                if (Head.gameObject.GetComponent<GeometryVisionProcessor>() != null)
+                {
+                    Head.RemoveProcessor<GeometryVisionProcessor>();
+                    //also remove mono behaviour
+                    DestroyImmediate(Head.gameObject.GetComponent<GeometryVisionProcessor>());
+                }
+
+                Head.gameObject.AddComponent<GeometryVisionProcessor>();
+                Head.AddProcessor<GeometryVisionProcessor>();
             }
-            geometryProcessors = Head.Brain;
         }
-        
-        private GeometryTargeting AssignGeometryTargeting()
+
+        private GeometryTargeting HandleAddingGeometryTargetingComponent()
         {
             var geoTargeting = gameObject.GetComponent<GeometryTargeting>();
             if (gameObject.GetComponent<GeometryTargeting>() == null)
@@ -200,7 +236,6 @@ namespace Plugins.GeometricVision
             bool objectsTargetingTypeFound = false;
             foreach (var geometryType in targetedGeometries)
             {
-                UnityEngine.Debug.Log(geometryType.Target);
                 if (geometryType.GeometryType == GeometryType.Objects)
                 {
                     objectsTargetingTypeFound = true;
@@ -240,7 +275,7 @@ namespace Plugins.GeometricVision
             }
         }
 
-        private static void RefreshTargeting(List<VisionTarget> targets)
+        private static void RefreshTargetingSystems(List<VisionTarget> targets)
         {
             foreach (var visionTarget in targets)
             {
@@ -275,20 +310,14 @@ namespace Plugins.GeometricVision
         void Update()
         {
             planes = RegenerateVisionArea(fieldOfView, planes);
-            foreach (var geoEye in eyes)
+            foreach (var geoEye in Eyes)
             {
                 geoEye.UpdateVisibility();
             }
-            foreach (var processor in geometryProcessors)
-            {            
-                //TODO: Check if this will be performance issue in case many eyes/cameras are present
-                processor.CheckSceneChanges(targetedGeometries);
-
-            }
-
+            
         }
-        
-        
+
+
         /// <summary>
         /// When the camera is moved, rotated or both the frustum planes that
         /// hold the system together needs to be refreshes/regenerated
@@ -319,30 +348,7 @@ namespace Plugins.GeometricVision
             planes = GeometryUtility.CalculateFrustumPlanes(Camera1);
             Camera1.enabled = false;
         }
-
-        private HashSet<Transform> GetObjectsInsideFrustum(HashSet<Transform> seenTransforms,
-            List<Transform> allTransforms)
-        {
-            foreach (var transform in allTransforms)
-            {
-                if (MeshUtilities.IsInsideFrustum(transform.position, planes))
-                {
-                    seenTransforms.Add(transform);
-                    lastCount = seenTransforms.Count;
-                }
-            }
-
-            return seenTransforms;
-        }
-
-        public void Debug()
-        {
-            if (DebugMode)
-            {
-                Debugger.Debug(Camera1, geometryProcessors, true);
-            }
-        }
-
+        
         public List<VisionTarget> TargetedGeometries
         {
             get { return targetedGeometries; }
@@ -366,24 +372,12 @@ namespace Plugins.GeometricVision
             set { camera = value; }
         }
 
-        public List<IGeoBrain> GeometryProcessors
-        {
-            get { return geometryProcessors; }
-            set { geometryProcessors = value; }
-        }
-
         public bool DebugMode
         {
             get { return debugMode; }
             set { debugMode = value; }
         }
 
-        public EyeDebugger Debugger
-        {
-            get { return _debugger; }
-            set { _debugger = value; }
-        }
-        
         public bool TargetColliderMeshes
         {
             get { return targetColliderMeshes; }
@@ -395,11 +389,19 @@ namespace Plugins.GeometricVision
             get { return entityBasedProcessing; }
             set { entityBasedProcessing = value; }
         }
-        
+
         public BoolReactiveProperty GameObjectBasedProcessing
         {
             get { return gameObjectProcessing; }
             set { gameObjectProcessing = value; }
         }
+
+        public List<IGeoEye> Eyes
+        {
+            get { return eyes; }
+            set { eyes = value; }
+        }
+
+        public string Id { get; set; }
     }
 }

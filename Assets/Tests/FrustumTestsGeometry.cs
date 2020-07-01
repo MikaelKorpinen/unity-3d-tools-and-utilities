@@ -5,6 +5,7 @@ using System.Linq;
 using GeometricVision;
 using NUnit.Framework;
 using Plugins.GeometricVision;
+using Plugins.GeometricVision.Interfaces.Implementations;
 using Unity.PerformanceTesting;
 using UnityEditor;
 using UnityEngine;
