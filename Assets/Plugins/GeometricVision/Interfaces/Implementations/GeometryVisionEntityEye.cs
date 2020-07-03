@@ -18,6 +18,8 @@ namespace Plugins.GeometricVision.Interfaces.Implementations
     /// </summary>
     public class GeometryVisionEntityEye : SystemBase, IGeoEye
     {
+        public string Id { get; set; }
+        private bool enabled = false;
         [SerializeField] private bool debugMode;
         [SerializeField] private bool hideEdgesOutsideFieldOfView = true;
         [SerializeField] private float fieldOfView = 25f;
@@ -48,7 +50,6 @@ namespace Plugins.GeometricVision.Interfaces.Implementations
             seenTransforms = new HashSet<Transform>();
             
         }
-        
 
         /// <summary>
         /// Checks if objects are targeted. At least one GeometryType.Objects_ needs to be in the list in order for the plugin to see something that it can use
@@ -71,23 +72,25 @@ namespace Plugins.GeometricVision.Interfaces.Implementations
 
         protected override void OnUpdate()
         {
-            UpdateVisibility();
+           // UpdateVisibility();
             Debug();
         }
-
-        public string Id { get; set; }
 
         /// <summary>
         /// Updates visibility of the objects in the eye and brain/manager
         /// </summary>
         /// <param name="seenTransforms"></param>
         /// <param name="seenGeoInfos"></param>
-        public void UpdateVisibility()
+        public void UpdateVisibility(List<Transform> objectsToUpdate, List<GeometryDataModels.GeoInfo> geoInfos)
         {
-            //TODO: Check if this will be performance issue in case many eyes/cameras are present
-            controllerProcessor.CheckSceneChanges(GeoVision);
-            this.seenTransforms = UpdateObjectVisibility(controllerProcessor.GetAllObjects(), seenTransforms);
-            SeenGeoInfos = UpdateGeometryVisibility(planes, controllerProcessor.GeoInfos(), seenGeoInfos);
+            if (enabled)
+            {
+                //TODO: Check if this will be performance issue in case many eyes/cameras are present
+                controllerProcessor.CheckSceneChanges(GeoVision);
+                this.seenTransforms = UpdateObjectVisibility(ControllerProcessor.GetAllObjects(), seenTransforms);
+                //  SeenGeoInfos = UpdateGeometryVisibility(planes, ControllerProcessor.GeoInfos(), seenGeoInfos);
+            }
+
         }
 
         public NativeArray<GeometryDataModels.Edge> GetSeenEdges()
@@ -199,10 +202,9 @@ namespace Plugins.GeometricVision.Interfaces.Implementations
         {
             get
             {
-                return GeoVision.Head.GetProcessor<GeometryVisionEntityProcessor>();
+                return (GeometryVisionEntityProcessor) controllerProcessor;
 
             }
-            set { controllerProcessor = value; }
         }
 
         public bool DebugMode

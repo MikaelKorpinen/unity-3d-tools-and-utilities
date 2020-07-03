@@ -51,7 +51,7 @@ namespace Tests
             yield return null;
             GeometryDataModels.Edge[] edges;
             var geoEye = geoVision.GetComponent<GeometryVisionEye>();
-            geoEye.TargetedGeometries.Add(new VisionTarget(GeometryType.Lines, 0, null));
+            geoVision.GetComponent<GeometryVision>().TargetedGeometries.Add(new VisionTarget(GeometryType.Lines, 0, null));
             /////Put camera at position where it can only see text cube 3d model partially
             var position = new Vector3(-0.69f, 0.352f, -4.34f);
             //Need to wait till update loop finishes for frustum to update. On windows machines not happen as fast as on Linux for some reason.
@@ -87,7 +87,7 @@ namespace Tests
             yield return null;
             GeometryDataModels.Edge[] edges;
             var geoEye = geoVision.GetComponent<GeometryVisionEye>();
-            geoEye.TargetedGeometries.Add(new VisionTarget(GeometryType.Lines, 0, null));
+            geoVision.GetComponent<GeometryVision>().TargetedGeometries.Add(new VisionTarget(GeometryType.Lines, 0, null));
             /////Put camera at position where it can only see text cube 3d model partially(3 edges of side of the cube)
             var position = new Vector3(-0.69f, 0.352f, -4.34f);
             var visibleEdgeCount =
@@ -150,8 +150,8 @@ namespace Tests
             var edgesT = edges;
             geoVision.transform.position = position;
             geoVision.GetComponent<GeometryVision>().RegenerateVisionArea(25);
-            geoEye.ControllerProcessor.CheckSceneChanges(geoEye.GeoVision);
-            MeshUtilities.UpdateEdgesVisibility(geoEye.Planes, geoEye.SeenGeoInfos);
+            geoVision.GetComponent<GeometryVision>().Head.GetProcessor<GeometryVisionProcessor>().CheckSceneChanges(geoEye.GeoVision);
+            MeshUtilities.UpdateEdgesVisibility(geoVision.GetComponent<GeometryVision>().Planes, geoEye.SeenGeoInfos);
             var visibleEdgeCount = 0;
             Measure.Method(() =>
             {
@@ -172,7 +172,7 @@ namespace Tests
             geoVision.transform.position = position;
             geoVision.GetComponent<GeometryVision>().RegenerateVisionArea(25);
             var renderer = cube.GetComponent<Renderer>();
-            MeshUtilities.UpdateEdgesVisibilityParallel(geoEye.Planes, geoEye.SeenGeoInfos);
+            MeshUtilities.UpdateEdgesVisibilityParallel(geoVision.GetComponent<GeometryVision>().Planes, geoEye.SeenGeoInfos);
             geoEye.DebugMode = true;
             var visibleEdgeCount = 0;
             Measure.Method(() =>

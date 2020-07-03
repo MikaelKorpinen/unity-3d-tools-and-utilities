@@ -62,3 +62,6 @@ sysinfo.txt
 # Crashlytics generated file
 crashlytics-build.properties
 
+Assets/InitTestScene*.unity.meta
+Assets/InitTestScene*.unity
+

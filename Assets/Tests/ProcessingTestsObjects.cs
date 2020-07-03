@@ -39,7 +39,7 @@ namespace Tests
             yield return null;
             int amountOfObjectsInScene = 0;
             int expectedObjectCount1 = TestUtilities.GetObjectCountFromScene();
-            Measure.Method(() => { amountOfObjectsInScene = geoVision.GetComponent<GeometryVisionEye>().ControllerProcessor.CountSceneObjects(); }).Run();
+            Measure.Method(() => { amountOfObjectsInScene = geoVision.GetComponent<GeometryVision>().Head.GetProcessor<GeometryVisionProcessor>().CountSceneObjects(); }).Run();
 
             Debug.Log("total objects: " + amountOfObjectsInScene);
             Assert.AreEqual(expectedObjectCount1, amountOfObjectsInScene);
@@ -110,7 +110,7 @@ namespace Tests
 
             Measure.Method(() =>
             {
-                result = geoVision.GetComponent<GeometryVisionEye>().ControllerProcessor.GetTransforms(rootGameObjects);
+                result = geoVision.GetComponent<GeometryVision>().Head.GetProcessor<GeometryVisionProcessor>().GetTransforms(rootGameObjects);
             }).Run();
             
             Debug.Log("total objects: " + result.Count);

@@ -31,12 +31,10 @@ namespace Plugins.GeometricVision.Interfaces.Implementations
 
         [SerializeField, Tooltip(" Geometry is extracted from collider instead of renderers mesh")]
         private bool targetColliderMeshes;
-
-        [SerializeField] private List<VisionTarget> targetedGeometries = new List<VisionTarget>();
+        public GeometryVision GeoVision { get; set; }
         private EyeDebugger _debugger;
-   
-        public Plane[] planes = new Plane[6];
-        private GeometryVisionProcessor controllerProcessor;
+        
+
         public GeometryVisionHead Head { get; set; }
 
         void Reset()
@@ -56,22 +54,23 @@ namespace Plugins.GeometricVision.Interfaces.Implementations
             Debugger = new EyeDebugger();
             seenTransforms = new HashSet<Transform>();
         }
-        
-        /// <summary>
-        /// Updates visibility of the objects in the eye and processor/manager
-        /// </summary>
-        public void UpdateVisibility()
-        {
-            seenTransforms = UpdateObjectVisibility(controllerProcessor.GetAllObjects(), seenTransforms);
-            SeenGeoInfos = UpdateGeometryVisibility(planes, controllerProcessor.GeoInfos, seenGeoInfos);
-        }
-
         public NativeArray<GeometryDataModels.Edge> GetSeenEdges()
         {
             throw new NotImplementedException();
         }
 
-        public GeometryVision GeoVision { get; }
+
+
+        /// <summary>
+        /// Updates visibility of the objects in the eye and processor/manager
+        /// </summary>
+        public void UpdateVisibility(List<Transform> objectsToUpdate, List<GeometryDataModels.GeoInfo> geoInfos)
+        {
+
+            seenTransforms = UpdateObjectVisibility(objectsToUpdate, seenTransforms);
+            SeenGeoInfos = UpdateGeometryVisibility(GeoVision.Planes, geoInfos);
+        }
+
 
 
         /// <summary>
@@ -94,14 +93,14 @@ namespace Plugins.GeometricVision.Interfaces.Implementations
         /// <param name="planes"></param>
         /// <param name="allGeoInfos"></param>
         private List<GeometryDataModels.GeoInfo> UpdateGeometryVisibility(Plane[] planes,
-            List<GeometryDataModels.GeoInfo> allGeoInfos, List<GeometryDataModels.GeoInfo> seenGeometry)
+            List<GeometryDataModels.GeoInfo> allGeoInfos)
         {
             int geoCount = allGeoInfos.Count;
-            seenGeometry = new List<GeometryDataModels.GeoInfo>();
+            var seenGeometry = new List<GeometryDataModels.GeoInfo>();
 
             UpdateSeenGeometryObjects(allGeoInfos, seenGeometry, geoCount);
 
-            foreach (var geometryType in TargetedGeometries)
+            foreach (var geometryType in GeoVision.TargetedGeometries)
             {
                 if (geometryType.GeometryType == GeometryType.Lines && geometryType.Enabled)
                 {
@@ -126,7 +125,7 @@ namespace Plugins.GeometricVision.Interfaces.Implementations
             {
                 var geInfo = allGeoInfos[i];
 
-                if (GeometryUtility.TestPlanesAABB(planes, allGeoInfos[i].renderer.bounds) &&
+                if (GeometryUtility.TestPlanesAABB(GeoVision.Planes, allGeoInfos[i].renderer.bounds) &&
                     hideEdgesOutsideFieldOfView)
                 {
                     seenGeometry.Add(geInfo);
@@ -140,7 +139,7 @@ namespace Plugins.GeometricVision.Interfaces.Implementations
         {
             foreach (var transform in allTransforms)
             {
-                if (MeshUtilities.IsInsideFrustum(transform.position, planes))
+                if (MeshUtilities.IsInsideFrustum(transform.position, GeoVision.Planes))
                 {
                     seenTransforms.Add(transform);
                     lastCount = seenTransforms.Count;
@@ -157,24 +156,14 @@ namespace Plugins.GeometricVision.Interfaces.Implementations
                 Debugger.Debug(GeoVision.Camera1, this, true);
             }
         }
-
-        public List<VisionTarget> TargetedGeometries
-        {
-            get { return targetedGeometries; }
-        }
+        
 
         public List<GeometryDataModels.GeoInfo> SeenGeoInfos
         {
             get { return seenGeoInfos; }
             set { seenGeoInfos = value; }
         }
-
-        public Plane[] Planes
-        {
-            get { return planes; }
-            set { planes = value; }
-        }
-
+        
         public bool DebugMode
         {
             get { return debugMode; }
@@ -191,15 +180,6 @@ namespace Plugins.GeometricVision.Interfaces.Implementations
         {
             get { return targetColliderMeshes; }
             set { targetColliderMeshes = value; }
-        }
-
-        public GeometryVisionProcessor ControllerProcessor
-        {
-            get
-            {
-                return (GeometryVisionProcessor) Head.GetProcessor<GeometryVisionProcessor>();
-            }
-            set { controllerProcessor = ControllerProcessor; }
         }
     }
 }

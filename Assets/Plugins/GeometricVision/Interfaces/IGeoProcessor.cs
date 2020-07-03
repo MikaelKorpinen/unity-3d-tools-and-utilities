@@ -7,11 +7,6 @@ namespace Plugins.GeometricVision.Interfaces
 {
     public interface IGeoProcessor
     {
-        /// <summary>
-        /// Contains seen information about geometry objects that are seen by eyes/cameras
-        /// </summary>
-        /// <returns></returns>
-        List<GeometryDataModels.GeoInfo> GeoInfos();
     
         /// <summary>
         /// Counts all the scene objects in the current active scene. Not including objects on Dont destroy on load atm.

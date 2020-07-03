@@ -17,6 +17,13 @@ namespace Plugins.GeometricVision.Interfaces.Implementations
     /// <inheritdoc />
     public class GeometryVisionEntityProcessor : SystemBase, IGeoProcessor
     {
+        public GeometryVisionEntityProcessor()
+        {
+            GeoInfos = new List<GeometryDataModels.GeoInfo>();
+            AllObjects = new HashSet<Transform>();
+            RootObjects = new List<GameObject>();
+        }
+        
         [SerializeField] private int lastCount = 0;
         [SerializeField] private List<GeometryDataModels.GeoInfo> _geoInfos = new List<GeometryDataModels.GeoInfo>();
         public HashSet<Transform> AllObjects;
@@ -27,15 +34,10 @@ namespace Plugins.GeometricVision.Interfaces.Implementations
         private bool calculateEntities = true;
         BeginInitializationEntityCommandBufferSystem m_EntityCommandBufferSystem;
         private int currentObjectCount;
-        private List<VisionTarget> _targetedGeometries;
+        private List<VisionTarget> _targetedGeometries = new List<VisionTarget>();
         private GeometryVision geometryVisiom;
 
-        public GeometryVisionEntityProcessor()
-        {
-            GeoInfos = new List<GeometryDataModels.GeoInfo>();
-            AllObjects = new HashSet<Transform>();
-            RootObjects = new List<GameObject>();
-        }
+
 
         protected override void OnCreate()
         {
@@ -153,7 +155,7 @@ namespace Plugins.GeometricVision.Interfaces.Implementations
             {
                 lastCount = currentObjectCount;
                 extractGeometry = true;
-               // _targetedGeometries = targetedGeometries;
+                    _targetedGeometries = geoVision.TargetedGeometries;
             }
         }
 
@@ -216,11 +218,6 @@ namespace Plugins.GeometricVision.Interfaces.Implementations
         public void Debug(GeometryVision geoVisions)
         {
             
-        }
-
-        List<GeometryDataModels.GeoInfo> IGeoProcessor.GeoInfos()
-        {
-            return _geoInfos;
         }
 
         public HashSet<Transform> GetTransforms(List<GameObject> objs)

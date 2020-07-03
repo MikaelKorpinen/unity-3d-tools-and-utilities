@@ -14,15 +14,11 @@ namespace Plugins.GeometricVision.Interfaces.Implementations
     {
         [SerializeField] private int lastCount = 0;
 
-        [SerializeField] private List<GeometryDataModels.GeoInfo> _geoInfos = new List<GeometryDataModels.GeoInfo>();
+
         public HashSet<Transform> AllObjects;
         public List<GameObject> RootObjects;
         private bool collidersTargeted;
 
-        List<GeometryDataModels.GeoInfo> IGeoProcessor.GeoInfos()
-        {
-            return _geoInfos;
-        }
 
         public HashSet<Transform> GetTransforms(List<GameObject> objs)
         {
@@ -35,17 +31,11 @@ namespace Plugins.GeometricVision.Interfaces.Implementations
         {
             return AllObjects.ToList();
         }
-
-        public List<GeometryDataModels.GeoInfo> GeoInfos
-        {
-            get { return _geoInfos; }
-            set { _geoInfos = value; }
-        }
+        
 
         // Start is called before the first frame update
         void Awake()
         {
-            GeoInfos = new List<GeometryDataModels.GeoInfo>();
             AllObjects = new HashSet<Transform>();
             RootObjects = new List<GameObject>();
         }
@@ -68,7 +58,7 @@ namespace Plugins.GeometricVision.Interfaces.Implementations
             {
                 lastCount = currentObjectCount;
                 UpdateSceneObjects(RootObjects, AllObjects);
-                ExtractGeometry(AllObjects, GeoInfos, geoVision.TargetedGeometries);
+                ExtractGeometry(AllObjects, geoVision.Head.GeoMemory.GeoInfos, geoVision.TargetedGeometries);
             }
         }
 

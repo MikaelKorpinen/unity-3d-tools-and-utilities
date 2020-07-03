@@ -36,7 +36,9 @@ namespace Tests
             yield return null;
             var geoVision = TestUtilities.SetupGeoVision(new Vector3(0f, 0f, -6f), factoryAndOriginalScenes, false);
             yield return null;
-            var geoEye = geoVision.GetComponent<GeometryVisionEye>();
+            yield return null;
+            yield return null;
+            var geoEye = geoVision.GetComponent<GeometryVision>().GetEye<GeometryVisionEye>();
             Assert.AreEqual(expectedObjectCount, geoEye.seenTransforms.Count);
         }
 

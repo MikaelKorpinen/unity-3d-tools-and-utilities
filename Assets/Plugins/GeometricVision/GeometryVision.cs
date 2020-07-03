@@ -12,6 +12,7 @@ using UniRx;
 using Unity.EditorCoroutines.Editor;
 using UnityEngine;
 using UnityEngine.Rendering;
+using Object = UnityEngine.Object;
 
 namespace Plugins.GeometricVision
 {
@@ -30,18 +31,24 @@ namespace Plugins.GeometricVision
         [SerializeField] private int lastCount = 0;
         [SerializeField] private List<GeometryDataModels.GeoInfo> seenGeoInfos = new List<GeometryDataModels.GeoInfo>();
         [SerializeField] public HashSet<Transform> seenTransforms;
-        [SerializeField, Tooltip("Use the mesh from collider")]private bool targetColliderMeshes;
+
+        [SerializeField, Tooltip("Use the mesh from collider")]
+        private bool targetColliderMeshes;
+
         [SerializeField] private List<VisionTarget> targetedGeometries = new List<VisionTarget>();
-        [SerializeField, Tooltip("Include entities")] private BoolReactiveProperty entityBasedProcessing = new BoolReactiveProperty();
+
+        [SerializeField, Tooltip("Include entities")]
+        private BoolReactiveProperty entityBasedProcessing = new BoolReactiveProperty();
+
         [SerializeField, Tooltip("Will enable the system to use GameObjects")]
         private BoolReactiveProperty gameObjectProcessing = new BoolReactiveProperty();
 
         private IDisposable gameObjectProcessingObservable = null;
         private IDisposable entityToggleObservable = null;
         public GeometryVisionHead Head { get; set; }
-        private List<IGeoEye> eyes = new List<IGeoEye>();
+        private HashSet<IGeoEye> eyes = new HashSet<IGeoEye>();
         private new Camera camera;
-        public Plane[] planes = new Plane[6];
+        private Plane[] planes = new Plane[6];
 
         void Reset()
         {
@@ -63,27 +70,16 @@ namespace Plugins.GeometricVision
 
         private void Initialize()
         {
-            CreateDefaultTargeting();
             seenTransforms = new HashSet<Transform>();
             seenGeoInfos = new List<GeometryDataModels.GeoInfo>();
-            
+            targetedGeometries.Add(new VisionTarget(GeometryType.Objects,0,new GeometryObjectTargeting()));
             InitUnityCamera();
-            GeometryVisionUtilities.CreateGeometryVision(Head, this);
+            GeometryVisionUtilities.SetupGeometryVision(Head, this, targetedGeometries);
             InitEntitySwitch();
             InitGameObjectSwitch();
             InitializeTargeting(TargetedGeometries);
         }
-
-        private void CreateDefaultTargeting()
-        {
-            if (isObjectsTargeted(targetedGeometries) == false)
-            {
-                targetedGeometries = new List<VisionTarget>();
-                IGeoTargeting targeting = new GeometryObjectTargeting();
-                targetedGeometries.Add(new VisionTarget(GeometryType.Objects, 0, targeting));
-            }
-        }
-
+        
         public void InitUnityCamera()
         {
             Camera1 = gameObject.GetComponent<Camera>();
@@ -113,9 +109,11 @@ namespace Plugins.GeometricVision
             var geoEye = GetComponent<GeometryVisionEye>();
             if (objectProcessing)
             {
-                DestroyEye(geoEye);
-                gameObject.AddComponent<GeometryVisionEye>();
-                eyes.Add(gameObject.GetComponent<GeometryVisionEye>());
+                if (geoEye == null)
+                {
+                    GeometryVisionUtilities.SetupGeometryVisionEye(Head, this, fieldOfView);
+                }
+
                 ReplaceProcessor(false);
             }
             else if (objectProcessing == false && geoEye)
@@ -130,9 +128,9 @@ namespace Plugins.GeometricVision
             {
                 Destroy(geoEye);
             }
-            else if(Application.isPlaying == false && geoEye != null) 
+            else if (Application.isPlaying == false && geoEye != null)
             {
-                DestroyImmediate(geoEye); 
+                DestroyImmediate(geoEye);
             }
         }
 
@@ -168,26 +166,30 @@ namespace Plugins.GeometricVision
 
         void InitEntities(bool switchToEntities)
         {
-            
             ReplaceProcessor(switchToEntities);
-            InitEntityEye(Head.GetProcessor<GeometryVisionEntityProcessor>());
+            ReplaceEye(switchToEntities);
         }
-        
-        private void InitEntityEye(GeometryVisionEntityProcessor eProcessor)
+
+        private void ReplaceEye(bool toEntities)
         {
-            var eEye = new GeometryVisionEntityEye();
-            eEye.ControllerProcessor = eProcessor;
-            eEye.Id = new Hash128().ToString();
-            Head.Eyes.Add(eEye);
-            Eyes.Add(eEye);
+            if (toEntities)
+            {
+                RemoveEye<GeometryVisionEntityEye>();
+                AddEye(new GeometryVisionEntityEye());
+            }
+            else
+            {
+                RemoveEye<GeometryVisionEntityEye>();
+            }
         }
+
+
         private void ReplaceProcessor(bool toEntities)
         {
-
             if (toEntities)
             {
                 Head.RemoveProcessor<GeometryVisionEntityProcessor>();
-                Head.AddProcessor<GeometryVisionEntityProcessor>();
+                Head.AddProcessor<GeometryVisionEntityProcessor>(new GeometryVisionEntityProcessor());
             }
             else
             {
@@ -200,7 +202,7 @@ namespace Plugins.GeometricVision
                 }
 
                 Head.gameObject.AddComponent<GeometryVisionProcessor>();
-                Head.AddProcessor<GeometryVisionProcessor>();
+                Head.AddProcessor(Head.gameObject.GetComponent<GeometryVisionProcessor>());
             }
         }
 
@@ -306,18 +308,6 @@ namespace Plugins.GeometricVision
             }
         }
 
-        // Update is called once per frame
-        void Update()
-        {
-            planes = RegenerateVisionArea(fieldOfView, planes);
-            foreach (var geoEye in Eyes)
-            {
-                geoEye.UpdateVisibility();
-            }
-            
-        }
-
-
         /// <summary>
         /// When the camera is moved, rotated or both the frustum planes that
         /// hold the system together needs to be refreshes/regenerated
@@ -348,7 +338,7 @@ namespace Plugins.GeometricVision
             planes = GeometryUtility.CalculateFrustumPlanes(Camera1);
             Camera1.enabled = false;
         }
-        
+
         public List<VisionTarget> TargetedGeometries
         {
             get { return targetedGeometries; }
@@ -396,10 +386,37 @@ namespace Plugins.GeometricVision
             set { gameObjectProcessing = value; }
         }
 
-        public List<IGeoEye> Eyes
+        public HashSet<IGeoEye> Eyes
         {
             get { return eyes; }
             set { eyes = value; }
+        }
+
+        public void RemoveEye<T>()
+        {
+            InterfaceUtilities.RemoveInterfacesOfTypeFromList(typeof(T), ref eyes);
+        }
+
+        public T GetEye<T>()
+        {
+            return (T) InterfaceUtilities.GetInterfaceOfTypeFromList(typeof(T), eyes);
+        }
+
+        public void AddEye<T>(T eye)
+        {
+            if (eyes == null)
+            {
+                eyes = new HashSet<IGeoEye>();
+            }
+
+            if (InterfaceUtilities.ListContainsInterfaceOfType(eye.GetType(), eyes) == false)
+            {
+                var dT = (IGeoEye) default(T);
+                if (Object.Equals(eye, dT) == false)
+                {
+                    eyes.Add((IGeoEye) eye);
+                }
+            }
         }
 
         public string Id { get; set; }

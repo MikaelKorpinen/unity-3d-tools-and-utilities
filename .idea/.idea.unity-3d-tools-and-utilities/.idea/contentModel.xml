@@ -29,6 +29,7 @@
             <e p="GeometryVision.cs" t="Include" />
             <e p="GeometryVisionFactory.cs" t="Include" />
             <e p="GeometryVisionHead.cs" t="Include" />
+            <e p="GeometryVisionMemory.cs" t="Include" />
             <e p="GeometryVisionSettings.cs" t="Include" />
             <e p="Info.cs" t="Include" />
             <e p="Interfaces" t="Include">

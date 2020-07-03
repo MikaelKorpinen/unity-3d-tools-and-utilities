@@ -23,6 +23,26 @@ namespace Tests
             //Put original scenes back to build settings
             EditorBuildSettings.scenes = factoryAndOriginalScenes.Item2;
         }
+                
+        [UnityTest, Performance, Version(version)]
+        [Timeout(TestSettings.defaultSmallTest)]
+        public IEnumerator GeometryVisionGetsCreatedWithFactory([ValueSource(typeof(TestUtilities), nameof(TestUtilities.GetScenesFromPath))] string scenePath)
+        {
+            factoryAndOriginalScenes = TestUtilities.SetupScene(scenePath);
+            for (int i = 0; i < 50; i++)
+            {
+                yield return null;
+            }
+            var geoVision = TestUtilities.SetupGeoVision(new Vector3(0f, 0f, -6f), factoryAndOriginalScenes,false);
+            yield return null;
+            
+            int amountOfObjectsInScene = 0;
+            IGeoProcessor processor = geoVision.GetComponent<GeometryVision>().Head.GetProcessor<GeometryVisionProcessor>();
+            amountOfObjectsInScene = processor.CountSceneObjects();
+            yield return null;
+            Debug.Log("total objects: " + amountOfObjectsInScene);
+            Assert.True( amountOfObjectsInScene>0);
+        }
         
         [UnityTest, Performance, Version(version)]
         [Timeout(TestSettings.defaultSmallTest)]
@@ -75,30 +95,11 @@ namespace Tests
             Assert.True( geoVision.GetComponent<GeometryVision>().TargetedGeometries != null);
             Assert.True( geoVision.GetComponent<GeometryVision>().Head != null);
             Assert.True( geoVision.GetComponent<GeometryVision>().Head.GeoVisions != null);
-            Assert.True( geoVision.GetComponent<GeometryVision>().Head.Eyes != null);
+            Assert.True( geoVision.GetComponent<GeometryVision>().Head.gameObject.GetComponent<GeometryVisionProcessor>() != null);
+            var proc = geoVision.GetComponent<GeometryVision>().Head.GetProcessor<GeometryVisionProcessor>();
             Assert.True( geoVision.GetComponent<GeometryVision>().Head.GetProcessor<GeometryVisionProcessor>() != null);
         }
-        
-        [UnityTest, Performance, Version(version)]
-        [Timeout(TestSettings.defaultSmallTest)]
-        public IEnumerator GeometryVisionGetsCreatedWithFactory([ValueSource(typeof(TestUtilities), nameof(TestUtilities.GetScenesFromPath))] string scenePath)
-        {
-            factoryAndOriginalScenes = TestUtilities.SetupScene(scenePath);
-            for (int i = 0; i < 50; i++)
-            {
-                yield return null;
-            }
-            var geoVision = TestUtilities.SetupGeoVision(new Vector3(0f, 0f, -6f), factoryAndOriginalScenes,false);
-            yield return null;
-            
-            int amountOfObjectsInScene = 0;
-            IGeoProcessor processor = geoVision.GetComponent<GeometryVisionHead>().GetProcessor<GeometryVisionProcessor>();
-            amountOfObjectsInScene = processor.CountSceneObjects();
-            yield return null;
-            Debug.Log("total objects: " + amountOfObjectsInScene);
-            Assert.True( amountOfObjectsInScene>0);
-        }
-        
+
         [UnityTest, Performance, Version(version)]
         [Timeout(TestSettings.defaultSmallTest)]
         public IEnumerator GeometryVisionHasBasicComponentsWhenCreatedWithFactory([ValueSource(typeof(TestUtilities), nameof(TestUtilities.GetScenesFromPath))] string scenePath)
@@ -111,8 +112,10 @@ namespace Tests
             var geoVision = TestUtilities.SetupGeoVision(new Vector3(0f, 0f, -6f), factoryAndOriginalScenes,false);
             yield return null;
             int amountOfObjectsInScene = 0;
-
-            amountOfObjectsInScene = geoVision.GetComponent<GeometryVisionEye>().ControllerProcessor.CountSceneObjects();
+            yield return null;
+            var geoVisionComponent = geoVision.GetComponent<GeometryVision>();
+            yield return null;
+            amountOfObjectsInScene = geoVisionComponent.Head.GetProcessor<GeometryVisionProcessor>().CountSceneObjects();
             yield return null;
             Debug.Log("total objects: " + amountOfObjectsInScene);
             Assert.True( geoVision.GetComponent<GeometryVision>() != null);
@@ -121,7 +124,6 @@ namespace Tests
             Assert.True( geoVision.GetComponent<GeometryVision>().TargetedGeometries != null);
             Assert.True( geoVision.GetComponent<GeometryVision>().Head != null);
             Assert.True( geoVision.GetComponent<GeometryVision>().Head.GeoVisions != null);
-            Assert.True( geoVision.GetComponent<GeometryVision>().Head.Eyes != null);
         }
         
         [UnityTest, Performance, Version(version)]
@@ -147,8 +149,7 @@ namespace Tests
             Assert.True( geoVision.GetComponent<GeometryVision>().Head != null);
             Assert.True( geoVision.GetComponent<GeometryVision>().Head.GeoVisions != null);
             Assert.True( geoVision.GetComponent<GeometryVision>().Head.GetProcessor<GeometryVisionEntityProcessor>() != null);
-            Assert.True( geoVision.GetComponent<GeometryVision>().Head.Eyes != null);
-            
+
         }
 
         [UnityTest, Performance, Version(TestSettings.Version)]
@@ -162,7 +163,7 @@ namespace Tests
                 
             }
             GameObject geoVision = new GameObject("geoTesting");
-            geoVision.AddComponent<GeometryVisionEye>();
+            geoVision.AddComponent<GeometryVision>();
             yield return null;
             yield return null;
             int AmountOfTargetingSystemsRegistered = 0;
@@ -204,12 +205,13 @@ namespace Tests
                 yield return null;
             }
             GameObject geoVision = new GameObject("geoTesting");
-            geoVision.AddComponent<GeometryVisionEye>();
+            geoVision.AddComponent<GeometryVision>();
             yield return null;
             yield return null;
             int AmountOfTargetingSystemsRegistered = 0;
             int expectedObjectCount1 = 1;
-            Measure.Method(() => { AmountOfTargetingSystemsRegistered = geoVision.GetComponent<GeometryTargeting>().TargetingPrograms.Count; }).Run();
+            var targs = geoVision.GetComponent<GeometryTargeting>().TargetingPrograms;
+            Measure.Method(() => { AmountOfTargetingSystemsRegistered = targs.Count; }).Run();
 
             Debug.Log("total targeting systems: " + AmountOfTargetingSystemsRegistered);
             Assert.AreEqual(expectedObjectCount1, AmountOfTargetingSystemsRegistered);

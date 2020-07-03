@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using Plugins.GeometricVision.Interfaces;
 using UnityEngine;
+using Object = System.Object;
 
 namespace Plugins.GeometricVision
 {
@@ -18,8 +19,8 @@ namespace Plugins.GeometricVision
     {
         private HashSet<GeometryVision> geoVisions;
         private List<IGeoProcessor> processors;
-        private List<IGeoEye> eyes = new List<IGeoEye>();
-        
+        public GeometryVisionMemory GeoMemory { get; } = new GeometryVisionMemory();
+
         void Reset()
         {
             processors = new List<IGeoProcessor>();
@@ -34,9 +35,13 @@ namespace Plugins.GeometricVision
                     processor.CheckSceneChanges(geoVision);
                     if (geoVision.DebugMode)
                     {
-                        processor.Debug(geoVision);  
+                        processor.Debug(geoVision);
                     }
-
+                    geoVision.RegenerateVisionArea(geoVision.Camera1.fieldOfView);
+                    foreach (var geoEye in geoVision.Eyes)
+                    {
+                        geoEye.UpdateVisibility(processor.GetAllObjects(), GeoMemory.GeoInfos);
+                    }
                 }
             }
         }
@@ -45,20 +50,16 @@ namespace Plugins.GeometricVision
         {
             if (processors == null)
             {
-                processors  = new List<IGeoProcessor>();
+                processors = new List<IGeoProcessor>();
             }
+
             if (InterfaceUtilities.ListContainsInterfaceOfType(processor.GetType(), processors) == false)
             {
-                processors.Add((IGeoProcessor) processor);
-            }
-        }
-
-        public void AddProcessor<T>() where T : new()
-        {
-            if (InterfaceUtilities.ListContainsInterfaceOfType(typeof(T), processors) == false)
-            {
-                IGeoProcessor newProcessor = new T() as IGeoProcessor;
-                processors.Add(newProcessor);
+                var dT = (IGeoProcessor) default(T);
+                if (Object.Equals(processor, dT) == false)
+                {
+                    processors.Add((IGeoProcessor) processor);
+                }
             }
         }
 
@@ -71,13 +72,7 @@ namespace Plugins.GeometricVision
         {
             InterfaceUtilities.RemoveInterfacesOfTypeFromList(typeof(T), ref processors);
         }
-
-        public List<IGeoEye> Eyes
-        {
-            get { return eyes; }
-            set { eyes = value; }
-        }
-
+        
         public HashSet<GeometryVision> GeoVisions
         {
             get { return geoVisions; }
