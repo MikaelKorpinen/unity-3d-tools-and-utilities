@@ -20,6 +20,7 @@ namespace Plugins.GeometricVision
         private HashSet<GeometryVision> geoVisions;
         private List<IGeoProcessor> processors;
         public GeometryVisionMemory GeoMemory { get; } = new GeometryVisionMemory();
+        public EyeDebugger EyeDebugger { get; } = new EyeDebugger();
 
         void Reset()
         {
@@ -41,7 +42,12 @@ namespace Plugins.GeometricVision
                     foreach (var geoEye in geoVision.Eyes)
                     {
                         geoEye.UpdateVisibility(processor.GetAllObjects(), GeoMemory.GeoInfos);
+                        if (geoVision.DebugMode)
+                        {
+                            EyeDebugger.Debug(geoEye);
+                        }
                     }
+                    geoVision.GetClosestTargets(GeoMemory.GeoInfos);
                 }
             }
         }

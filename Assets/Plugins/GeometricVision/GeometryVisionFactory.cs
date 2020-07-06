@@ -43,16 +43,34 @@ namespace Plugins.GeometricVision
 
             var head = CreateHead(geoVisionManagerGO, geoVisionComponent, processor);
             CreateEye(geoVisionManagerGO, fieldOfView, geoVisionComponent);
-
+            
             var gameObject = geoVisionComponent.gameObject;
             var transform = gameObject.transform;
             transform.position = startingPosition;
             transform.rotation = rotation;
-
+            AddAdditionalTargets(geoVisionComponent, geoTypes,layerIndex);
             return gameObject;
         }
 
-
+        private void AddAdditionalTargets(GeometryVision geoVision, List<GeometryType> geoTypes, int layerIndex)
+        {
+            foreach (var geoType in geoTypes)
+            {
+                if (geoType == GeometryType.Lines)
+                {
+                    geoVision.TargetedGeometries.Add(new VisionTarget(GeometryType.Lines,layerIndex,new GeometryLineTargeting()));
+                }                
+                if (geoType == GeometryType.Objects)
+                {
+                    geoVision.TargetedGeometries.Add(new VisionTarget(GeometryType.Lines,layerIndex,new GeometryLineTargeting()));
+                }
+              
+                if (geoType == GeometryType.Vertices)
+                {
+                    geoVision.TargetedGeometries.Add(new VisionTarget(GeometryType.Vertices,layerIndex,new GeometryVertexTargeting()));
+                }
+            }
+        }
 
         private static GameObject CreateGeovisionManagerGameObject()
         {

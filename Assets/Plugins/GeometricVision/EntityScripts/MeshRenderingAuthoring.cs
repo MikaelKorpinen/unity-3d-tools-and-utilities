@@ -4,6 +4,7 @@
 
 
 using GeometricVision;
+using Plugins.GeometricVision;
 using Unity.Collections;
 using Unity.Entities;
 using UnityEngine;

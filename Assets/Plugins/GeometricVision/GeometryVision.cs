@@ -49,7 +49,9 @@ namespace Plugins.GeometricVision
         private HashSet<IGeoEye> eyes = new HashSet<IGeoEye>();
         private new Camera camera;
         private Plane[] planes = new Plane[6];
-
+        private Vector3 forwardWorldCoordinate = Vector3.zero;
+        private Transform  cachedTransform;
+        public List<Vector3> ClosestTargets { get; } = new List<Vector3>();
         void Reset()
         {
             Initialize();
@@ -64,12 +66,14 @@ namespace Plugins.GeometricVision
         // On validate is called when there is a change in the UI
         void OnValidate()
         {
+            cachedTransform = transform;
             InitUnityCamera();
             InitializeTargeting(TargetedGeometries);
         }
 
         private void Initialize()
         {
+            cachedTransform = transform;
             seenTransforms = new HashSet<Transform>();
             seenGeoInfos = new List<GeometryDataModels.GeoInfo>();
             targetedGeometries.Add(new VisionTarget(GeometryType.Objects,0,new GeometryObjectTargeting()));
@@ -97,9 +101,9 @@ namespace Plugins.GeometricVision
         {
             if (gameObjectProcessingObservable == null)
             {
-                gameObjectProcessingObservable = gameObjectProcessing.Subscribe(gameObjectProcessing =>
+                gameObjectProcessingObservable = gameObjectProcessing.Subscribe(gOProcessing =>
                 {
-                    InitGameObjectBasedSystem(gameObjectProcessing);
+                    InitGameObjectBasedSystem(gOProcessing);
                 });
             }
         }
@@ -114,11 +118,30 @@ namespace Plugins.GeometricVision
                     GeometryVisionUtilities.SetupGeometryVisionEye(Head, this, fieldOfView);
                 }
 
-                ReplaceProcessor(false);
+                InitEntityProcessor(false);
             }
             else if (objectProcessing == false && geoEye)
             {
                 DestroyEye(geoEye);
+            }
+        }
+
+        private void Update()
+        {
+            
+
+        }
+
+        private void OnDrawGizmos()
+        {
+            if (debugMode)
+            {
+                var transform1 = transform;
+                UnityEngine.Debug.DrawLine(transform1.position, ForwardWorldCoordinate, Color.blue, 1);
+                foreach (var closestTarget in ClosestTargets)
+                {
+                    Gizmos.DrawSphere(closestTarget,0.3f);
+                }
             }
         }
 
@@ -166,25 +189,11 @@ namespace Plugins.GeometricVision
 
         void InitEntities(bool switchToEntities)
         {
-            ReplaceProcessor(switchToEntities);
-            ReplaceEye(switchToEntities);
+            InitEntityProcessor(switchToEntities);
+            InitEntityEye(switchToEntities);
         }
 
-        private void ReplaceEye(bool toEntities)
-        {
-            if (toEntities)
-            {
-                RemoveEye<GeometryVisionEntityEye>();
-                AddEye(new GeometryVisionEntityEye());
-            }
-            else
-            {
-                RemoveEye<GeometryVisionEntityEye>();
-            }
-        }
-
-
-        private void ReplaceProcessor(bool toEntities)
+        private void InitEntityProcessor(bool toEntities)
         {
             if (toEntities)
             {
@@ -205,6 +214,20 @@ namespace Plugins.GeometricVision
                 Head.AddProcessor(Head.gameObject.GetComponent<GeometryVisionProcessor>());
             }
         }
+
+        private void InitEntityEye(bool toEntities)
+        {
+            if (toEntities)
+            {
+                RemoveEye<GeometryVisionEntityEye>();
+                AddEye(new GeometryVisionEntityEye());
+            }
+            else
+            {
+                RemoveEye<GeometryVisionEntityEye>();
+            }
+        }
+
 
         private GeometryTargeting HandleAddingGeometryTargetingComponent()
         {
@@ -420,5 +443,29 @@ namespace Plugins.GeometricVision
         }
 
         public string Id { get; set; }
+
+        public Vector3 ForwardWorldCoordinate
+        {
+            get
+            {
+                forwardWorldCoordinate = cachedTransform.position + cachedTransform.forward;
+                return forwardWorldCoordinate;
+            }
+        }
+
+
+
+        public List<Vector3> GetClosestTargets(List<GeometryDataModels.GeoInfo> GeoInfos)
+        {
+
+            foreach (var targetedGeometry in TargetedGeometries)
+            {
+                ClosestTargets.Add(targetedGeometry.TargetingSystem.ClosestPointOnRay(gameObject.transform.position,
+                    ForwardWorldCoordinate, GeoInfos));
+            }
+
+            return ClosestTargets;
+        }
+        
     }
 }

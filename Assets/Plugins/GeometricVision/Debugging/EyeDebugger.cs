@@ -3,13 +3,14 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using GeometricVision;
+using Plugins.GeometricVision;
 using Plugins.GeometricVision.Interfaces;
 using Plugins.GeometricVision.Interfaces.Implementations;
 using Unity.Collections;
 using UnityEditor.Graphs;
 using UnityEngine;
-using static GeometricVision.GeometryDataModels.Boolean;
-using Plane = GeometricVision.GeometryDataModels.Plane;
+using static Plugins.GeometricVision.GeometryDataModels.Boolean;
+using Plane = Plugins.GeometricVision.GeometryDataModels.Plane;
 
 public class EyeDebugger 
 {
@@ -118,9 +119,10 @@ public class EyeDebugger
                 amountOfSeenEdges++;
             }
         }
+
+        edges.Dispose();
     }
-    
-    public void Debug(Camera camera, IGeoEye iGeoEye, bool geometryOnly)
+    public void DebugGeoPlanes(Camera camera, IGeoEye iGeoEye, bool geometryOnly)
     {
         GeometryVisionEye eye = iGeoEye as GeometryVisionEye;
         if (geometryOnly == false)
@@ -131,6 +133,12 @@ public class EyeDebugger
                 CreateDebugPlanes(25, _frustumCornersNear, _frustumCornersFar, camera, _planes);
             }
         }
+    }
+
+    public void Debug(IGeoEye iGeoEye)
+    {
+        GeometryVisionEye eye = iGeoEye as GeometryVisionEye;
+
         amountOfSeenEdges = 0;
         
         if (eye != null)

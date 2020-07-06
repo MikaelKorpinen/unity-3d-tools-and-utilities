@@ -149,15 +149,16 @@ namespace Tests
             edges = new GeometryDataModels.Edge[0];
             var edgesT = edges;
             geoVision.transform.position = position;
-            geoVision.GetComponent<GeometryVision>().RegenerateVisionArea(25);
-            geoVision.GetComponent<GeometryVision>().Head.GetProcessor<GeometryVisionProcessor>().CheckSceneChanges(geoEye.GeoVision);
+            var geoVis = geoVision.GetComponent<GeometryVision>();
+            geoVis.RegenerateVisionArea(25);
+            geoVis.Head.GetProcessor<GeometryVisionProcessor>().CheckSceneChanges(geoEye.GeoVision);
             MeshUtilities.UpdateEdgesVisibility(geoVision.GetComponent<GeometryVision>().Planes, geoEye.SeenGeoInfos);
             var visibleEdgeCount = 0;
             Measure.Method(() =>
             {
-                geoEye.Debug();
-                visibleEdgeCount = geoEye.Debugger.AmountOfSeenEdges;
-                geoEye.Debugger.AmountOfSeenEdges = 0;
+                geoVis.Head.EyeDebugger.Debug(geoEye);
+                visibleEdgeCount = geoVis.Head.EyeDebugger.AmountOfSeenEdges;
+                geoVis.Head.EyeDebugger.AmountOfSeenEdges = 0;
             }).Run();
 
 
@@ -170,16 +171,17 @@ namespace Tests
             edges = new GeometryDataModels.Edge[0];
             var edgesT = edges;
             geoVision.transform.position = position;
-            geoVision.GetComponent<GeometryVision>().RegenerateVisionArea(25);
+            var geoVis = geoVision.GetComponent<GeometryVision>();
+            geoVis.RegenerateVisionArea(25);
             var renderer = cube.GetComponent<Renderer>();
-            MeshUtilities.UpdateEdgesVisibilityParallel(geoVision.GetComponent<GeometryVision>().Planes, geoEye.SeenGeoInfos);
+            MeshUtilities.UpdateEdgesVisibilityParallel(geoVis.Planes, geoEye.SeenGeoInfos);
             geoEye.DebugMode = true;
             var visibleEdgeCount = 0;
             Measure.Method(() =>
             {
-                geoEye.Debug();
-                visibleEdgeCount = geoEye.Debugger.AmountOfSeenEdges;
-         //      geoEye.Debugger.AmountOfSeenEdges = 0;
+                geoVis.Head.EyeDebugger.Debug(geoEye);
+                visibleEdgeCount = geoVis.Head.EyeDebugger.AmountOfSeenEdges;
+                geoVis.Head.EyeDebugger.AmountOfSeenEdges = 0;
             }).Run();
 
             return visibleEdgeCount;

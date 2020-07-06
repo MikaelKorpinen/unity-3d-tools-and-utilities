@@ -16,6 +16,7 @@ namespace Plugins.GeometricVision.Utilities
 
                 var factory = new GeometryVisionFactory();
                 var geoTypesToTarget = new List<GeometryType>();
+                
                 foreach (var targetType in targetTypes)
                 {
                     geoTypesToTarget.Add(targetType.GeometryType);

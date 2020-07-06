@@ -115,18 +115,18 @@ namespace Plugins.GeometricVision.Interfaces.Implementations
             {
                 var root = rootObjects[index];
                 targetTransforms.Add(root.transform);
-                getObjectsInTransformHierarchy(root.transform, ref targetTransforms, numberOfObjects + 1);
+                GetObjectsInTransformHierarchy(root.transform, ref targetTransforms, numberOfObjects + 1);
             }
         }
 
-        private static int getObjectsInTransformHierarchy(Transform root, ref HashSet<Transform> targetList,
+        private static int GetObjectsInTransformHierarchy(Transform root, ref HashSet<Transform> targetList,
             int numberOfObjects)
         {
             int childCount = root.childCount;
             for (var index = 0; index < childCount; index++)
             {
                 targetList.Add(root.GetChild(index));
-                getObjectsInTransformHierarchy(root.GetChild(index), ref targetList, numberOfObjects + 1);
+                GetObjectsInTransformHierarchy(root.GetChild(index), ref targetList, numberOfObjects + 1);
             }
 
             return childCount;
@@ -156,7 +156,7 @@ namespace Plugins.GeometricVision.Interfaces.Implementations
 
         private GeometryDataModels.GeoInfo GetGeoInfoGeometryData(List<VisionTarget> targetedGeometries, GeometryDataModels.GeoInfo geoInfo, Transform seenObject)
         {
-            if (geometryIsTargeted(targetedGeometries))
+            if (GeometryIsTargeted(targetedGeometries))
             {
                 if (!collidersTargeted)
                 {
@@ -177,7 +177,7 @@ namespace Plugins.GeometricVision.Interfaces.Implementations
             GeometryDataModels.GeoInfo geoInfo = new GeometryDataModels.GeoInfo();
             geoInfo.gameObject = seenObject.gameObject;
             geoInfo.transform = seenObject;
-            geoInfo.edges = new NativeArray<GeometryDataModels.Edge>();
+            geoInfo.edges = new GeometryDataModels.Edge[3];
             geoInfo.renderer = renderer;
             geoInfo.mesh = seenObject.GetComponent<MeshFilter>().mesh;
             return geoInfo;
@@ -188,7 +188,7 @@ namespace Plugins.GeometricVision.Interfaces.Implementations
         /// </summary>
         /// <param name="targetedGeometries"></param>
         /// <returns></returns>
-        private bool geometryIsTargeted(List<VisionTarget> targetedGeometries)
+        private bool GeometryIsTargeted(List<VisionTarget> targetedGeometries)
         {
             bool found = false;
             foreach (var visionTarget in targetedGeometries)

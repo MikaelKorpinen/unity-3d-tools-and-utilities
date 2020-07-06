@@ -11,7 +11,7 @@ using Unity.PerformanceTesting;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.TestTools;
-using static GeometricVision.GeometryDataModels.Boolean;
+using static Plugins.GeometricVision.GeometryDataModels.Boolean;
 using Object = UnityEngine.Object;
 
 namespace Tests
@@ -185,6 +185,8 @@ namespace Tests
             /////Put camera at starting position so it can see the 3d model.
             GeometryDataModels.Edge[] edges = new GeometryDataModels.Edge[0];
             var position = new Vector3(-0.69f, 0.352f, -4.34f);
+            yield return null;
+            yield return null;
             yield return null;
             var visibleEdgeCount = GetTestResultsFromPosition(geoVision, geoEye, out edges, position);
             Assert.AreEqual(expectedEdgeCount, visibleEdgeCount);

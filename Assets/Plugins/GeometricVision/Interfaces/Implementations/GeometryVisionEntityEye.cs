@@ -18,13 +18,18 @@ namespace Plugins.GeometricVision.Interfaces.Implementations
     /// </summary>
     public class GeometryVisionEntityEye : SystemBase, IGeoEye
     {
+        public GeometryVisionEntityEye ()
+        {
+            enabled = true;
+        }
+
         public string Id { get; set; }
         private bool enabled = false;
         [SerializeField] private bool debugMode;
         [SerializeField] private bool hideEdgesOutsideFieldOfView = true;
         [SerializeField] private float fieldOfView = 25f;
         [SerializeField] private List<GeometryDataModels.GeoInfo> seenGeoInfos = new List<GeometryDataModels.GeoInfo>();
-        [SerializeField] private IGeoProcessor controllerProcessor;
+
         public GeometryVision GeoVision { get; }
         public Plane[] planes = new Plane[6];
         [SerializeField] public HashSet<Transform> seenTransforms;
@@ -73,7 +78,7 @@ namespace Plugins.GeometricVision.Interfaces.Implementations
         protected override void OnUpdate()
         {
            // UpdateVisibility();
-            Debug();
+           // Debug();
         }
 
         /// <summary>
@@ -85,10 +90,8 @@ namespace Plugins.GeometricVision.Interfaces.Implementations
         {
             if (enabled)
             {
-                //TODO: Check if this will be performance issue in case many eyes/cameras are present
-                controllerProcessor.CheckSceneChanges(GeoVision);
-                this.seenTransforms = UpdateObjectVisibility(ControllerProcessor.GetAllObjects(), seenTransforms);
-                //  SeenGeoInfos = UpdateGeometryVisibility(planes, ControllerProcessor.GeoInfos(), seenGeoInfos);
+                this.seenTransforms = UpdateObjectVisibility(GeoVision.Head.GetProcessor<GeometryVisionEntityProcessor>().GetAllObjects(), seenTransforms);
+                SeenGeoInfos = UpdateGeometryVisibility(planes, GeoVision.Head.GetProcessor<GeometryVisionEntityProcessor>().GeoInfos, seenGeoInfos);
             }
 
         }
@@ -172,15 +175,7 @@ namespace Plugins.GeometricVision.Interfaces.Implementations
 
             return seenTransforms;
         }
-
-        public void Debug()
-        {
-            if (DebugMode)
-            {
-                Debugger.Debug(GeoVision.Camera1, this, true);
-            }
-        }
-
+        
         public List<VisionTarget> TargetedGeometries
         {
             get { return targetedGeometries; }
@@ -197,16 +192,7 @@ namespace Plugins.GeometricVision.Interfaces.Implementations
             get { return planes; }
             set { planes = value; }
         }
-
-        public GeometryVisionEntityProcessor ControllerProcessor
-        {
-            get
-            {
-                return (GeometryVisionEntityProcessor) controllerProcessor;
-
-            }
-        }
-
+        
         public bool DebugMode
         {
             get { return debugMode; }

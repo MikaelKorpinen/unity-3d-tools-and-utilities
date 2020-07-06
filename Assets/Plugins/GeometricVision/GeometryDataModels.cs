@@ -1,10 +1,6 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using Unity.Collections;
-using Unity.Jobs;
-using UnityEngine;
+﻿using UnityEngine;
 
-namespace GeometricVision
+namespace Plugins.GeometricVision
 {
     public enum GeometryType
     {
@@ -34,7 +30,7 @@ namespace GeometricVision
             public GameObject gameObject;
             public Renderer renderer;
             public Transform transform;
-            public NativeArray<GeometryDataModels.Edge> edges;
+            public GeometryDataModels.Edge[] edges;
             public Mesh mesh;
             private Vector3[] BoundsCorners;
             public Mesh colliderMesh;

@@ -7,17 +7,19 @@ namespace Plugins.GeometricVision.Interfaces.Implementations
     public class GeometryObjectTargeting : IGeoTargeting
     {
 
-        public Vector3 ClosestPointOnRay(Vector3 rayLocation, Vector3 rayDirection, List<GeometryDataModels.GeoInfo> targets)
+        public Vector3 ClosestPointOnRay(Vector3 rayLocation, Vector3 rayDirectionWS, List<GeometryDataModels.GeoInfo> targets)
         {
+            Vector3 projection = Vector3.zero;
             foreach (var target in targets)
             {
                 Vector3 point =  target.transform.position;
-                Vector3 rayDirectionEndPoint = rayDirection;
-                point = VectorToRaySpace(rayLocation, point);
-                rayDirectionEndPoint = VectorToRaySpace(rayLocation, rayDirection);
-                Vector3 projection = Vector3.Project(point, rayDirectionEndPoint);
+                Vector3 rayDirectionEndPoint = rayDirectionWS;
+                point = pointToRaySpace(rayLocation, point);
+                rayDirectionEndPoint = pointToRaySpace(rayLocation, rayDirectionWS);
+                projection = Vector3.Project(point, rayDirectionEndPoint);
+                
             }
-            return Vector3.back;
+            return projection;
         }
 
         public GeometryType TargetedType
@@ -28,7 +30,7 @@ namespace Plugins.GeometricVision.Interfaces.Implementations
             }
         }
 
-        private Vector3 VectorToRaySpace(Vector3 rayLocation,  Vector3 target)
+        private Vector3 pointToRaySpace(Vector3 rayLocation,  Vector3 target)
         {
             return target - rayLocation;
         }

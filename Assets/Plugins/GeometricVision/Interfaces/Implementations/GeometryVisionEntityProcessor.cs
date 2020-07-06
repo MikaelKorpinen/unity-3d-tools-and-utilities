@@ -134,9 +134,9 @@ namespace Plugins.GeometricVision.Interfaces.Implementations
                    .WithChangeFilter<GeoInfoEntityComponent>()
                    .WithBurst(FloatMode.Default, FloatPrecision.Standard, true)
                    .ForEach(( DynamicBuffer<VerticesBuffer> vBuffer, DynamicBuffer<TrianglesBuffer> tBuffer, LocalToWorldMatrix localToWorldMatrix, DynamicBuffer<EdgesBuffer> edgeBuffer,  GeoInfoEntityComponent geoE)  =>
-                   {
-                       geo.edges = MeshUtilities.BuildEdgesFromNativeArrays(localToWorldMatrix.Matrix, tBuffer, vBuffer);
-
+                   { 
+                   //    MeshUtilities.BuildEdgesFromNativeArrays(localToWorldMatrix.Matrix, tBuffer, vBuffer).CopyTo(geo.edges);
+                 //      geos.Add(geo);
                    }).ScheduleParallel();
            }
            if (geometryIsTargeted(targetedGeometries, GeometryType.Vertices))

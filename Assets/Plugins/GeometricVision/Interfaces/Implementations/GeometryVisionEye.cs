@@ -1,12 +1,9 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using GeometricVision;
+﻿using System.Collections.Generic;
+using System.Linq;
 using Plugins.GeometricVision.Utilities;
 using Unity.Collections;
-using Unity.EditorCoroutines.Editor;
-using UnityEditor;
 using UnityEngine;
+using static Plugins.GeometricVision.GeometryDataModels.Boolean;
 
 namespace Plugins.GeometricVision.Interfaces.Implementations
 {
@@ -32,8 +29,6 @@ namespace Plugins.GeometricVision.Interfaces.Implementations
         [SerializeField, Tooltip(" Geometry is extracted from collider instead of renderers mesh")]
         private bool targetColliderMeshes;
         public GeometryVision GeoVision { get; set; }
-        private EyeDebugger _debugger;
-        
 
         public GeometryVisionHead Head { get; set; }
 
@@ -51,12 +46,23 @@ namespace Plugins.GeometricVision.Interfaces.Implementations
         private void Initialize()
         {
             seenGeoInfos = new List<GeometryDataModels.GeoInfo>();
-            Debugger = new EyeDebugger();
             seenTransforms = new HashSet<Transform>();
         }
         public NativeArray<GeometryDataModels.Edge> GetSeenEdges()
+
         {
-            throw new NotImplementedException();
+            List<GeometryDataModels.Edge> seenEdges = new List<GeometryDataModels.Edge>();
+            int visibleEdgeCount = 0;
+            foreach (var geo in SeenGeoInfos)
+            {
+                foreach (var edge1 in geo.edges.Where(edge => edge.isVisible == True))
+                {
+                    seenEdges.Add(edge1);
+                    visibleEdgeCount += 1;
+                }
+            }
+
+            return new NativeArray<GeometryDataModels.Edge>(seenEdges.ToArray(), Allocator.Temp);
         }
 
 
@@ -148,16 +154,7 @@ namespace Plugins.GeometricVision.Interfaces.Implementations
 
             return seenTransforms;
         }
-
-        public void Debug()
-        {
-            if (DebugMode)
-            {
-                Debugger.Debug(GeoVision.Camera1, this, true);
-            }
-        }
         
-
         public List<GeometryDataModels.GeoInfo> SeenGeoInfos
         {
             get { return seenGeoInfos; }
@@ -170,11 +167,6 @@ namespace Plugins.GeometricVision.Interfaces.Implementations
             set { debugMode = value; }
         }
 
-        public EyeDebugger Debugger
-        {
-            get { return _debugger; }
-            set { _debugger = value; }
-        }
 
         public bool TargetColliderMeshes
         {
