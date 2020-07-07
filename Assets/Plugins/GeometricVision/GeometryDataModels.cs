@@ -17,11 +17,8 @@ namespace Plugins.GeometricVision
         {
             public int firstEdgePointIndex;
             public int secondEdgePointIndex;
-            public int edgeIndex;
             public Vector3 firstVertex;
             public Vector3 secondVertex;
-            public float lengthNonSquared;
-            public Vector3 closestPoint;
             public Boolean isVisible;
         }
 
@@ -34,6 +31,14 @@ namespace Plugins.GeometricVision
             public Mesh mesh;
             private Vector3[] BoundsCorners;
             public Mesh colliderMesh;
+        }
+        
+        public struct Target
+        {
+            public Vector3 position;
+            public Vector3 projectionOnDirection;
+            public float distanceToRay;
+            public float distanceToCastOrigin;
         }
         
         public enum Plane : ushort

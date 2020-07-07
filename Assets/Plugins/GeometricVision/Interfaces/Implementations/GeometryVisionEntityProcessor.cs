@@ -155,7 +155,7 @@ namespace Plugins.GeometricVision.Interfaces.Implementations
             {
                 lastCount = currentObjectCount;
                 extractGeometry = true;
-                    _targetedGeometries = geoVision.TargetedGeometries;
+           //         _targetedGeometries = geoVision.TargetedGeometries;
             }
         }
 

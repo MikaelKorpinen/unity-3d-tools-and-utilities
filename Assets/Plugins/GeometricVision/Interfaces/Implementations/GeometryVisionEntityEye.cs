@@ -30,7 +30,7 @@ namespace Plugins.GeometricVision.Interfaces.Implementations
         [SerializeField] private float fieldOfView = 25f;
         [SerializeField] private List<GeometryDataModels.GeoInfo> seenGeoInfos = new List<GeometryDataModels.GeoInfo>();
 
-        public GeometryVision GeoVision { get; }
+        public GeometryVision GeoVision { get; set; }
         public Plane[] planes = new Plane[6];
         [SerializeField] public HashSet<Transform> seenTransforms;
         private EyeDebugger _debugger;
@@ -41,6 +41,11 @@ namespace Plugins.GeometricVision.Interfaces.Implementations
         private IDisposable entityToggleObservable = null;
         private int lastCount;
 
+        void OnCreate()
+        {
+            Initialize();
+        }
+        
         private void Initialize()
         {
             if (isObjectsTargeted(targetedGeometries) == false)
@@ -55,7 +60,7 @@ namespace Plugins.GeometricVision.Interfaces.Implementations
             seenTransforms = new HashSet<Transform>();
             
         }
-
+        
         /// <summary>
         /// Checks if objects are targeted. At least one GeometryType.Objects_ needs to be in the list in order for the plugin to see something that it can use
         /// </summary>
@@ -93,7 +98,6 @@ namespace Plugins.GeometricVision.Interfaces.Implementations
                 this.seenTransforms = UpdateObjectVisibility(GeoVision.Head.GetProcessor<GeometryVisionEntityProcessor>().GetAllObjects(), seenTransforms);
                 SeenGeoInfos = UpdateGeometryVisibility(planes, GeoVision.Head.GetProcessor<GeometryVisionEntityProcessor>().GeoInfos, seenGeoInfos);
             }
-
         }
 
         public NativeArray<GeometryDataModels.Edge> GetSeenEdges()
@@ -107,7 +111,6 @@ namespace Plugins.GeometricVision.Interfaces.Implementations
         private HashSet<Transform> UpdateObjectVisibility(List<Transform> listToCheck,
             HashSet<Transform> seenTransforms)
         {
-            seenTransforms = new HashSet<Transform>();
 
             seenTransforms = GetObjectsInsideFrustum(seenTransforms, listToCheck);
 

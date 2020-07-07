@@ -10,6 +10,7 @@ using Plugins.GeometricVision.UniRx.Scripts.UnityEngineBridge;
 using Plugins.GeometricVision.Utilities;
 using UniRx;
 using Unity.EditorCoroutines.Editor;
+using UnityEditor;
 using UnityEngine;
 using UnityEngine.Rendering;
 using Object = UnityEngine.Object;
@@ -51,7 +52,13 @@ namespace Plugins.GeometricVision
         private Plane[] planes = new Plane[6];
         private Vector3 forwardWorldCoordinate = Vector3.zero;
         private Transform  cachedTransform;
-        public List<Vector3> ClosestTargets { get; } = new List<Vector3>();
+        private List<GeometryDataModels.Target> closestTargets = new List<GeometryDataModels.Target>();
+
+        public List<GeometryDataModels.Target> ClosestTargets
+        {
+            get { return closestTargets; }
+        }
+
         void Reset()
         {
             Initialize();
@@ -140,7 +147,24 @@ namespace Plugins.GeometricVision
                 UnityEngine.Debug.DrawLine(transform1.position, ForwardWorldCoordinate, Color.blue, 1);
                 foreach (var closestTarget in ClosestTargets)
                 {
-                    Gizmos.DrawSphere(closestTarget,0.3f);
+                    Gizmos.color = Color.blue;
+                    var position = transform1.position;
+                    Gizmos.DrawLine(position, closestTarget.position );
+                    Gizmos.DrawSphere(closestTarget.position,0.3f);
+                    var reset = closestTarget.projectionOnDirection- position;
+                    Handles.Label((reset / 2) + position, "distance: \n" + closestTarget.distanceToCastOrigin);
+                    
+                    Gizmos.color = Color.green;
+                    Gizmos.DrawLine(closestTarget.position, closestTarget.projectionOnDirection );
+                    Gizmos.DrawSphere(closestTarget.projectionOnDirection,0.3f);                    
+                    reset = closestTarget.projectionOnDirection- closestTarget.position;
+                    Handles.Label((reset / 2) + closestTarget.position, "distance: \n" + closestTarget.distanceToRay);
+                    
+                    Gizmos.color = Color.red;
+                    Gizmos.DrawLine(position, closestTarget.projectionOnDirection );
+                    Gizmos.DrawSphere(position,0.3f);
+                    reset = closestTarget.projectionOnDirection- position;
+                    Handles.Label((reset / 2) + position, "distance: \n" + closestTarget.distanceToCastOrigin);
                 }
             }
         }
@@ -221,6 +245,9 @@ namespace Plugins.GeometricVision
             {
                 RemoveEye<GeometryVisionEntityEye>();
                 AddEye(new GeometryVisionEntityEye());
+                var eye = GetEye<GeometryVisionEntityEye>();
+                eye.GeoVision = this;
+                
             }
             else
             {
@@ -455,16 +482,16 @@ namespace Plugins.GeometricVision
 
 
 
-        public List<Vector3> GetClosestTargets(List<GeometryDataModels.GeoInfo> GeoInfos)
+        public List<GeometryDataModels.Target> GetClosestTargets(List<GeometryDataModels.GeoInfo> GeoInfos)
         {
 
             foreach (var targetedGeometry in TargetedGeometries)
             {
-                ClosestTargets.Add(targetedGeometry.TargetingSystem.ClosestPointOnRay(gameObject.transform.position,
-                    ForwardWorldCoordinate, GeoInfos));
+                closestTargets =targetedGeometry.TargetingSystem.GetTargets(gameObject.transform.position,
+                    ForwardWorldCoordinate, GeoInfos);
             }
 
-            return ClosestTargets;
+            return closestTargets;
         }
         
     }

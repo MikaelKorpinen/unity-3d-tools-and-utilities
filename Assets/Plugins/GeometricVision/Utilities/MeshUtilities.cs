@@ -12,9 +12,8 @@ namespace Plugins.GeometricVision.Utilities
 {
     public class MeshUtilities
     {
-        private static GeometryDataModels.Edge _edge = new GeometryDataModels.Edge();
         private static UnityEngine.Plane plane = new UnityEngine.Plane();
-        
+
         public static GeometryDataModels.Edge[] GetEdgesFromMesh(Renderer renderer, Mesh mesh)
         {
             if (!renderer)
@@ -30,8 +29,9 @@ namespace Plugins.GeometricVision.Utilities
 
             return edges.ToArray();
         }
-        
-        internal static NativeArray<GeometryDataModels.Edge> BuildEdgesFromNativeArrays(Matrix4x4 localToWorldMatrix, DynamicBuffer<TrianglesBuffer> indices, DynamicBuffer<VerticesBuffer> vertices)
+
+        internal static NativeArray<GeometryDataModels.Edge> BuildEdgesFromNativeArrays(Matrix4x4 localToWorldMatrix,
+            DynamicBuffer<TrianglesBuffer> indices, DynamicBuffer<VerticesBuffer> vertices)
         {
             Vector3 v1 = Vector3.zero;
             int t1Index;
@@ -39,7 +39,8 @@ namespace Plugins.GeometricVision.Utilities
             int t2Index;
             Vector3 v3 = Vector3.zero;
             int t3Index;
-            NativeArray<GeometryDataModels.Edge> edges = new NativeArray<GeometryDataModels.Edge>(indices.Length*3, Allocator.TempJob);
+            NativeArray<GeometryDataModels.Edge> edges =
+                new NativeArray<GeometryDataModels.Edge>(indices.Length * 3, Allocator.TempJob);
             int triangleCount = indices.Length;
 
             for (int i = 0; i < triangleCount; i += 3)
@@ -51,45 +52,40 @@ namespace Plugins.GeometricVision.Utilities
                 v3 = vertices[indices[i + 2]];
                 t3Index = indices[i + 2];
 
-
-                var firstEdgePoint = _edge.firstVertex;
-                var secondEdgePoint = _edge.secondVertex;
-
                 var m = localToWorldMatrix;
-                firstEdgePoint = m.MultiplyPoint3x4(v1);
-                secondEdgePoint = m.MultiplyPoint3x4(v2);
 
                 GeometryDataModels.Edge edge1 = new GeometryDataModels.Edge();
-                
-                edges = BuildEdge(m, v1, v2, t1Index, t2Index, edges, i);
-                edges = BuildEdge(m, v2, v3, t2Index, t3Index, edges, i + 1);
-                edges = BuildEdge(m, v3, v1, t3Index, t1Index, edges, i + 2);
+
+                edges = BuildEdge(m, v1, v2, t1Index, t2Index, edges, i, edge1);
+                edges = BuildEdge(m, v2, v3, t2Index, t3Index, edges, i + 1, edge1);
+                edges = BuildEdge(m, v3, v1, t3Index, t1Index, edges, i + 2, edge1);
             }
 
             return edges;
         }
 
-        private static NativeArray<GeometryDataModels.Edge> BuildEdge(Matrix4x4 m, Vector3 v1, Vector3 v2, int t1Index, int t2Index, NativeArray<GeometryDataModels.Edge> edges,
-            int i)
+        private static NativeArray<GeometryDataModels.Edge> BuildEdge(Matrix4x4 m, Vector3 v1, Vector3 v2, int t1Index,
+            int t2Index, NativeArray<GeometryDataModels.Edge> edges, int i, GeometryDataModels.Edge edge)
         {
             Vector3 firstEdgePoint;
             Vector3 secondEdgePoint;
-            GeometryDataModels.Edge edge1;
+
             firstEdgePoint = m.MultiplyPoint3x4(v1);
             secondEdgePoint = m.MultiplyPoint3x4(v2);
 
 
-            edge1 = AssignEdge(firstEdgePoint, t1Index, secondEdgePoint, t2Index);
+            edge = AssignEdge(firstEdgePoint, t1Index, secondEdgePoint, t2Index);
 
-            if (!checkIfExists(edge1, edges))
+            if (!checkIfExists(edge, edges))
             {
-                edges[i] = (edge1);
+                edges[i] = (edge);
             }
 
             return edges;
         }
 
-        private static GeometryDataModels.Edge AssignEdge(Vector3 firstEdgePoint, int t1Index, Vector3 secondEdgePoint, int t2Index)
+        private static GeometryDataModels.Edge AssignEdge(Vector3 firstEdgePoint, int t1Index, Vector3 secondEdgePoint,
+            int t2Index)
         {
             GeometryDataModels.Edge edge1 = new GeometryDataModels.Edge();
             edge1.firstVertex = firstEdgePoint;
@@ -120,61 +116,41 @@ namespace Plugins.GeometricVision.Utilities
                 v3 = vertices[indices[i + 2]];
                 t3Index = indices[i + 2];
 
-
-                var firstEdgePoint = _edge.firstVertex;
-                var secondEdgePoint = _edge.secondVertex;
-
                 var m = localToWorldMatrix;
-                firstEdgePoint = m.MultiplyPoint3x4(v1);
-                secondEdgePoint = m.MultiplyPoint3x4(v2);
 
                 GeometryDataModels.Edge edge1 = new GeometryDataModels.Edge();
 
-                edge1.firstVertex = firstEdgePoint;
-                edge1.firstEdgePointIndex = t1Index;
-                edge1.secondVertex = secondEdgePoint;
-                edge1.secondEdgePointIndex = t2Index;
+                edges = BuildEdge(m, v1, v2, t1Index, t2Index, edges, i);
+                edges = BuildEdge(m, v2, v3, t2Index, t3Index, edges, i + 1);
+                edges = BuildEdge(m, v3, v1, t3Index, t1Index, edges, i + 2);
+            }
 
-                if (!checkIfExists(edge1, edges))
-                {
-                    edges.Add(edge1);
-                }
+            return edges;
+        }
 
-                firstEdgePoint = m.MultiplyPoint3x4(v2);
-                secondEdgePoint = m.MultiplyPoint3x4(v3);
+        private static List<GeometryDataModels.Edge> BuildEdge(Matrix4x4 matrix4X4, Vector3 v1, Vector3 v2, int t1Index,
+            int t2Index, List<GeometryDataModels.Edge> edges, int i)
+        {
+            Vector3 firstEdgePoint;
+            Vector3 secondEdgePoint;
+            GeometryDataModels.Edge edge1;
+            firstEdgePoint = matrix4X4.MultiplyPoint3x4(v1);
+            secondEdgePoint = matrix4X4.MultiplyPoint3x4(v2);
 
-                GeometryDataModels.Edge edge2 = new GeometryDataModels.Edge();
 
-                edge2.firstVertex = firstEdgePoint;
-                edge2.firstEdgePointIndex = t2Index;
-                edge2.secondVertex = secondEdgePoint;
-                edge2.secondEdgePointIndex = t3Index;
+            edge1 = AssignEdge(firstEdgePoint, t1Index, secondEdgePoint, t2Index);
 
-                if (!checkIfExists(edge2, edges))
-                {
-                    edges.Add(edge2);
-                }
-
-                firstEdgePoint = m.MultiplyPoint3x4(v3);
-                secondEdgePoint = m.MultiplyPoint3x4(v1);
-                GeometryDataModels.Edge edge3 = new GeometryDataModels.Edge();
-
-                edge3.firstVertex = firstEdgePoint;
-                edge3.firstEdgePointIndex = t3Index;
-                edge3.secondVertex = secondEdgePoint;
-                edge3.secondEdgePointIndex = t1Index;
-
-                if (!checkIfExists(edge3, edges))
-                {
-                    edges.Add(edge3);
-                }
+            if (!checkIfExists(edge1, edges))
+            {
+                edges[i] = (edge1);
             }
 
             return edges;
         }
 
 
-        public static void UpdateEdgesVisibility(UnityEngine.Plane[] planes, List<GeometryDataModels.GeoInfo> seenGeometry)
+        public static void UpdateEdgesVisibility(UnityEngine.Plane[] planes,
+            List<GeometryDataModels.GeoInfo> seenGeometry)
         {
             for (var index = 0; index < seenGeometry.Count; index++)
             {
@@ -183,13 +159,13 @@ namespace Plugins.GeometricVision.Utilities
                 geoInfo.edges = ShowEdgesInsideFrustum(geoInfo.edges, planes);
 
                 seenGeometry[index] = geoInfo;
-
             }
         }
-        
-        public static GeometryDataModels.Edge[] ShowEdgesInsideFrustum(GeometryDataModels.Edge[] edges, UnityEngine.Plane[] planes)
+
+        public static GeometryDataModels.Edge[] ShowEdgesInsideFrustum(GeometryDataModels.Edge[] edges,
+            UnityEngine.Plane[] planes)
         {
-            GeometryDataModels.Edge  edge = new GeometryDataModels.Edge();
+            GeometryDataModels.Edge edge = new GeometryDataModels.Edge();
             for (var index = 0; index < edges.Length; index++)
             {
                 edge = edges[index];
@@ -208,18 +184,20 @@ namespace Plugins.GeometricVision.Utilities
             return edges;
         }
 
-        public static void UpdateEdgesVisibilityParallel(UnityEngine.Plane[] planes, List<GeometryDataModels.GeoInfo> geometries)
+        public static void UpdateEdgesVisibilityParallel(UnityEngine.Plane[] planes,
+            List<GeometryDataModels.GeoInfo> geometries)
         {
             var edge = new GeometryDataModels.Edge();
             for (var index = 0; index < geometries.Count; index++)
             {
                 var geoInfo = geometries[index];
-                
-                ShowEdgesInsideFrustum job = new ShowEdgesInsideFrustum(new NativeArray<GeometryDataModels.Edge>(geoInfo.edges.Length, Allocator.TempJob), edge, planes);
+
+                ShowEdgesInsideFrustum job = new ShowEdgesInsideFrustum(
+                    new NativeArray<GeometryDataModels.Edge>(geoInfo.edges.Length, Allocator.TempJob), edge, planes);
                 job.Edges.CopyFrom(geoInfo.edges);
-               
+
                 var handle = job.Schedule(geoInfo.edges.Length, 64);
-                
+
                 handle.Complete();
                 job.Edges.CopyTo(geoInfo.edges);
                 geometries[index] = geoInfo;
@@ -227,7 +205,7 @@ namespace Plugins.GeometricVision.Utilities
                 job.planes.Dispose();
             }
         }
-        
+
         private static void RemoveAt(ref GeometryDataModels.Edge[] edges, int indexToRemove)
         {
             for (int i = indexToRemove; i < edges.Length - 1; i++)
@@ -256,7 +234,8 @@ namespace Plugins.GeometricVision.Utilities
         {
             for (var i = 0; i < planes.Length; i++)
             {
-                if (planes[i].GetDistanceToPoint(edge.firstVertex) < 0 || planes[i].GetDistanceToPoint(edge.secondVertex) < 0)
+                if (planes[i].GetDistanceToPoint(edge.firstVertex) < 0 ||
+                    planes[i].GetDistanceToPoint(edge.secondVertex) < 0)
                 {
                     return false;
                 }
@@ -277,6 +256,7 @@ namespace Plugins.GeometricVision.Utilities
 
             return true;
         }
+
         static bool checkIfExists(GeometryDataModels.Edge edge, List<GeometryDataModels.Edge> edges)
         {
             bool found = false;
@@ -291,6 +271,7 @@ namespace Plugins.GeometricVision.Utilities
 
             return found;
         }
+
         static bool checkIfExists(GeometryDataModels.Edge edge, NativeArray<GeometryDataModels.Edge> edges)
         {
             bool found = false;
@@ -306,6 +287,7 @@ namespace Plugins.GeometricVision.Utilities
 
             return found;
         }
+
         static bool Equals(GeometryDataModels.Edge x, GeometryDataModels.Edge y)
         {
             var distance1 = Vector3.Distance(x.firstVertex, y.firstVertex);
@@ -326,7 +308,5 @@ namespace Plugins.GeometricVision.Utilities
 
             return false;
         }
-
-
     }
 }
