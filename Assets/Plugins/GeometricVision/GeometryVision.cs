@@ -10,6 +10,7 @@ using Plugins.GeometricVision.UniRx.Scripts.UnityEngineBridge;
 using Plugins.GeometricVision.Utilities;
 using UniRx;
 using Unity.EditorCoroutines.Editor;
+using Unity.Entities;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Rendering;
@@ -51,9 +52,10 @@ namespace Plugins.GeometricVision
         private new Camera camera;
         private Plane[] planes = new Plane[6];
         private Vector3 forwardWorldCoordinate = Vector3.zero;
-        private Transform  cachedTransform;
+        private Transform cachedTransform;
         private List<GeometryDataModels.Target> closestTargets = new List<GeometryDataModels.Target>();
-
+        private World entityWorld;
+        private EndSimulationEntityCommandBufferSystem commandBufferSystem;
         public List<GeometryDataModels.Target> ClosestTargets
         {
             get { return closestTargets; }
@@ -83,14 +85,14 @@ namespace Plugins.GeometricVision
             cachedTransform = transform;
             seenTransforms = new HashSet<Transform>();
             seenGeoInfos = new List<GeometryDataModels.GeoInfo>();
-            targetedGeometries.Add(new VisionTarget(GeometryType.Objects,0,new GeometryObjectTargeting()));
+            targetedGeometries.Add(new VisionTarget(GeometryType.Objects, 0, new GeometryObjectTargeting()));
             InitUnityCamera();
             GeometryVisionUtilities.SetupGeometryVision(Head, this, targetedGeometries);
             InitEntitySwitch();
             InitGameObjectSwitch();
             InitializeTargeting(TargetedGeometries);
         }
-        
+
         public void InitUnityCamera()
         {
             Camera1 = gameObject.GetComponent<Camera>();
@@ -125,7 +127,7 @@ namespace Plugins.GeometricVision
                     GeometryVisionUtilities.SetupGeometryVisionEye(Head, this, fieldOfView);
                 }
 
-                InitEntityProcessor(false);
+                InitGeometryProcessor(false, null);
             }
             else if (objectProcessing == false && geoEye)
             {
@@ -135,8 +137,6 @@ namespace Plugins.GeometricVision
 
         private void Update()
         {
-            
-
         }
 
         private void OnDrawGizmos()
@@ -149,21 +149,21 @@ namespace Plugins.GeometricVision
                 {
                     Gizmos.color = Color.blue;
                     var position = transform1.position;
-                    Gizmos.DrawLine(position, closestTarget.position );
-                    Gizmos.DrawSphere(closestTarget.position,0.3f);
-                    var reset = closestTarget.projectionOnDirection- position;
+                    Gizmos.DrawLine(position, closestTarget.position);
+                    Gizmos.DrawSphere(closestTarget.position, 0.3f);
+                    var reset = closestTarget.projectionOnDirection - position;
                     Handles.Label((reset / 2) + position, "distance: \n" + closestTarget.distanceToCastOrigin);
-                    
+
                     Gizmos.color = Color.green;
-                    Gizmos.DrawLine(closestTarget.position, closestTarget.projectionOnDirection );
-                    Gizmos.DrawSphere(closestTarget.projectionOnDirection,0.3f);                    
-                    reset = closestTarget.projectionOnDirection- closestTarget.position;
+                    Gizmos.DrawLine(closestTarget.position, closestTarget.projectionOnDirection);
+                    Gizmos.DrawSphere(closestTarget.projectionOnDirection, 0.3f);
+                    reset = closestTarget.projectionOnDirection - closestTarget.position;
                     Handles.Label((reset / 2) + closestTarget.position, "distance: \n" + closestTarget.distanceToRay);
-                    
+
                     Gizmos.color = Color.red;
-                    Gizmos.DrawLine(position, closestTarget.projectionOnDirection );
-                    Gizmos.DrawSphere(position,0.3f);
-                    reset = closestTarget.projectionOnDirection- position;
+                    Gizmos.DrawLine(position, closestTarget.projectionOnDirection);
+                    Gizmos.DrawSphere(position, 0.3f);
+                    reset = closestTarget.projectionOnDirection - position;
                     Handles.Label((reset / 2) + position, "distance: \n" + closestTarget.distanceToCastOrigin);
                 }
             }
@@ -213,19 +213,29 @@ namespace Plugins.GeometricVision
 
         void InitEntities(bool switchToEntities)
         {
-            InitEntityProcessor(switchToEntities);
-            InitEntityEye(switchToEntities);
+            entityWorld = World.DefaultGameObjectInjectionWorld;
+
+            InitGeometryProcessor(switchToEntities, entityWorld);
+            InitEntityEye(switchToEntities, entityWorld);
         }
 
-        private void InitEntityProcessor(bool toEntities)
+        private void InitGeometryProcessor(bool toEntities, World world)
         {
             if (toEntities)
             {
                 Head.RemoveProcessor<GeometryVisionEntityProcessor>();
-                Head.AddProcessor<GeometryVisionEntityProcessor>(new GeometryVisionEntityProcessor());
+                world.CreateSystem<GeometryVisionEntityProcessor>();
+
+                IGeoProcessor eProcessor = (GeometryVisionEntityProcessor) world.GetExistingSystem<GeometryVisionEntityProcessor>();
+                Head.AddProcessor(eProcessor);
+                Head.GetProcessor<GeometryVisionEntityProcessor>().GeoVision = this;
+                Head.GetProcessor<GeometryVisionEntityProcessor>().CheckSceneChanges(this);
+                Head.GetProcessor<GeometryVisionEntityProcessor>().Enabled = true;
+                Head.GetProcessor<GeometryVisionEntityProcessor>().Update();
             }
             else
             {
+                Head.RemoveProcessor<GeometryVisionEntityProcessor>();
                 //TODO: Make it single line to remove the monobehaviour
                 if (Head.gameObject.GetComponent<GeometryVisionProcessor>() != null)
                 {
@@ -239,15 +249,21 @@ namespace Plugins.GeometricVision
             }
         }
 
-        private void InitEntityEye(bool toEntities)
+        private void InitEntityEye(bool toEntities, World world)
         {
             if (toEntities)
             {
                 RemoveEye<GeometryVisionEntityEye>();
-                AddEye(new GeometryVisionEntityEye());
+
+                world.CreateSystem<GeometryVisionEntityEye>();
+                GeometryVisionEntityEye eEey =  (GeometryVisionEntityEye) world.GetExistingSystem(typeof(GeometryVisionEntityEye));
+                AddEye(eEey);
                 var eye = GetEye<GeometryVisionEntityEye>();
                 eye.GeoVision = this;
+                eye.TargetedGeometries = targetedGeometries;
                 
+                eye.Enabled = true;
+                eye.Update();
             }
             else
             {
@@ -452,6 +468,12 @@ namespace Plugins.GeometricVision
             return (T) InterfaceUtilities.GetInterfaceOfTypeFromList(typeof(T), eyes);
         }
 
+        /// <summary>
+        /// Adds eye component to the list and makes sure that the implementation to be added is unique.
+        /// Does not add duplicate implementation.
+        /// </summary>
+        /// <param name="eye"></param>
+        /// <typeparam name="T"></typeparam>
         public void AddEye<T>(T eye)
         {
             if (eyes == null)
@@ -461,8 +483,9 @@ namespace Plugins.GeometricVision
 
             if (InterfaceUtilities.ListContainsInterfaceOfType(eye.GetType(), eyes) == false)
             {
-                var dT = (IGeoEye) default(T);
-                if (Object.Equals(eye, dT) == false)
+                var defaultEyeFromTypeT = (IGeoEye) default(T);
+                //Check that the implementation is not the default one
+                if (Object.Equals(eye, defaultEyeFromTypeT) == false)
                 {
                     eyes.Add((IGeoEye) eye);
                 }
@@ -481,18 +504,15 @@ namespace Plugins.GeometricVision
         }
 
 
-
         public List<GeometryDataModels.Target> GetClosestTargets(List<GeometryDataModels.GeoInfo> GeoInfos)
         {
-
             foreach (var targetedGeometry in TargetedGeometries)
             {
-                closestTargets =targetedGeometry.TargetingSystem.GetTargets(gameObject.transform.position,
+                closestTargets = targetedGeometry.TargetingSystem.GetTargets(gameObject.transform.position,
                     ForwardWorldCoordinate, GeoInfos);
             }
 
             return closestTargets;
         }
-        
     }
 }

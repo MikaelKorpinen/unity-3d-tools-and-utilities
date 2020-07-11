@@ -28,6 +28,7 @@ namespace Plugins.GeometricVision.Interfaces.Implementations
 
         [SerializeField, Tooltip(" Geometry is extracted from collider instead of renderers mesh")]
         private bool targetColliderMeshes;
+
         public GeometryVision GeoVision { get; set; }
 
         public GeometryVisionHead Head { get; set; }
@@ -48,8 +49,8 @@ namespace Plugins.GeometricVision.Interfaces.Implementations
             seenGeoInfos = new List<GeometryDataModels.GeoInfo>();
             seenTransforms = new HashSet<Transform>();
         }
-        public NativeArray<GeometryDataModels.Edge> GetSeenEdges()
 
+        public NativeArray<GeometryDataModels.Edge> GetSeenEdges()
         {
             List<GeometryDataModels.Edge> seenEdges = new List<GeometryDataModels.Edge>();
             int visibleEdgeCount = 0;
@@ -66,17 +67,14 @@ namespace Plugins.GeometricVision.Interfaces.Implementations
         }
 
 
-
         /// <summary>
         /// Updates visibility of the objects in the eye and processor/manager
         /// </summary>
-        public void UpdateVisibility(List<Transform> objectsToUpdate, List<GeometryDataModels.GeoInfo> geoInfos)
+        public void UpdateVisibility()
         {
-
-            seenTransforms = UpdateObjectVisibility(objectsToUpdate, seenTransforms);
-            SeenGeoInfos = UpdateGeometryVisibility(GeoVision.Planes, geoInfos);
+            seenTransforms = UpdateObjectVisibility(Head.GetProcessor<GeometryVisionProcessor>().GetAllObjects(), seenTransforms);
+            SeenGeoInfos = UpdateGeometryVisibility(GeoVision.Planes, Head.GeoMemory.GeoInfos);
         }
-
 
 
         /// <summary>
@@ -154,13 +152,13 @@ namespace Plugins.GeometricVision.Interfaces.Implementations
 
             return seenTransforms;
         }
-        
+
         public List<GeometryDataModels.GeoInfo> SeenGeoInfos
         {
             get { return seenGeoInfos; }
             set { seenGeoInfos = value; }
         }
-        
+
         public bool DebugMode
         {
             get { return debugMode; }

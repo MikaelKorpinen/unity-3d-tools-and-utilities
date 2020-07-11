@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using GeometricVision;
 using GeometricVision.Jobs;
+using Plugins.GeometricVision.EntityScripts;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Jobs;
@@ -76,7 +77,7 @@ namespace Plugins.GeometricVision.Utilities
 
             edge = AssignEdge(firstEdgePoint, t1Index, secondEdgePoint, t2Index);
 
-            if (!checkIfExists(edge, edges))
+            if (!CheckIfExists(edge, edges))
             {
                 edges[i] = (edge);
             }
@@ -140,7 +141,7 @@ namespace Plugins.GeometricVision.Utilities
 
             edge1 = AssignEdge(firstEdgePoint, t1Index, secondEdgePoint, t2Index);
 
-            if (!checkIfExists(edge1, edges))
+            if (!CheckIfExists(edge1, edges))
             {
                 edges[i] = (edge1);
             }
@@ -182,6 +183,24 @@ namespace Plugins.GeometricVision.Utilities
             }
 
             return edges;
+        }
+        public static void UpdateEdgesVisibility(NativeArray<Plane>  planes, DynamicBuffer<EdgesBuffer> edges)
+        {
+            GeometryDataModels.Edge edge = new GeometryDataModels.Edge();
+            for (var index = 0; index < edges.Length; index++)
+            {
+                edge = edges[index];
+                if (IsInsideFrustum(edges[index], planes))
+                {
+                    edge.isVisible = True;
+                }
+                else
+                {
+                    edge.isVisible = False;
+                }
+
+                edges[index] = edge;
+            }
         }
 
         public static void UpdateEdgesVisibilityParallel(UnityEngine.Plane[] planes,
@@ -257,7 +276,20 @@ namespace Plugins.GeometricVision.Utilities
             return true;
         }
 
-        static bool checkIfExists(GeometryDataModels.Edge edge, List<GeometryDataModels.Edge> edges)
+        public static bool IsInsideFrustum(Vector3 point, NativeArray<UnityEngine.Plane> planes)
+        {
+            foreach (var plane in planes)
+            {
+                if (plane.GetDistanceToPoint(point) < 0)
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+        
+        static bool CheckIfExists(GeometryDataModels.Edge edge, List<GeometryDataModels.Edge> edges)
         {
             bool found = false;
             foreach (var edge1 in edges)
@@ -272,7 +304,7 @@ namespace Plugins.GeometricVision.Utilities
             return found;
         }
 
-        static bool checkIfExists(GeometryDataModels.Edge edge, NativeArray<GeometryDataModels.Edge> edges)
+        static bool CheckIfExists(GeometryDataModels.Edge edge, NativeArray<GeometryDataModels.Edge> edges)
         {
             bool found = false;
             for (var index = 0; index < edges.Length; index++)

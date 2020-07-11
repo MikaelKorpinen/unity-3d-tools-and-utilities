@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using GeometricVision;
+using Plugins.GeometricVision.EntityScripts;
 using Plugins.GeometricVision.Utilities;
 using Unity.Burst;
 using Unity.Collections;
@@ -15,34 +16,32 @@ using Random = UnityEngine.Random;
 namespace Plugins.GeometricVision.Interfaces.Implementations
 {
     /// <inheritdoc />
+    [AlwaysUpdateSystem]     [DisableAutoCreation]
     public class GeometryVisionEntityProcessor : SystemBase, IGeoProcessor
     {
         public GeometryVisionEntityProcessor()
         {
-            GeoInfos = new List<GeometryDataModels.GeoInfo>();
-            AllObjects = new HashSet<Transform>();
-            RootObjects = new List<GameObject>();
+
         }
         
-        [SerializeField] private int lastCount = 0;
-        [SerializeField] private List<GeometryDataModels.GeoInfo> _geoInfos = new List<GeometryDataModels.GeoInfo>();
-        public HashSet<Transform> AllObjects;
-        public List<GameObject> RootObjects;
+        private int lastCount = 0;
         private bool collidersTargeted;
 
         private bool extractGeometry;
         private bool calculateEntities = true;
-        BeginInitializationEntityCommandBufferSystem m_EntityCommandBufferSystem;
+        private BeginInitializationEntityCommandBufferSystem m_EntityCommandBufferSystem;
         private int currentObjectCount;
         private List<VisionTarget> _targetedGeometries = new List<VisionTarget>();
-        private GeometryVision geometryVisiom;
-
+        private GeometryVision geoVision;
+        private EntityQuery entityQuery = new EntityQuery();
 
 
         protected override void OnCreate()
         {
             // Cache the BeginInitializationEntityCommandBufferSystem in a field, so we don't have to create it every frame
             m_EntityCommandBufferSystem = World.GetOrCreateSystem<BeginInitializationEntityCommandBufferSystem>();
+            
+            Enabled = false;
         }
 
         protected override void OnUpdate()
@@ -52,12 +51,20 @@ namespace Plugins.GeometricVision.Interfaces.Implementations
             // any, potentially costly, calculations on a worker thread, while queuing up the actual insertions and
             // deletions for later.
             var commandBuffer = m_EntityCommandBufferSystem.CreateCommandBuffer().ToConcurrent();
+            currentObjectCount = entityQuery.CalculateEntityCountWithoutFiltering();
+            entityQuery = GetEntityQuery(
+                ComponentType.ReadOnly<Translation>()
+            );
 
+            lastCount = entityQuery.CalculateEntityCount();
+           UnityEngine.Debug.Log(lastCount);
             // Schedule the job that will add Instantiate commands to the EntityCommandBuffer.
             // Since this job only runs on the first frame, we want to ensure Burst compiles it before running to get the best performance (3rd parameter of WithBurst)
             // The actual job will be cached once it is compiled (it will only get Burst compiled once).
             Entities
+                .WithStoreEntityQueryInField(ref entityQuery)
                 .WithName("geos")
+
                 .WithBurst(FloatMode.Default, FloatPrecision.Standard, true)
                 .ForEach((Entity entity, int entityInQueryIndex, in Spawner_SpawnAndRemove spawner,
                     in LocalToWorld location) =>
@@ -98,21 +105,11 @@ namespace Plugins.GeometricVision.Interfaces.Implementations
             // complete before it can play back the commands.
             m_EntityCommandBufferSystem.AddJobHandleForProducer(Dependency);
 
-    
-            var query = new EntityQueryDesc
-            {
-                Any = new ComponentType[]
-                {
-                    ComponentType.ReadOnly<Translation>()
-                }
-            };
-
-            EntityQuery entityQuery = GetEntityQuery(query);
-            this.currentObjectCount = entityQuery.CalculateEntityCount();
-            CheckSceneChanges(geometryVisiom);
+            
+           // CheckSceneChanges(GeoVision);
             if (extractGeometry)
             {
-                ExtractGeometry(commandBuffer, GeoInfos, _targetedGeometries);
+                ExtractGeometry(commandBuffer,  _targetedGeometries);
                 extractGeometry = false;
             }
             
@@ -123,7 +120,7 @@ namespace Plugins.GeometricVision.Interfaces.Implementations
         /// </summary>
         /// <param name="commandBuffer"></param>
         /// <param name="geoInfos"></param>
-        private void ExtractGeometry(EntityCommandBuffer.Concurrent commandBuffer, List<GeometryDataModels.GeoInfo> geoInfos,  List<VisionTarget> targetedGeometries)
+        private void ExtractGeometry(EntityCommandBuffer.Concurrent commandBuffer, List<VisionTarget> targetedGeometries)
         {
            // var tG = targetedGeometries;
            if (geometryIsTargeted(targetedGeometries, GeometryType.Lines))
@@ -144,50 +141,21 @@ namespace Plugins.GeometricVision.Interfaces.Implementations
 
            }
         }
-
+        
         /// <summary>
         /// Used to check, if things inside scene has changed. Like if new object has been removed or moved.
         /// </summary>
         public void CheckSceneChanges(GeometryVision geoVision)
         {
-            geometryVisiom = geoVision;
+            Enabled = true;
+            Update();
+            this.GeoVision = geoVision;
             if (currentObjectCount != lastCount)
             {
                 lastCount = currentObjectCount;
                 extractGeometry = true;
-           //         _targetedGeometries = geoVision.TargetedGeometries;
+                _targetedGeometries = geoVision.TargetedGeometries;
             }
-        }
-
-        /// <summary>
-        /// Gets all the trasforms from list of objects
-        /// </summary>
-        /// <param name="rootObjects"></param>
-        /// <param name="targetTransforms"></param>
-        /// <returns></returns>
-        public void GetTransforms(List<GameObject> rootObjects, ref HashSet<Transform> targetTransforms)
-        {
-            int numberOfObjects = 0;
-
-            for (var index = 0; index < rootObjects.Count; index++)
-            {
-                var root = rootObjects[index];
-                targetTransforms.Add(root.transform);
-                getObjectsInTransformHierarchy(root.transform, ref targetTransforms, numberOfObjects + 1);
-            }
-        }
-
-        private static int getObjectsInTransformHierarchy(Transform root, ref HashSet<Transform> targetList,
-            int numberOfObjects)
-        {
-            int childCount = root.childCount;
-            for (var index = 0; index < childCount; index++)
-            {
-                targetList.Add(root.GetChild(index));
-                getObjectsInTransformHierarchy(root.GetChild(index), ref targetList, numberOfObjects + 1);
-            }
-
-            return childCount;
         }
 
         /// <summary>
@@ -215,27 +183,25 @@ namespace Plugins.GeometricVision.Interfaces.Implementations
             return currentObjectCount;
         }
 
+        public HashSet<Transform> GetTransforms(List<GameObject> objs)
+        {
+            throw new System.NotImplementedException();
+        }
+
         public void Debug(GeometryVision geoVisions)
         {
             
         }
-
-        public HashSet<Transform> GetTransforms(List<GameObject> objs)
-        {
-            var result = new HashSet<Transform>();
-            GetTransforms(objs, ref result);
-            return result;
-        }
-
+        
         public List<Transform> GetAllObjects()
         {
-            return AllObjects.ToList();
+            throw new System.NotImplementedException();
         }
-
-        public List<GeometryDataModels.GeoInfo> GeoInfos
+        
+        public GeometryVision GeoVision
         {
-            get { return _geoInfos; }
-            set { _geoInfos = value; }
+            get { return geoVision; }
+            set { geoVision = value; }
         }
     }
 }

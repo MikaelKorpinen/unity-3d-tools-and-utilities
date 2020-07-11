@@ -41,7 +41,7 @@ namespace Plugins.GeometricVision
                     geoVision.RegenerateVisionArea(geoVision.Camera1.fieldOfView);
                     foreach (var geoEye in geoVision.Eyes)
                     {
-                        geoEye.UpdateVisibility(processor.GetAllObjects(), GeoMemory.GeoInfos);
+                        geoEye.UpdateVisibility();
                         if (geoVision.DebugMode)
                         {
                             EyeDebugger.Debug(geoEye);
