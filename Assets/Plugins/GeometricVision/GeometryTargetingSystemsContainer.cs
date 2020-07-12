@@ -1,15 +1,17 @@
-﻿using System;
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
-using Plugins.GeometricVision;
 using Plugins.GeometricVision.Interfaces.Implementations;
 using Unity.EditorCoroutines.Editor;
 using UnityEngine;
-using UnityEngine.Serialization;
 
-namespace GeometricVision
+namespace Plugins.GeometricVision
 {
-    public class GeometryTargeting : MonoBehaviour
+    /// <summary>
+    /// Made to contain targeting systems created by the user. Has logic for adding and removing targeting systems.
+    /// Also handles things like initialization and cleaning up components if removed.
+    /// Usage: Component is added and managed automatically by GeometricVision component
+    /// </summary>
+    public class GeometryTargetingSystemsContainer : MonoBehaviour
     {
         [SerializeField] private bool debugMode;
         private GeometryVisionEye eye;
@@ -59,14 +61,13 @@ namespace GeometricVision
                 DestroyImmediate(GetComponent<GeometryVisionEye>());
             }
 
-            if (this.GetComponent<GeometryTargeting>() != null)
+            if (this.GetComponent<GeometryTargetingSystemsContainer>() != null)
             {
-                DestroyImmediate(GetComponent<GeometryTargeting>());
+                DestroyImmediate(GetComponent<GeometryTargetingSystemsContainer>());
             }
         }
-        /// <summary>
-        /// Initializes the geometry vision eye, which handles setting up the geometry vision plugin.
-        /// </summary>
+
+        
         private void InitializeTargeting()
         {
             if (TargetingPrograms == null)

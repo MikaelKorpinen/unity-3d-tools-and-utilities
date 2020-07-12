@@ -38,7 +38,7 @@ namespace Tests
             yield return null;
             int AmountOfTargetingSystemsRegistered = 0;
             int expectedObjectCount1 = 1;
-            Measure.Method(() => { AmountOfTargetingSystemsRegistered = geoVision.GetComponent<GeometryTargeting>().TargetingPrograms.Count; }).Run();
+            Measure.Method(() => { AmountOfTargetingSystemsRegistered = geoVision.GetComponent<GeometryTargetingSystemsContainer>().TargetingPrograms.Count; }).Run();
 
             Debug.Log("total targeting systems: " + AmountOfTargetingSystemsRegistered);
             Assert.AreEqual(expectedObjectCount1, AmountOfTargetingSystemsRegistered);

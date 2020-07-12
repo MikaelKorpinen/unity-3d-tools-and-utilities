@@ -1,17 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
-using GeometricVision;
 using Plugins.GeometricVision.EntityScripts;
+using Plugins.GeometricVision.Interfaces.Implementations;
 using Plugins.GeometricVision.Utilities;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
-using Unity.Mathematics;
 using Unity.Transforms;
 using UnityEngine;
 using static Plugins.GeometricVision.GeometryDataModels.Boolean;
 
-namespace Plugins.GeometricVision.Interfaces.Implementations
+namespace Plugins.GeometricVision.Interfaces.ImplementationsEntities
 {
     [AlwaysUpdateSystem]
     [DisableAutoCreation]

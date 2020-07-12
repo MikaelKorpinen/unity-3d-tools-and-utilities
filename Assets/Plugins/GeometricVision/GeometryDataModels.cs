@@ -1,4 +1,6 @@
-﻿using UnityEngine;
+﻿using System.Collections;
+using Unity.Entities;
+using UnityEngine;
 
 namespace Plugins.GeometricVision
 {
@@ -33,12 +35,16 @@ namespace Plugins.GeometricVision
             public Mesh colliderMesh;
         }
         
-        public struct Target
+        public struct Target :IComponentData, IEnumerable
         {
             public Vector3 position;
-            public Vector3 projectionOnDirection;
+            public Vector3 projectedTargetPosition;
             public float distanceToRay;
             public float distanceToCastOrigin;
+            public IEnumerator GetEnumerator()
+            {
+                throw new System.NotImplementedException();
+            }
         }
         
         public enum Plane : ushort

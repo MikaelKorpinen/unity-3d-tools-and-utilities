@@ -78,6 +78,16 @@ namespace Plugins.GeometricVision.EntityScripts
                 Matrix = renderer.localToWorldMatrix,
             };
             dstManager.AddComponentData(entity, geoInfoData);
+            
+            var targetData = new GeometryDataModels.Target
+            {
+                  position = transform.position,
+                  projectedTargetPosition = Vector3.zero,
+                  distanceToRay = 0,
+                  distanceToCastOrigin = 0,
+            };
+            dstManager.AddComponentData(entity, targetData);
+            
         }
     }
 

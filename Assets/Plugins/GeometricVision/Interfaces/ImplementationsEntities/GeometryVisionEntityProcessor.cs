@@ -1,19 +1,12 @@
 ﻿using System.Collections.Generic;
-using System.Linq;
-using GeometricVision;
 using Plugins.GeometricVision.EntityScripts;
-using Plugins.GeometricVision.Utilities;
 using Unity.Burst;
-using Unity.Collections;
-using UnityEngine;
-using UnityEngine.SceneManagement;
 using Unity.Entities;
 using Unity.Mathematics;
-using Unity.Rendering;
 using Unity.Transforms;
-using Random = UnityEngine.Random;
+using UnityEngine;
 
-namespace Plugins.GeometricVision.Interfaces.Implementations
+namespace Plugins.GeometricVision.Interfaces.ImplementationsEntities
 {
     /// <inheritdoc />
     [AlwaysUpdateSystem]     [DisableAutoCreation]

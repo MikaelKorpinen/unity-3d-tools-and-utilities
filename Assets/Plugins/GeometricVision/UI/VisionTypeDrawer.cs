@@ -93,9 +93,9 @@ namespace Plugins.GeometricVision.UI
                 DestroyImmediate(go.GetComponent<GeometryVisionEye>());
             }
 
-            if (go.GetComponent<GeometryTargeting>() != null)
+            if (go.GetComponent<GeometryTargetingSystemsContainer>() != null)
             {
-                DestroyImmediate(go.GetComponent<GeometryTargeting>());
+                DestroyImmediate(go.GetComponent<GeometryTargetingSystemsContainer>());
             }
 
 

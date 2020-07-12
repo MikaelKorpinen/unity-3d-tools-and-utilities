@@ -6,6 +6,7 @@ using NUnit.Framework;
 using Plugins.GeometricVision;
 using Plugins.GeometricVision.Interfaces;
 using Plugins.GeometricVision.Interfaces.Implementations;
+using Plugins.GeometricVision.Interfaces.ImplementationsEntities;
 using Unity.PerformanceTesting;
 using UnityEditor;
 using UnityEngine.TestTools;
@@ -168,7 +169,7 @@ namespace Tests
             yield return null;
             int AmountOfTargetingSystemsRegistered = 0;
             int expectedObjectCount1 = 1;
-            Measure.Method(() => { AmountOfTargetingSystemsRegistered = geoVision.GetComponents<GeometryTargeting>().Length; }).Run();
+            Measure.Method(() => { AmountOfTargetingSystemsRegistered = geoVision.GetComponents<GeometryTargetingSystemsContainer>().Length; }).Run();
 
             Debug.Log("total targeting systems: " + AmountOfTargetingSystemsRegistered);
             Assert.AreEqual(expectedObjectCount1, AmountOfTargetingSystemsRegistered);
@@ -189,7 +190,7 @@ namespace Tests
             yield return null;
             int AmountOfTargetingSystemsRegistered = 0;
             int expectedObjectCount1 = 1;
-            Measure.Method(() => { AmountOfTargetingSystemsRegistered = geoVision.GetComponents<GeometryTargeting>().Length; }).Run();
+            Measure.Method(() => { AmountOfTargetingSystemsRegistered = geoVision.GetComponents<GeometryTargetingSystemsContainer>().Length; }).Run();
 
             Debug.Log("total targeting systems: " + AmountOfTargetingSystemsRegistered);
             Assert.AreEqual(expectedObjectCount1, AmountOfTargetingSystemsRegistered);
@@ -210,7 +211,7 @@ namespace Tests
             yield return null;
             int AmountOfTargetingSystemsRegistered = 0;
             int expectedObjectCount1 = 1;
-            var targs = geoVision.GetComponent<GeometryTargeting>().TargetingPrograms;
+            var targs = geoVision.GetComponent<GeometryTargetingSystemsContainer>().TargetingPrograms;
             Measure.Method(() => { AmountOfTargetingSystemsRegistered = targs.Count; }).Run();
 
             Debug.Log("total targeting systems: " + AmountOfTargetingSystemsRegistered);
@@ -231,7 +232,7 @@ namespace Tests
             yield return null;
             int AmountOfTargetingSystemsRegistered = 0;
             int expectedObjectCount1 = 1;
-            Measure.Method(() => { AmountOfTargetingSystemsRegistered = geoVision.GetComponent<GeometryTargeting>().TargetingPrograms.Count; }).Run();
+            Measure.Method(() => { AmountOfTargetingSystemsRegistered = geoVision.GetComponent<GeometryTargetingSystemsContainer>().TargetingPrograms.Count; }).Run();
 
             Debug.Log("total targeting systems: " + AmountOfTargetingSystemsRegistered);
             Assert.AreEqual(expectedObjectCount1, AmountOfTargetingSystemsRegistered);

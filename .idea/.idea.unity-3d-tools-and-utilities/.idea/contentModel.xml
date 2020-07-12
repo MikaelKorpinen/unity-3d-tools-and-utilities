@@ -26,7 +26,7 @@
             </e>
             <e p="GeometricVision.asmdef" t="Include" />
             <e p="GeometryDataModels.cs" t="Include" />
-            <e p="GeometryTargeting.cs" t="Include" />
+            <e p="GeometryTargetingSystemsContainer.cs" t="Include" />
             <e p="GeometryVision.cs" t="Include" />
             <e p="GeometryVisionFactory.cs" t="Include" />
             <e p="GeometryVisionHead.cs" t="Include" />
@@ -41,10 +41,13 @@
                 <e p="GeometryLineTargeting.cs" t="Include" />
                 <e p="GeometryObjectTargeting.cs" t="Include" />
                 <e p="GeometryVertexTargeting .cs" t="Include" />
-                <e p="GeometryVisionEntityEye.cs" t="Include" />
-                <e p="GeometryVisionEntityProcessor.cs" t="Include" />
                 <e p="GeometryVisionEye.cs" t="Include" />
                 <e p="GeometryVisionProcessor.cs" t="Include" />
+              </e>
+              <e p="ImplementationsEntities" t="Include">
+                <e p="GeometryVisionEntityEye.cs" t="Include" />
+                <e p="GeometryVisionEntityObjectTargeting.cs" t="Include" />
+                <e p="GeometryVisionEntityProcessor.cs" t="Include" />
               </e>
             </e>
             <e p="Jobs" t="Include">
