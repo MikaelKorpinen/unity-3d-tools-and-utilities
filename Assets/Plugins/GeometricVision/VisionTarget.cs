@@ -15,7 +15,7 @@ namespace Plugins.GeometricVision
     public class VisionTarget
     {
         public bool enabled = true;
-        [SerializeField,  Tooltip("Choose what geometry to target or use.")] private GeometryType type;
+        [SerializeField,  Tooltip("Choose what geometry to target or use.")] private GeometryType geometryType;
     
         [SerializeField] private BoolReactiveProperty target = new BoolReactiveProperty();
         //Cannot get Reactive value from serialized property, so this boolean variable handles it job on the inspector gui under the hood.
@@ -26,6 +26,7 @@ namespace Plugins.GeometricVision
         public bool Subscribed { get; set; }
         public ActionsTemplateObject targetingActions;
         private IGeoTargeting targetingSystem = null;
+        private IGeoTargeting targetingSystemEntities = null;
 
         public VisionTarget(GeometryType geoType, int layerIndex, IGeoTargeting targetingSystem)
         {
@@ -41,6 +42,12 @@ namespace Plugins.GeometricVision
             set { targetingSystem = value; }
         }
 
+        public IGeoTargeting TargetingSystemEntities
+        {
+            get { return targetingSystemEntities; }
+            set { targetingSystemEntities = value; }
+        }
+
         public int TargetLayer
         {
             get { return targetLayer; }
@@ -49,10 +56,13 @@ namespace Plugins.GeometricVision
 
         public GeometryType GeometryType
         {
-            get { return type; }
-            set { type = value; }
+            get { return geometryType; }
+            set { geometryType = value; }
         }
-
+        
+        /// <summary>
+        /// Use the targeting system, if Target.Value set to true
+        /// </summary>
         public BoolReactiveProperty Target
         {
             get { return target; }

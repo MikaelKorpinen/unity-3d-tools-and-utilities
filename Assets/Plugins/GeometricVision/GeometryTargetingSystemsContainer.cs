@@ -16,7 +16,6 @@ namespace Plugins.GeometricVision
         [SerializeField] private bool debugMode;
         private GeometryVisionEye eye;
         [SerializeField]private List<IGeoTargeting> targetingPrograms =new List<IGeoTargeting>();
-        [SerializeField] private int targetingSystemsCount = 0;
 
         public List<IGeoTargeting> TargetingPrograms
         {
@@ -33,9 +32,10 @@ namespace Plugins.GeometricVision
         {
             InitializeTargeting();
         }
+        
         void OnValidate () {
 
-            if (this.GetComponent<GeometryVision>()== null)
+            if (this.GetComponent<GeometryVision>() == null)
             {
                 // The really important part, using the library
                 EditorCoroutineUtility.StartCoroutine(DestroyThis(), this);
@@ -80,26 +80,15 @@ namespace Plugins.GeometricVision
                 gameObject.AddComponent<GeometryVisionEye>();
                 eye = GetComponent<GeometryVisionEye>();
             }
-
-            /*targetingPrograms = new IGeoTargeting[eye.GeometryTypes.Length];
-             
-              foreach (var targetTypes in eye.GeometryTypes)
-              {
-                  
-              }*/
         }
 
-        public void AddTarget(VisionTarget geometryContainer)
+        public void AddTargetedGeometry(VisionTarget geometryContainer)
         {
             if (geometryContainer.GeometryType == GeometryType.Objects)
             {
                 IGeoTargeting targetingSystem = new GeometryObjectTargeting();
                 geometryContainer.TargetingSystem = targetingSystem;
                 TargetingPrograms.Add(geometryContainer.TargetingSystem);
-            }
-
-            if(TargetingPrograms != null){
-                targetingSystemsCount = TargetingPrograms.Count;
             }
         }
 
@@ -108,7 +97,6 @@ namespace Plugins.GeometricVision
             if (geometryType.TargetingSystem != null)
             {
                 TargetingPrograms.Remove(geometryType.TargetingSystem);
-                targetingSystemsCount = TargetingPrograms.Count;
             }
         }
     }

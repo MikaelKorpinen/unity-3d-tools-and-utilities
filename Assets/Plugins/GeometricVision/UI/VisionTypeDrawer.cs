@@ -28,7 +28,7 @@ namespace Plugins.GeometricVision.UI
         {
             var container = new VisualElement();
             var toggleField = new PropertyField(property.FindPropertyRelative("enabled"));
-            var visionTypeField = new PropertyField(property.FindPropertyRelative("type"));
+            var visionTypeField = new PropertyField(property.FindPropertyRelative("geometryType"));
             var layerField = new PropertyField(property.FindPropertyRelative("targetLayer"));
             var targetField = new PropertyField(property.FindPropertyRelative("target"));
             var targetField2 = new PropertyField(property.FindPropertyRelative("targetHidden"));
@@ -134,7 +134,7 @@ namespace Plugins.GeometricVision.UI
             EditorGUI.PropertyField(toggleRect, property.FindPropertyRelative("enabled"), GUIContent.none);
 
             EditorGUI.LabelField(seeLabelRect, "See:");
-            EditorGUI.PropertyField(typeRect, property.FindPropertyRelative("type"), GUIContent.none);
+            EditorGUI.PropertyField(typeRect, property.FindPropertyRelative("geometryType"), GUIContent.none);
             GUIContent label2 = new GUIContent("");
 
             EditorGUI.LabelField(labelLayerRect, "Layer:");

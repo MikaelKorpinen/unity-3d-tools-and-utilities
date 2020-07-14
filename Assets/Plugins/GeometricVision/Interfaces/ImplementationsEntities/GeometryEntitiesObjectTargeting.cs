@@ -14,7 +14,7 @@ namespace Plugins.GeometricVision.Interfaces.ImplementationsEntities
     /// <inheritdoc />
     [AlwaysUpdateSystem]
     [DisableAutoCreation]
-    public class GeometryVisionEntityObjectTargeting : SystemBase, IGeoTargeting
+    public class GeometryEntitiesObjectTargeting : SystemBase, IGeoTargeting
     {
         private BeginInitializationEntityCommandBufferSystem m_EntityCommandBufferSystem;
         private EntityQuery entityQuery = new EntityQuery();

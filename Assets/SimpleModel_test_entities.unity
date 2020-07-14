@@ -121,6 +121,30 @@ NavMeshSettings:
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
+--- !u!114 &60393764
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 081b3fa28a8673940bd37ffae429dc67, type: 3}
+  m_Name: _0
+  m_EditorClassIdentifier: 
+  startActionEnabled: 0
+  startDelay: 0
+  startDuration: 0
+  startActionObject: {fileID: 0}
+  actionEnabled: 1
+  delay: 0
+  duration: 0
+  actionObject: {fileID: 0}
+  endActionEnabled: 1
+  endDelay: 0
+  endDuration: 0
+  endActionObject: {fileID: 0}
 --- !u!1 &113677867
 GameObject:
   m_ObjectHideFlags: 0
@@ -214,30 +238,6 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &326784518
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 081b3fa28a8673940bd37ffae429dc67, type: 3}
-  m_Name: _0
-  m_EditorClassIdentifier: 
-  startActionEnabled: 0
-  startDelay: 0
-  startDuration: 0
-  startActionObject: {fileID: 0}
-  actionEnabled: 1
-  delay: 0
-  duration: 0
-  actionObject: {fileID: 0}
-  endActionEnabled: 1
-  endDelay: 0
-  endDuration: 0
-  endActionObject: {fileID: 0}
 --- !u!1 &339006097
 GameObject:
   m_ObjectHideFlags: 0
@@ -726,7 +726,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1500320760}
-  - component: {fileID: 1500320763}
   - component: {fileID: 1500320762}
   - component: {fileID: 1500320761}
   - component: {fileID: 1500320759}
@@ -746,13 +745,26 @@ MonoBehaviour:
   m_GameObject: {fileID: 1500320758}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4793effb83309e1a0b913382cc52118f, type: 3}
+  m_Script: {fileID: 11500000, guid: 84690430d6c8ee143a89537d2671a277, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   debugMode: 0
   hideEdgesOutsideFieldOfView: 1
+  fieldOfView: 25
   lastCount: 0
   targetColliderMeshes: 0
+  targetedGeometries:
+  - enabled: 1
+    geometryType: 3
+    target:
+      value: 1
+    targetHidden: 1
+    targetLayer: 0
+    targetingActions: {fileID: 60393764}
+  entityBasedProcessing:
+    value: 0
+  gameObjectProcessing:
+    value: 0
 --- !u!4 &1500320760
 Transform:
   m_ObjectHideFlags: 0
@@ -824,35 +836,6 @@ Camera:
   m_OcclusionCulling: 1
   m_StereoConvergence: 10
   m_StereoSeparation: 0.022
---- !u!114 &1500320763
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1500320758}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 84690430d6c8ee143a89537d2671a277, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  debugMode: 0
-  hideEdgesOutsideFieldOfView: 1
-  fieldOfView: 25
-  lastCount: 0
-  targetColliderMeshes: 0
-  targetedGeometries:
-  - enabled: 1
-    type: 3
-    target:
-      value: 1
-    targetHidden: 1
-    targetLayer: 0
-    targetingActions: {fileID: 326784518}
-  entityBasedProcessing:
-    value: 0
-  gameObjectProcessing:
-    value: 0
 --- !u!1 &1733884494
 GameObject:
   m_ObjectHideFlags: 0

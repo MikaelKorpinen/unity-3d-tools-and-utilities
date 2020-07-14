@@ -45,8 +45,9 @@
                 <e p="GeometryVisionProcessor.cs" t="Include" />
               </e>
               <e p="ImplementationsEntities" t="Include">
+                <e p="GeometryEntitiesLineTargeting.cs" t="Include" />
+                <e p="GeometryEntitiesObjectTargeting.cs" t="Include" />
                 <e p="GeometryVisionEntityEye.cs" t="Include" />
-                <e p="GeometryVisionEntityObjectTargeting.cs" t="Include" />
                 <e p="GeometryVisionEntityProcessor.cs" t="Include" />
               </e>
             </e>
