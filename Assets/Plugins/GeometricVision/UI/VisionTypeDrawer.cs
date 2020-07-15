@@ -68,41 +68,42 @@ namespace Plugins.GeometricVision.UI
         }
     }
 
+    [CustomEditor(typeof(GeometryTargetingSystemsContainer))]
+    public class ClearComponents2 : Editor
+    {
+        public override void OnInspectorGUI()
+        {
+            var go = Selection.activeGameObject;
+            var container = go.GetComponent<GeometryTargetingSystemsContainer>();
+            if (go.GetComponent<GeometryVision>() == null &&
+                container != null)
+            {
+                EditorCoroutineUtility.StartCoroutine(container.RemoveAddedComponents(), this);
+            }
+        }
+    }
 
+    /// <summary>
+    /// Checks if user removes GeometricVision component and if it does cleans up all the dependencies
+    /// </summary>
     [CustomEditor(typeof(GeometryVisionEye))]
     public class ClearComponents : Editor
     {
         public override void OnInspectorGUI()
         {
             var go = Selection.activeGameObject;
-            if (go.GetComponent<GeometryVision>() == null)
+            var container = go.GetComponent<GeometryTargetingSystemsContainer>();
+            if (go.GetComponent<GeometryVision>() == null &&
+                container != null)
             {
-                EditorCoroutineUtility.StartCoroutine(RemoveAddedComponents(go), this);
+                EditorCoroutineUtility.StartCoroutine(container.RemoveAddedComponents(), this);
             }
-        }
-
-        private IEnumerator RemoveAddedComponents(GameObject go)
-        {
-            if (go.GetComponent<Camera>() != null)
-            {
-                DestroyImmediate(go.GetComponent<Camera>());
-            }
-
-            if (go.GetComponent<GeometryVisionEye>() != null)
-            {
-                DestroyImmediate(go.GetComponent<GeometryVisionEye>());
-            }
-
-            if (go.GetComponent<GeometryTargetingSystemsContainer>() != null)
-            {
-                DestroyImmediate(go.GetComponent<GeometryTargetingSystemsContainer>());
-            }
-
-
-            yield return null;
         }
     }
 
+    /// <summary>
+    /// Checks if user removes GeometricVision component and if it does cleans up all the dependencies
+    /// </summary>
     [CustomPropertyDrawer(typeof(VisionTarget))]
     public class VisionTypeDrawer : PropertyDrawer
     {

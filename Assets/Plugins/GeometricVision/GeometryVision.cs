@@ -26,6 +26,7 @@ namespace Plugins.GeometricVision
     /// Usage: Add to objects you want to act as a camera/eye for geometry vision. The component will handle the rest. 
     /// A lot of the settings are meant to be adjusted from the inspector UI
     /// </summary>
+    [DisallowMultipleComponent]
     public class GeometryVision : MonoBehaviour
     {
         [SerializeField] private bool debugMode;
@@ -95,12 +96,9 @@ namespace Plugins.GeometricVision
             foreach (var closestTarget in ClosestTargets)
             {
                 Vector3 resetToVector = Vector3.zero;
-                var position = DrawVisualIndicator(closestTarget.position, transform.position,
-                    closestTarget.distanceToCastOrigin, Color.blue);
-                DrawVisualIndicator(closestTarget.projectedTargetPosition, closestTarget.position,
-                    closestTarget.distanceToRay, Color.green);
-                DrawVisualIndicator(position, closestTarget.projectedTargetPosition, closestTarget.distanceToCastOrigin,
-                    Color.red);
+                var position = DrawVisualIndicator(closestTarget.position, transform.position, closestTarget.distanceToCastOrigin, Color.blue);
+                DrawVisualIndicator(closestTarget.projectedTargetPosition, closestTarget.position, closestTarget.distanceToRay, Color.green);
+                DrawVisualIndicator(position, closestTarget.projectedTargetPosition, closestTarget.distanceToCastOrigin, Color.red);
 
                 Vector3 DrawVisualIndicator(Vector3 spherePosition, Vector3 lineStartPosition, float distance,
                     Color color)

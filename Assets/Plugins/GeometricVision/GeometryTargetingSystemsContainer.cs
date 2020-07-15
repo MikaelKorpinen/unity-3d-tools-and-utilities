@@ -33,38 +33,29 @@ namespace Plugins.GeometricVision
             InitializeTargeting();
         }
         
-        void OnValidate () {
-
-            if (this.GetComponent<GeometryVision>() == null)
-            {
-                // The really important part, using the library
-                EditorCoroutineUtility.StartCoroutine(DestroyThis(), this);
-            }
-        }
-
-
-        IEnumerator DestroyThis()
+        public IEnumerator RemoveAddedComponents()
         {
-            RemoveAddedComponents();
-            yield return new WaitForEndOfFrame();
-        }
-
-        private void RemoveAddedComponents()
-        {
-            if (this.GetComponent<Camera>() != null)
+            if (this != null)
             {
-                DestroyImmediate(this.GetComponent<Camera>());
-            }
+                if (this.GetComponent<Camera>() != null)
+                {
+                    DestroyImmediate(this.GetComponent<Camera>());
+                }
             
-            if (this.GetComponent<GeometryVisionEye>() != null)
-            {
-                DestroyImmediate(GetComponent<GeometryVisionEye>());
+                if (this.GetComponent<GeometryVisionEye>() != null)
+                {
+                    DestroyImmediate(GetComponent<GeometryVisionEye>());
+                }
+
+                if (this.GetComponent<GeometryTargetingSystemsContainer>() != null)
+                {
+                    DestroyImmediate(GetComponent<GeometryTargetingSystemsContainer>());
+                }
+
             }
 
-            if (this.GetComponent<GeometryTargetingSystemsContainer>() != null)
-            {
-                DestroyImmediate(GetComponent<GeometryTargetingSystemsContainer>());
-            }
+
+            yield return null;
         }
 
         
