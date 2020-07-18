@@ -20,20 +20,20 @@ namespace Tests
         [TearDown]
         public void TearDown()
         {
-            //Put original scenes back to build settings
-            EditorBuildSettings.scenes = factoryAndOriginalScenes.Item2;
+            TestUtilities.PostCleanUpBuildSettings(TestSessionVariables.BuildScenes);
         }
-        
+
         [UnityTest, Performance, Version(TestSettings.Version)]
         [Timeout(TestSettings.defaultPerformanceTests)]
-        public IEnumerator TargetingSystemGetsAddedIfTargetingEnabled([ValueSource(typeof(TestUtilities), nameof(TestUtilities.GetScenesFromPath))] string scenePath)
+        [PrebuildSetup(typeof(SceneBuildSettingsSetupBeforeTestsGameObjects))]
+        public IEnumerator TargetingSystemGetsAddedIfTargetingEnabled([ValueSource(typeof(TestUtilities), nameof(TestUtilities.GetScenesForGameObjectsFromPath))] string scenePath)
         {
-            factoryAndOriginalScenes = TestUtilities.SetupScene(scenePath);
+            TestUtilities.SetupScene(scenePath);
             for (int i = 0; i < 50; i++)
             {
                 yield return null;
             }
-            var geoVision = TestUtilities.SetupGeoVision(new Vector3(0f, 0f, -6f), factoryAndOriginalScenes, false);
+            var geoVision = TestUtilities.SetupGeoVision(new Vector3(0f, 0f, -6f), new GeometryVisionFactory(), false);
             yield return null;
             yield return null;
             int AmountOfTargetingSystemsRegistered = 0;

@@ -44,7 +44,9 @@ namespace Plugins.GeometricVision.UI
             return container;
         }
     }
-
+    /// <summary>
+    /// Handle InspectorGUI part of the GeometricVision component. Also hides components that should not be visible to the user.
+    /// </summary>
     [CustomEditor(typeof(GeometryVision))]
     public class GeometryVisionInspectorGUI : Editor
     {
@@ -65,9 +67,20 @@ namespace Plugins.GeometricVision.UI
 
                 Selection.activeObject = newActionsTemplate;
             }
+            var go = Selection.activeGameObject;
+            var container = go.GetComponent<GeometryTargetingSystemsContainer>();
+
+            if(go.GetComponent<GeometryVision>() != null)
+            {
+                go.GetComponent<Camera>().hideFlags = HideFlags.HideInInspector;
+                container.hideFlags = HideFlags.HideInInspector;
+            }
         }
     }
-
+    
+    /// <summary>
+    /// Checks if user removes GeometricVision component and if it does cleans up all the dependencies
+    /// </summary>
     [CustomEditor(typeof(GeometryTargetingSystemsContainer))]
     public class ClearComponents2 : Editor
     {
@@ -75,8 +88,7 @@ namespace Plugins.GeometricVision.UI
         {
             var go = Selection.activeGameObject;
             var container = go.GetComponent<GeometryTargetingSystemsContainer>();
-            if (go.GetComponent<GeometryVision>() == null &&
-                container != null)
+            if (go.GetComponent<GeometryVision>() == null && container != null)
             {
                 EditorCoroutineUtility.StartCoroutine(container.RemoveAddedComponents(), this);
             }
@@ -93,14 +105,13 @@ namespace Plugins.GeometricVision.UI
         {
             var go = Selection.activeGameObject;
             var container = go.GetComponent<GeometryTargetingSystemsContainer>();
-            if (go.GetComponent<GeometryVision>() == null &&
-                container != null)
+            if (go.GetComponent<GeometryVision>() == null && container != null)
             {
                 EditorCoroutineUtility.StartCoroutine(container.RemoveAddedComponents(), this);
             }
         }
     }
-
+    
     /// <summary>
     /// Checks if user removes GeometricVision component and if it does cleans up all the dependencies
     /// </summary>

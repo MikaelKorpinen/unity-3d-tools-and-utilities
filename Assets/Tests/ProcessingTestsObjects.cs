@@ -21,20 +21,20 @@ namespace Tests
         [TearDown]
         public void TearDown()
         {
-            //Put original scenes back to build settings
-            EditorBuildSettings.scenes = factoryAndOriginalScenes.Item2;
+            TestUtilities.PostCleanUpBuildSettings(TestSessionVariables.BuildScenes);
         }
-        
+
         [UnityTest, Performance, Version(TestSettings.Version)]
         [Timeout(TestSettings.defaultPerformanceTests)]
-        public IEnumerator SceneObjectCountMatchesTheCountedValue([ValueSource(typeof(TestUtilities), nameof(TestUtilities.GetScenesFromPath))] string scenePath)
+        [PrebuildSetup(typeof(SceneBuildSettingsSetupBeforeTestsGameObjects))]
+        public IEnumerator SceneObjectCountMatchesTheCountedValue([ValueSource(typeof(TestUtilities), nameof(TestUtilities.GetScenesForGameObjectsFromPath))] string scenePath)
         {
-            factoryAndOriginalScenes = TestUtilities.SetupScene(scenePath);
+            TestUtilities.SetupScene(scenePath);
             for (int i = 0; i < 50; i++)
             {
                 yield return null;
             }
-            var geoVision = TestUtilities.SetupGeoVision(new Vector3(0f, 0f, -6f), factoryAndOriginalScenes, false);
+            var geoVision = TestUtilities.SetupGeoVision(new Vector3(0f, 0f, -6f), new GeometryVisionFactory(), false);
             yield return null;
             yield return null;
             int amountOfObjectsInScene = 0;
@@ -47,9 +47,10 @@ namespace Tests
 
         [UnityTest, Performance, Version(version)]
         [Timeout(TestSettings.defaultPerformanceTests)]
-        public IEnumerator SceneObjectCountMatchesTheCountedValueWithUnityFindObjects([ValueSource(typeof(TestUtilities), nameof(TestUtilities.GetScenesFromPath))] string scenePath)
+        [PrebuildSetup(typeof(SceneBuildSettingsSetupBeforeTestsGameObjects))]
+        public IEnumerator SceneObjectCountMatchesTheCountedValueWithUnityFindObjects([ValueSource(typeof(TestUtilities), nameof(TestUtilities.GetScenesForGameObjectsFromPath))] string scenePath)
         {
-            factoryAndOriginalScenes = TestUtilities.SetupScene(scenePath);
+            TestUtilities.SetupScene(scenePath);
             for (int i = 0; i < 50; i++)
             {
                 yield return null;
@@ -65,10 +66,12 @@ namespace Tests
 
         [UnityTest, Performance, Version(version)]
         [Timeout(TestSettings.defaultPerformanceTests)]
+        [PrebuildSetup(typeof(SceneBuildSettingsSetupBeforeTestsGameObjects))]
         public IEnumerator SceneObjectCountMatchesTheCountedValueWithUnityFindTransformsInChildren(
-            [ValueSource(typeof(TestUtilities), nameof(TestUtilities.GetScenesFromPath))] string scenePath)
+            [ValueSource(typeof(TestUtilities), nameof(TestUtilities.GetScenesForGameObjectsFromPath))] string scenePath)
         {
-            factoryAndOriginalScenes = TestUtilities.SetupScene(scenePath);
+            factoryAndOriginalScenes = TestUtilities.SetupBuildSettings(scenePath);
+            TestUtilities.SetupScene(scenePath);
             for (int i = 0; i < 50; i++)
             {
                 yield return null;
@@ -93,16 +96,17 @@ namespace Tests
 
         [UnityTest, Performance, Version(version)]
         [Timeout(TestSettings.defaultPerformanceTests)]
-        public IEnumerator GetTransformReturnsCorrectAmountOfObjects([ValueSource(typeof(TestUtilities), nameof(TestUtilities.GetScenesFromPath))] string scenePath)
+        [PrebuildSetup(typeof(SceneBuildSettingsSetupBeforeTestsGameObjects))]
+        public IEnumerator GetTransformReturnsCorrectAmountOfObjects([ValueSource(typeof(TestUtilities), nameof(TestUtilities.GetScenesForGameObjectsFromPath))] string scenePath)
         {
-            factoryAndOriginalScenes = TestUtilities.SetupScene(scenePath);
+            TestUtilities.SetupScene(scenePath);
             for (int i = 0; i < 50; i++)
             {
                 yield return null;
             }
 
             int expectedObjectCount1 = GameObject.FindObjectsOfType<GameObject>().Length;
-            var geoVision = TestUtilities.SetupGeoVision(new Vector3(0f, 0f, -6f), factoryAndOriginalScenes, false);
+            var geoVision = TestUtilities.SetupGeoVision(new Vector3(0f, 0f, -6f), new GeometryVisionFactory(), false);
             yield return null;
             List<GameObject> rootGameObjects = new List<GameObject>();
             HashSet<Transform> result = new HashSet<Transform>();

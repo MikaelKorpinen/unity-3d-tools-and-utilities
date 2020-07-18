@@ -11,6 +11,7 @@ namespace Plugins.GeometricVision
     /// Also handles things like initialization and cleaning up components if removed.
     /// Usage: Component is added and managed automatically by GeometricVision component
     /// </summary>
+    [DisallowMultipleComponent]
     public class GeometryTargetingSystemsContainer : MonoBehaviour
     {
         [SerializeField] private bool debugMode;
@@ -51,9 +52,7 @@ namespace Plugins.GeometricVision
                 {
                     DestroyImmediate(GetComponent<GeometryTargetingSystemsContainer>());
                 }
-
             }
-
 
             yield return null;
         }
@@ -78,6 +77,12 @@ namespace Plugins.GeometricVision
             if (geometryContainer.GeometryType == GeometryType.Objects)
             {
                 IGeoTargeting targetingSystem = new GeometryObjectTargeting();
+                geometryContainer.TargetingSystem = targetingSystem;
+                TargetingPrograms.Add(geometryContainer.TargetingSystem);
+            }
+            else if (geometryContainer.GeometryType == GeometryType.Lines)
+            {
+                IGeoTargeting targetingSystem = new GeometryLineTargeting();
                 geometryContainer.TargetingSystem = targetingSystem;
                 TargetingPrograms.Add(geometryContainer.TargetingSystem);
             }

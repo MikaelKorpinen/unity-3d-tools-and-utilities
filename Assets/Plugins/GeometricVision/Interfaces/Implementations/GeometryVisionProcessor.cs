@@ -152,32 +152,37 @@ namespace Plugins.GeometricVision.Interfaces.Implementations
                     geoInfos.Add(geoInfo);
                 }
             }
-        }
-
-        private GeometryDataModels.GeoInfo GetGeoInfoGeometryData(List<VisionTarget> targetedGeometries, GeometryDataModels.GeoInfo geoInfo, Transform seenObject)
-        {
-            if (GeometryIsTargeted(targetedGeometries))
+            GeometryDataModels.GeoInfo GetGeoInfoGeometryData(List<VisionTarget> targetedGeometries2, GeometryDataModels.GeoInfo geoInfo, Transform seenObject)
             {
-                if (!collidersTargeted)
+                if (GeometryIsTargeted(targetedGeometries2))
                 {
-                    geoInfo.edges = MeshUtilities.GetEdgesFromMesh(geoInfo.renderer, geoInfo.mesh);
+                    if (!collidersTargeted)
+                    {
+                        geoInfo.edges = MeshUtilities.GetEdgesFromMesh(geoInfo.renderer, geoInfo.mesh);
+                    }
+                    else
+                    {
+                        geoInfo.colliderMesh = seenObject.GetComponent<MeshCollider>().sharedMesh;
+                        geoInfo.edges = MeshUtilities.GetEdgesFromMesh(geoInfo.renderer, geoInfo.mesh);
+                    }
                 }
                 else
                 {
-                    geoInfo.colliderMesh = seenObject.GetComponent<MeshCollider>().sharedMesh;
-                    geoInfo.edges = MeshUtilities.GetEdgesFromMesh(geoInfo.renderer, geoInfo.mesh);
+                    geoInfo.edges = new GeometryDataModels.Edge[0]; 
                 }
-            }
 
-            return geoInfo;
+                return geoInfo;
+            }
         }
+
+
 
         private static GeometryDataModels.GeoInfo CreateGeoInfoObject(Transform seenObject, Renderer renderer)
         {
             GeometryDataModels.GeoInfo geoInfo = new GeometryDataModels.GeoInfo();
             geoInfo.gameObject = seenObject.gameObject;
             geoInfo.transform = seenObject;
-            geoInfo.edges = new GeometryDataModels.Edge[3];
+            geoInfo.edges = new GeometryDataModels.Edge[0];
             geoInfo.renderer = renderer;
             geoInfo.mesh = seenObject.GetComponent<MeshFilter>().mesh;
             return geoInfo;

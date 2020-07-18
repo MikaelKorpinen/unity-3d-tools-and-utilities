@@ -127,7 +127,6 @@ namespace Plugins.GeometricVision
             InitGameObjectSwitch();
 
             // Handles target initialization. Adds needed components and subscribes changing variables to logic that updates the targeting system.
-            // So it can keep working under use.
             void InitializeTargeting(List<VisionTarget> targets)
             {
                 foreach (var geometryType in targets)
@@ -154,6 +153,7 @@ namespace Plugins.GeometricVision
 
             return geoTargeting;
         }
+        
         public void InitUnityCamera()
         {
             Camera1 = gameObject.GetComponent<Camera>();
@@ -187,50 +187,49 @@ namespace Plugins.GeometricVision
             void InitGameObjectBasedSystem(bool objectProcessing)
             {
                 var geoEye = GetComponent<GeometryVisionEye>();
-                if (objectProcessing)
+                if (objectProcessing == true)
                 {
                     if (geoEye == null)
                     {
                         GeometryVisionUtilities.SetupGeometryVisionEye(Head, this, fieldOfView);
                     }
 
-                    InitGeometryProcessorForGameObjects(false);
+                    InitGeometryProcessorForGameObjects();
 
 
                 }
-                else if (objectProcessing == false && geoEye)
+                else if (objectProcessing == false)
                 {
-                    DestroyEye(geoEye);
+                    DestroyGeometryVisionGameObjectProcessor();
+
+                    DestroyGeometryCamera(geoEye);
                 }
             }
             
-            void InitGeometryProcessorForGameObjects(bool gameObjectsEnabled)
+            void InitGeometryProcessorForGameObjects()
             {
-                if (gameObjectsEnabled)
+                if (Head.gameObject.GetComponent<GeometryVisionProcessor>() != null)
                 {
-                    if (Head.gameObject.GetComponent<GeometryVisionProcessor>() != null)
-                    {
-                        Head.RemoveProcessor<GeometryVisionProcessor>();
-                        //also remove the mono behaviour from gameObject
-                        DestroyImmediate(Head.gameObject.GetComponent<GeometryVisionProcessor>());
-                    }
-
-                    Head.gameObject.AddComponent<GeometryVisionProcessor>();
-                    Head.AddProcessor(Head.gameObject.GetComponent<GeometryVisionProcessor>());
+                    Head.RemoveProcessor<GeometryVisionProcessor>();
+                    //also remove the mono behaviour from gameObject
+                    DestroyImmediate(Head.gameObject.GetComponent<GeometryVisionProcessor>());
                 }
 
-                if (gameObjectsEnabled == false)
+                Head.gameObject.AddComponent<GeometryVisionProcessor>();
+                Head.AddProcessor(Head.gameObject.GetComponent<GeometryVisionProcessor>());
+            }
+            
+            void DestroyGeometryVisionGameObjectProcessor()
+            {
+                if (Head.gameObject.GetComponent<GeometryVisionProcessor>() != null)
                 {
-                    if (Head.gameObject.GetComponent<GeometryVisionProcessor>() != null)
-                    {
-                        Head.RemoveProcessor<GeometryVisionProcessor>();
-                        //also remove the mono behaviour from gameObject
-                        DestroyImmediate(Head.gameObject.GetComponent<GeometryVisionProcessor>());
-                    }
+                    Head.RemoveProcessor<GeometryVisionProcessor>();
+                    //also remove the mono behaviour from gameObject
+                    DestroyImmediate(Head.gameObject.GetComponent<GeometryVisionProcessor>());
                 }
             }
             
-            void DestroyEye(GeometryVisionEye eye)
+            void DestroyGeometryCamera(GeometryVisionEye eye)
             {
                 if (Application.isPlaying && eye != null)
                 {
@@ -241,6 +240,7 @@ namespace Plugins.GeometricVision
                     DestroyImmediate(eye);
                 }
             }
+            
         }
 
         /// <summary>
@@ -300,16 +300,6 @@ namespace Plugins.GeometricVision
             if (toEntities == false)
             {
                 Head.RemoveProcessor<GeometryVisionEntityProcessor>();
-
-                if (Head.gameObject.GetComponent<GeometryVisionProcessor>() != null)
-                {
-                    Head.RemoveProcessor<GeometryVisionProcessor>();
-                    //also remove mono behaviour
-                    DestroyImmediate(Head.gameObject.GetComponent<GeometryVisionProcessor>());
-                }
-
-                Head.gameObject.AddComponent<GeometryVisionProcessor>();
-                Head.AddProcessor(Head.gameObject.GetComponent<GeometryVisionProcessor>());
             }
         }
 
@@ -383,8 +373,7 @@ namespace Plugins.GeometricVision
                 targetedGeometry.Subscribed = true;
             }
             
-            void AddRemoveDefaultTargeting(VisionTarget visionTarget, GeometryTargetingSystemsContainer geometryTargetingSystemsContainer,
-                bool targetingEnabled)
+            void AddRemoveDefaultTargeting(VisionTarget visionTarget, GeometryTargetingSystemsContainer geometryTargetingSystemsContainer, bool targetingEnabled)
             {
                 if (targetingEnabled)
                 {
@@ -534,12 +523,12 @@ namespace Plugins.GeometricVision
 
         public void RemoveEye<T>()
         {
-            InterfaceUtilities.RemoveInterfacesOfTypeFromList(typeof(T), ref eyes);
+            InterfaceUtilities.RemoveInterfaceImplementationOfTypeFromList(typeof(T), ref eyes);
         }
 
         public T GetEye<T>()
         {
-            return (T) InterfaceUtilities.GetInterfaceOfTypeFromList(typeof(T), eyes);
+            return (T) InterfaceUtilities.GetInterfaceImplementationOfTypeFromList(typeof(T), eyes);
         }
 
         /// <summary>
@@ -555,7 +544,7 @@ namespace Plugins.GeometricVision
                 eyes = new HashSet<IGeoEye>();
             }
 
-            if (InterfaceUtilities.ListContainsInterfaceOfType(eye.GetType(), eyes) == false)
+            if (InterfaceUtilities.ListContainsInterfaceImplementationOfType(eye.GetType(), eyes) == false)
             {
                 var defaultEyeFromTypeT = (IGeoEye) default(T);
                 //Check that the implementation is not the default one
@@ -582,8 +571,7 @@ namespace Plugins.GeometricVision
         {
             foreach (var targetedGeometry in TargetedGeometries)
             {
-                closestTargets = targetedGeometry.TargetingSystem.GetTargets(transform.position,
-                    ForwardWorldCoordinate, GeoInfos);
+                closestTargets = targetedGeometry.TargetingSystem.GetTargets(transform.position, ForwardWorldCoordinate, GeoInfos);
             }
 
             return closestTargets;

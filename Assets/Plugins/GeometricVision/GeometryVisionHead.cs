@@ -59,7 +59,7 @@ namespace Plugins.GeometricVision
                 processors = new List<IGeoProcessor>();
             }
 
-            if (InterfaceUtilities.ListContainsInterfaceOfType(processor.GetType(), processors) == false)
+            if (InterfaceUtilities.ListContainsInterfaceImplementationOfType(processor.GetType(), processors) == false)
             {
                 var dT = (IGeoProcessor) default(T);
                 if (Object.Equals(processor, dT) == false)
@@ -71,12 +71,12 @@ namespace Plugins.GeometricVision
 
         public T GetProcessor<T>()
         {
-            return (T) InterfaceUtilities.GetInterfaceOfTypeFromList(typeof(T), processors);
+            return (T) InterfaceUtilities.GetInterfaceImplementationOfTypeFromList(typeof(T), processors);
         }
 
         public void RemoveProcessor<T>()
         {
-            InterfaceUtilities.RemoveInterfacesOfTypeFromList(typeof(T), ref processors);
+            InterfaceUtilities.RemoveInterfaceImplementationOfTypeFromList(typeof(T), ref processors);
         }
         
         public HashSet<GeometryVision> GeoVisions

@@ -11,14 +11,17 @@ namespace Plugins.GeometricVision
         public GameObject CreateGeometryVision(Vector3 startingPosition, Quaternion rotation, float fieldOfView,
             GeometryVision geoVisionComponent, List<GeometryType> geoTypes, int layerIndex)
         {
+            geoVisionComponent.GameObjectBasedProcessing.Value = true;
             var geoVisionManagerGO = CreateGeovisionManagerGameObject();
             var processor = CreateGeometryProcessor(geoVisionManagerGO, geoVisionComponent);
             CreateHead(geoVisionManagerGO, geoVisionComponent, processor);
             CreateEye(geoVisionManagerGO, fieldOfView, geoVisionComponent);
+
          //   AddDefaultTarget(geoTypes, layerIndex, geoVisionComponent);
             geoVisionManagerGO.transform.position = startingPosition;
             geoVisionManagerGO.transform.rotation = rotation;
 
+            
             return geoVisionComponent.gameObject;
         }
 
@@ -36,6 +39,7 @@ namespace Plugins.GeometricVision
         public GameObject CreateGeometryVision(Vector3 startingPosition, Quaternion rotation, float fieldOfView,
             List<GeometryType> geoTypes, int layerIndex, bool debugModeEnabled)
         {
+
             var geoVisionManagerGO = CreateGeovisionManagerGameObject();
             
             var geoVisionComponent = CreateGeoVision(new GameObject(), debugModeEnabled);
@@ -90,7 +94,7 @@ namespace Plugins.GeometricVision
             geoVisionComponent.Id = new Hash128().ToString();
             geoVisionComponent.DebugMode = debugModeEnabled;
             geoVisionComponent.GameObjectBasedProcessing.Value = true;
-            geoVisionComponent.EntityBasedProcessing.Value = true;
+            geoVisionComponent.EntityBasedProcessing.Value = false;
             
             return geoVisionComponent;
         }

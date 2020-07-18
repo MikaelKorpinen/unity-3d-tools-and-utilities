@@ -21,20 +21,21 @@ namespace Tests
         [TearDown]
         public void TearDown()
         {
-            //Put original scenes back to build settings
-            EditorBuildSettings.scenes = factoryAndOriginalScenes.Item2;
+            TestUtilities.PostCleanUpBuildSettings(TestSessionVariables.BuildScenes);
         }
+
         
         [UnityTest, Performance, Version(version)]
         [Timeout(TestSettings.defaultSmallTest)]
-        public IEnumerator GameObjectIsPickedIfInsideFrustum([ValueSource(typeof(TestUtilities), nameof(TestUtilities.GetScenesFromPath))] string scenePath)
+        [PrebuildSetup(typeof(SceneBuildSettingsSetupBeforeTestsGameObjects))]
+        public IEnumerator GameObjectIsPickedIfInsideFrustum([ValueSource(typeof(TestUtilities), nameof(TestUtilities.GetScenesForGameObjectsFromPath))] string scenePath)
         {
-            factoryAndOriginalScenes = TestUtilities.SetupScene(scenePath);
+            TestUtilities.SetupScene(scenePath);
             for (int i = 0; i < 50; i++){yield return null;}
 
             var expectedObjectCount = TestUtilities.GetObjectCountFromScene(Vector3.zero);
             yield return null;
-            var geoVision = TestUtilities.SetupGeoVision(new Vector3(0f, 0f, -6f), factoryAndOriginalScenes, false);
+            var geoVision = TestUtilities.SetupGeoVision(new Vector3(0f, 0f, -6f), new GeometryVisionFactory(), false);
             yield return null;
             yield return null;
             yield return null;
@@ -44,16 +45,16 @@ namespace Tests
 
         [UnityTest, Performance, Version(version)]
         [Timeout(TestSettings.defaultSmallTest)]
-        public IEnumerator GameObjectIsRemovedAndAddedBackIfOutsideFrustum([ValueSource(typeof(TestUtilities), nameof(TestUtilities.GetScenesFromPath))] string scenePath)
+        [PrebuildSetup(typeof(SceneBuildSettingsSetupBeforeTestsGameObjects))]
+        public IEnumerator GameObjectIsRemovedAndAddedBackIfOutsideFrustum([ValueSource(typeof(TestUtilities), nameof(TestUtilities.GetScenesForGameObjectsFromPath))] string scenePath)
         {
-
-            factoryAndOriginalScenes = TestUtilities.SetupScene(scenePath);
+            TestUtilities.SetupScene(scenePath);
             for (int i = 0; i < 50; i++){yield return null;}
             
             var expectedObjectCount = TestUtilities.GetObjectCountFromScene(Vector3.zero);
             int expectedObjectCount2 = 0;
             int expectedObjectCount3 = expectedObjectCount;
-            var geoVision = TestUtilities.SetupGeoVision(new Vector3(0f, 0f, -6f), factoryAndOriginalScenes, false);
+            var geoVision = TestUtilities.SetupGeoVision(new Vector3(0f, 0f, -6f), new GeometryVisionFactory(), false);
             yield return null;
             
             Assert.AreEqual(expectedObjectCount, geoVision.GetComponent<GeometryVisionEye>().seenTransforms.Count);  

@@ -6,19 +6,20 @@ using System.Linq;
 using GeometricVision;
 using Plugins.GeometricVision;
 using UnityEditor;
+using UnityEditor.Build.Content;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
 public static class TestUtilities
 {
-   
     public static Scene newScene(NewSceneSetup setup)
     {
         Scene scene = EditorSceneManager.NewScene(setup, NewSceneMode.Additive);
         EditorSceneManager.SetActiveScene(scene);
         return scene;
     }
+
     public static int GetObjectCountFromScene(Vector3 coordinates)
     {
         var rootObjects = new List<GameObject>();
@@ -49,16 +50,56 @@ public static class TestUtilities
         return expectedObjectCount;
     }
     
-    public static IEnumerable GetScenesFromPath()
+    /// <summary>
+    /// Gets scene paths for GameObject tests.
+    /// Usage: Used as parameter in tests. See written tests and ValueSource from docs
+    /// </summary>
+    /// <returns></returns>
+    public static IEnumerable GetScenesForGameObjectsFromPath()
     {
-        var sceneFolderPath =Application.dataPath+ "/Tests/TestScenes/";
-        List<string> scenePaths= GetSceneFilePaths(sceneFolderPath).ToList();
+        var testSceneFolderInAssetsFolder = "Tests/TestScenes/";
+        var sceneFolderPath = Application.dataPath + "/" + testSceneFolderInAssetsFolder;
+        List<string> scenePaths = GetSceneFilePaths(sceneFolderPath, testSceneFolderInAssetsFolder).ToList();
 
         return scenePaths;
     }
+    
+    /// <summary>
+    /// Gets scene paths for entity tests.
+    /// Usage: Used as parameter in tests. See written tests and ValueSource from docs
+    /// </summary>
+    /// <returns></returns>
+    public static IEnumerable GetScenesForEntitiesFromPath()
+    {
+        var testSceneFolderInAssetsFolder = "Tests/TestScenesEntities/";
+        var sceneFolderPath = Application.dataPath + "/" + testSceneFolderInAssetsFolder;
+        List<string> scenePaths = GetSceneFilePaths(sceneFolderPath, testSceneFolderInAssetsFolder).ToList();
 
-    public static GameObject SetupGeoVision(Vector3 position,
-        Tuple<GeometryVisionFactory, EditorBuildSettingsScene[]> factoryAndOriginalScenes, bool edgesTargeted)
+        return scenePaths;
+        
+    }
+    public static string[] GetSceneFilePaths(string sceneFolderPath, string testSceneFolder)
+    {
+        DirectoryInfo d = new DirectoryInfo(@sceneFolderPath);
+        FileInfo[] scenePaths = d.GetFiles("*.unity");
+        string[] scenePaths2 = new string[scenePaths.Length];
+        for (var index = 0; index < scenePaths.Length; index++)
+        {
+            var sceneName = scenePaths[index].Name;
+            scenePaths2[index] = "Assets/"+testSceneFolder + sceneName;
+        }
+
+        return scenePaths2;
+    }
+    internal static List<string> CreateScenePathFromRelativeAddress(string relativeFolder)
+    {
+        var sceneFolderPath = Application.dataPath + "/" + relativeFolder;
+        List<string> scenePaths = GetSceneFilePaths(sceneFolderPath, relativeFolder).ToList();
+        return scenePaths;
+    }
+
+    public static GameObject SetupGeoVision2(Vector3 position,
+        GeometryVisionFactory factory, bool edgesTargeted)
     {
         var geoTypesToTarget = new List<GeometryType>();
         if (edgesTargeted)
@@ -66,23 +107,20 @@ public static class TestUtilities
             geoTypesToTarget.Add(GeometryType.Lines);
         }
 
-        GameObject geoVision = factoryAndOriginalScenes.Item1.CreateGeometryVision(position,
-            Quaternion.identity, 25,
-            geoTypesToTarget, 0, true);
+        GameObject geoVision = factory.CreateGeometryVision(position, Quaternion.identity, 25, geoTypesToTarget, 0, true);
         return geoVision;
     }
-    public static string[] GetSceneFilePaths( string sceneFolderPath)
+
+    public static GameObject SetupGeoVision(Vector3 position, GeometryVisionFactory factory, bool edgesTargeted)
     {
-        DirectoryInfo d = new DirectoryInfo(@sceneFolderPath);
-        FileInfo[] scenePaths = d.GetFiles( "*.unity");
-        string[] scenePaths2 = new string[scenePaths.Length];
-        for (var index = 0; index < scenePaths.Length; index++)
+        var geoTypesToTarget = new List<GeometryType>();
+        if (edgesTargeted)
         {
-            var scenePath = scenePaths[index].Name;
-            scenePaths2[index] = "Assets/Tests/TestScenes/"+scenePath;
+            geoTypesToTarget.Add(GeometryType.Lines);
         }
 
-        return scenePaths2;
+        GameObject geoVision = factory.CreateGeometryVision(position, Quaternion.identity, 25, geoTypesToTarget, 0, true);
+        return geoVision;
     }
 
     public static IEnumerable GetScenesFromBuildSettings()
@@ -92,12 +130,12 @@ public static class TestUtilities
         var amountOfScenesInBuildSettings = SceneManager.sceneCountInBuildSettings;
         for (int i = 0; i < amountOfScenesInBuildSettings; i++)
         {
-
             var pathToScene = SceneUtility.GetScenePathByBuildIndex(i);
             if (pathToScene.Contains(testSceneIdentifier))
             {
                 scenePaths.Add(pathToScene);
             }
+
             Debug.Log("Scene found named: " + pathToScene);
         }
 
@@ -105,34 +143,107 @@ public static class TestUtilities
         return scenePaths;
     }
 
-    public static Tuple<GeometryVisionFactory, EditorBuildSettingsScene[]> SetupScene(string scenePath)
+    public static Tuple<GeometryVisionFactory, EditorBuildSettingsScene[]> SetupBuildSettings(string scenePath)
     {
-        Time.timeScale = 100f;
-        Debug.Log("Loading: " + scenePath);
+        Debug.Log("SetupBuildSettings: " + scenePath);
 
         EditorBuildSettingsScene[] originalScenes = AddSceneToBuildSettings(scenePath);
 
-        EditorSceneManager.LoadScene(0, LoadSceneMode.Single);
 
-        var returnValues = new Tuple<GeometryVisionFactory, EditorBuildSettingsScene[]>( new GeometryVisionFactory(), originalScenes);
+        var returnValues =
+            new Tuple<GeometryVisionFactory, EditorBuildSettingsScene[]>(new GeometryVisionFactory(), originalScenes);
 
         return returnValues;
+    }
+ 
+    public static void SetupScene(string scenePath)
+    {
+        Time.timeScale = 100f;
+        Debug.Log("Loading: " + scenePath);
+        //Load first scene
+        SceneManager.LoadScene(scenePath, LoadSceneMode.Single);
+        
     }
 
     private static EditorBuildSettingsScene[] AddSceneToBuildSettings(string scenePath)
     {
-        var amountOfScenesInBuildSettings = SceneManager.sceneCountInBuildSettings;
         EditorBuildSettingsScene[] originalScenes = EditorBuildSettings.scenes;
-        EditorBuildSettingsScene[] testScenes = new EditorBuildSettingsScene[1];
-
+        List<EditorBuildSettingsScene> testScenes = new List<EditorBuildSettingsScene>();
+        foreach (var editorBuildSettingsScene in originalScenes)
+        {
+            testScenes.Add(editorBuildSettingsScene);
+        }
 
         Debug.Log("scene path to add to build settings: " + scenePath);
         var scene = new EditorBuildSettingsScene(scenePath, true);
-        testScenes[0] = scene;
-        //Debug.Log("----original" + originalScenes[0].path);
-        Debug.Log("----" + testScenes[0].path);
-        EditorBuildSettings.scenes = testScenes;
-        Debug.Log("----amount of scenes loaded" + EditorBuildSettings.scenes.Length );
+
+        testScenes.Add(scene);
+        EditorBuildSettings.scenes = testScenes.ToArray();
+        
+        foreach (var editorBuildSettingsScene in EditorBuildSettings.scenes)
+        {
+            Debug.Log(editorBuildSettingsScene.path);
+        }
+        Debug.Log("----EditorBuildSettings.scenes " +EditorBuildSettings.scenes[0].path); 
+        Debug.Log("----amount of scenes loaded: EditorBuildSettings.scenes.Length" + EditorBuildSettings.scenes.Length);
+        Debug.Log("----amount of scenes loaded SceneManager.sceneCount: " + EditorSceneManager.sceneCount);
         return originalScenes;
+    }
+
+    public static  EditorBuildSettingsScene[] SetupBuildSettings(List<string> getScenesFromPathList)
+    {
+        EditorBuildSettingsScene[] originalScenes = EditorBuildSettings.scenes;
+        List<EditorBuildSettingsScene> testScenes = originalScenes.ToList();
+        
+        
+        foreach (var scenePath in getScenesFromPathList)
+        {
+            Debug.Log("scene path to add to build settings: " + scenePath);
+            var scene = new EditorBuildSettingsScene(scenePath, true);
+            testScenes.Add(scene);
+        }
+        
+
+
+        if (originalScenes.Length > 0)
+        {
+            Debug.Log("----original: " + originalScenes[0].path);
+        }
+
+        Debug.Log("----" + testScenes[0].path); 
+        
+
+        EditorBuildSettings.scenes = testScenes.ToArray();
+        if ( EditorBuildSettings.scenes.Length !=0)
+        {
+            foreach (var editorBuildSettingsScene in EditorBuildSettings.scenes)
+            {
+                Debug.Log(editorBuildSettingsScene.path);
+            }
+
+        }        
+
+        Debug.Log("----EditorBuildSettings.scenes " +EditorBuildSettings.scenes[0].path); 
+        Debug.Log("----amount of scenes loaded: EditorBuildSettings.scenes.Length" + EditorBuildSettings.scenes.Length);
+        Debug.Log("----amount of scenes loaded SceneManager.sceneCount: " + EditorSceneManager.sceneCount);
+        var returnValues =originalScenes;
+
+        return returnValues;
+    }
+    
+    public static void PostCleanUpBuildSettings(EditorBuildSettingsScene[] originalScenes)
+    {
+        EditorSceneManager.LoadScene(0, LoadSceneMode.Single);
+        EditorBuildSettings.scenes = originalScenes;
+        
+        foreach (var editorBuildSettingsScene in EditorBuildSettings.scenes)
+        {
+            Debug.Log(editorBuildSettingsScene.path);
+        }
+        Debug.Log("----amount of scenes loaded: EditorBuildSettings.scenes.Length" + EditorBuildSettings.scenes.Length);
+        Debug.Log("----amount of scenes loaded SceneManager.sceneCount: " + EditorSceneManager.sceneCount);
+        var returnValues =
+            new Tuple<GeometryVisionFactory, EditorBuildSettingsScene[]>(new GeometryVisionFactory(), originalScenes);
+        
     }
 }

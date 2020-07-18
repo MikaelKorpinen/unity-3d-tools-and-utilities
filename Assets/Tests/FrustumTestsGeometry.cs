@@ -18,26 +18,25 @@ namespace Tests
     public class FrustumTestsGeometry
     {
         private const string version = TestSettings.Version;
-        private Tuple<GeometryVisionFactory, EditorBuildSettingsScene[]> factoryAndOriginalScenes;
-        
+ 
         [TearDown]
         public void TearDown()
         {
-            //Put original scenes back to build settings
-            EditorBuildSettings.scenes = factoryAndOriginalScenes.Item2;
+            TestUtilities.PostCleanUpBuildSettings(TestSessionVariables.BuildScenes);
         }
 
         [UnityTest, Performance, Version(version)]
         [Timeout(TestSettings.defaultSmallTest)]
-        public IEnumerator ObjectWithRendererIsPickedIfInsideFrustum([ValueSource(typeof(TestUtilities), nameof(TestUtilities.GetScenesFromPath))] string scenePath)
+        [PrebuildSetup(typeof(SceneBuildSettingsSetupBeforeTestsGameObjects))]
+        public IEnumerator ObjectWithRendererIsPickedIfInsideFrustum([ValueSource(typeof(TestUtilities), nameof(TestUtilities.GetScenesForGameObjectsFromPath))] string scenePath)
         {
-            factoryAndOriginalScenes = TestUtilities.SetupScene(scenePath);
+            TestUtilities.SetupScene(scenePath);
             for (int i = 0; i < 50; i++)
             {
                 yield return null;
             }
             int expectedObjectCount = GameObject.FindObjectsOfType<Renderer>().Length;
-            var geoVision = TestUtilities.SetupGeoVision(new Vector3(0f, 0f, -6f), factoryAndOriginalScenes, false);
+            var geoVision = TestUtilities.SetupGeoVision(new Vector3(0f, 0f, -6f), new GeometryVisionFactory(), false);
 
             yield return null;
             yield return null;
@@ -47,10 +46,11 @@ namespace Tests
 
         [UnityTest, Performance, Version(version)]
         [Timeout(TestSettings.defaultSmallTest)]
+        [PrebuildSetup(typeof(SceneBuildSettingsSetupBeforeTestsGameObjects))]
         public IEnumerator ObjectWithRendererIsRemovedAndAddedBackIfOutsideFrustum(
-            [ValueSource(typeof(TestUtilities), nameof(TestUtilities.GetScenesFromPath))] string scenePath)
+            [ValueSource(typeof(TestUtilities), nameof(TestUtilities.GetScenesForGameObjectsFromPath))] string scenePath)
         {
-            factoryAndOriginalScenes = TestUtilities.SetupScene(scenePath);
+            TestUtilities.SetupScene(scenePath);
             for (int i = 0; i < 50; i++)
             {
                 yield return null;
@@ -59,7 +59,7 @@ namespace Tests
 
             int expectedObjectCount2 = 0;
             int expectedObjectCount3 = expectedObjectCount1;
-            var geoVision = TestUtilities.SetupGeoVision(new Vector3(0f, 0f, -6f), factoryAndOriginalScenes, false);
+            var geoVision = TestUtilities.SetupGeoVision(new Vector3(0f, 0f, -6f), new GeometryVisionFactory(), false);
             
             yield return null;
             yield return null;
@@ -78,16 +78,17 @@ namespace Tests
 
         [UnityTest, Performance, Version(version)]
         [Timeout(TestSettings.defaultSmallTest)]
+        [PrebuildSetup(typeof(SceneBuildSettingsSetupBeforeTestsGameObjects))]
         public IEnumerator ObjectWithRendererIsRemovedIfOutsideFrustum(
-            [ValueSource(typeof(TestUtilities), nameof(TestUtilities.GetScenesFromPath))] string scenePath)
+            [ValueSource(typeof(TestUtilities), nameof(TestUtilities.GetScenesForGameObjectsFromPath))] string scenePath)
         {
             int expectedObjectCount = 0;
-            factoryAndOriginalScenes = TestUtilities.SetupScene(scenePath);
+            TestUtilities.SetupScene(scenePath);
             for (int i = 0; i < 50; i++)
             {
                 yield return null;
             }
-            var geoVision = TestUtilities.SetupGeoVision(new Vector3(0f, 0f, -6f), factoryAndOriginalScenes, false);
+            var geoVision = TestUtilities.SetupGeoVision(new Vector3(0f, 0f, -6f), new GeometryVisionFactory(), false);
             yield return null;
             geoVision.transform.position = new Vector3(10f, 10f, 10f);
             yield return null;

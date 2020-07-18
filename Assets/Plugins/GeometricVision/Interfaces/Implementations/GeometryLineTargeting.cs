@@ -9,7 +9,9 @@ namespace Plugins.GeometricVision.Interfaces.Implementations
 
         public List<GeometryDataModels.Target> GetTargets(Vector3 rayLocation, Vector3 rayDirection, List<GeometryDataModels.GeoInfo> targets)
         {
-            throw new System.NotImplementedException();
+            
+            return new List<GeometryDataModels.Target>();
+            //throw new System.NotImplementedException();
         }
 
         public GeometryType TargetedType

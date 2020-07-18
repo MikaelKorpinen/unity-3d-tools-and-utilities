@@ -6,7 +6,7 @@ using UnityEngine;
 
 public static class InterfaceUtilities
 {
-    public static bool ListContainsInterfaceOfType<T>(Type typeToCheck, List<T> interfaces)
+    public static bool ListContainsInterfaceImplementationOfType<T>(Type typeToCheck, List<T> interfaces)
     {
         bool found = false;
 
@@ -21,7 +21,7 @@ public static class InterfaceUtilities
         return found;
     }
 
-    public static bool ListContainsInterfaceOfType<T>(Type typeToCheck, HashSet<T> interfaces)
+    public static bool ListContainsInterfaceImplementationOfType<T>(Type typeToCheck, HashSet<T> interfaces)
     {
         bool found = false;
 
@@ -36,11 +36,11 @@ public static class InterfaceUtilities
         return found;
     }
 
-    public static void RemoveInterfacesOfTypeFromList<T>(Type typeToCheck, ref List<T> interfaces)
+    public static void RemoveInterfaceImplementationOfTypeFromList<T>(Type typeToCheck, ref List<T> implementations)
     {
 
         List<T> tempList = new List<T>();
-        foreach (var processor in interfaces)
+        foreach (var processor in implementations)
         {
             if (processor.GetType() != typeToCheck)
             {
@@ -48,28 +48,28 @@ public static class InterfaceUtilities
             }
         }
 
-        interfaces = tempList;
+        implementations = tempList;
     }
 
-    public static void RemoveInterfacesOfTypeFromList<T>(Type typeToCheck, ref HashSet<T> interfaces)
+    public static void RemoveInterfaceImplementationOfTypeFromList<T>(Type typeToCheck, ref HashSet<T> implementations)
     {
-        HashSet<T> tempList = new HashSet<T>(interfaces);
+        HashSet<T> tempList = new HashSet<T>(implementations);
 
         foreach (var processor in tempList)
         {
             if (processor.GetType() == typeToCheck)
             {
-                interfaces.Remove(processor);
+                implementations.Remove(processor);
             }
         }
 
-        interfaces = tempList;
+        implementations = tempList;
     }
 
-    public static T GetInterfaceOfTypeFromList<T>(Type typeToCheck, List<T> interfaces)
+    public static T GetInterfaceImplementationOfTypeFromList<T>(Type typeToCheck, List<T> implementations)
     {
         T interfaceToReturn = default(T);
-        foreach (var processor in interfaces)
+        foreach (var processor in implementations)
         {
             if (processor.GetType() == typeToCheck)
             {
@@ -80,10 +80,10 @@ public static class InterfaceUtilities
         return interfaceToReturn;
     }
 
-    public static T GetInterfaceOfTypeFromList<T>(Type typeToCheck, HashSet<T> interfaces)
+    public static T GetInterfaceImplementationOfTypeFromList<T>(Type typeToCheck, HashSet<T> implementations)
     {
         T interfaceToReturn = default(T);
-        foreach (var processor in interfaces)
+        foreach (var processor in implementations)
         {
             if (processor.GetType() == typeToCheck)
             {

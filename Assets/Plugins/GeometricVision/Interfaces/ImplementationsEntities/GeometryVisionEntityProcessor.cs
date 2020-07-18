@@ -48,9 +48,8 @@ namespace Plugins.GeometricVision.Interfaces.ImplementationsEntities
             entityQuery = GetEntityQuery(
                 ComponentType.ReadOnly<Translation>()
             );
-
             lastCount = entityQuery.CalculateEntityCount();
-           UnityEngine.Debug.Log(lastCount);
+           UnityEngine.Debug.Log("entities " +lastCount);
             // Schedule the job that will add Instantiate commands to the EntityCommandBuffer.
             // Since this job only runs on the first frame, we want to ensure Burst compiles it before running to get the best performance (3rd parameter of WithBurst)
             // The actual job will be cached once it is compiled (it will only get Burst compiled once).

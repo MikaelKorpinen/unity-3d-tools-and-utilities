@@ -357,6 +357,7 @@
           <e p="FrustumTestsObjects.cs" t="Include" />
           <e p="GeoUtilitiesTests.cs" t="Include" />
           <e p="ProcessingTestsObjects.cs" t="Include" />
+          <e p="SceneBuildSettingsSetupBeforeTestsGameObjects.cs" t="Include" />
           <e p="TargetingTests.cs" t="Include" />
           <e p="Tests.asmdef" t="Include" />
           <e p="TestUtilities.cs" t="Include" />

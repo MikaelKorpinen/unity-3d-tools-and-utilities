@@ -32,6 +32,12 @@ namespace Plugins.GeometricVision
         {
             GeometryType = geoType;
             targetLayer = layerIndex;
+            
+            if (null == targetingSystem)
+            {
+                throw new ArgumentNullException(nameof(targetingSystem));
+            }
+
             this.TargetingSystem = targetingSystem;
             
             Target.Value = true;
