@@ -18,6 +18,14 @@ namespace Tests
         private const string version = TestSettings.Version;
         private Tuple<GeometryVisionFactory, EditorBuildSettingsScene[]> factoryAndOriginalScenes;
         
+        private GeometryDataModels.FactorySettings factorySettings = new GeometryDataModels.FactorySettings
+        {
+            fielOfView =  25f,
+            processGameObjects = true,
+            processGameObjectsEdges = false,
+                    
+        };
+        
         [TearDown]
         public void TearDown()
         {
@@ -34,7 +42,7 @@ namespace Tests
             {
                 yield return null;
             }
-            var geoVision = TestUtilities.SetupGeoVision(new Vector3(0f, 0f, -6f), new GeometryVisionFactory(), false);
+            var geoVision = TestUtilities.SetupGeoVision(new Vector3(0f, 0f, -6f), new GeometryVisionFactory(factorySettings));
             yield return null;
             yield return null;
             int amountOfObjectsInScene = 0;
@@ -70,7 +78,7 @@ namespace Tests
         public IEnumerator SceneObjectCountMatchesTheCountedValueWithUnityFindTransformsInChildren(
             [ValueSource(typeof(TestUtilities), nameof(TestUtilities.GetScenesForGameObjectsFromPath))] string scenePath)
         {
-            factoryAndOriginalScenes = TestUtilities.SetupBuildSettings(scenePath);
+            TestUtilities.SetupBuildSettings(scenePath);
             TestUtilities.SetupScene(scenePath);
             for (int i = 0; i < 50; i++)
             {
@@ -106,7 +114,7 @@ namespace Tests
             }
 
             int expectedObjectCount1 = GameObject.FindObjectsOfType<GameObject>().Length;
-            var geoVision = TestUtilities.SetupGeoVision(new Vector3(0f, 0f, -6f), new GeometryVisionFactory(), false);
+            var geoVision = TestUtilities.SetupGeoVision(new Vector3(0f, 0f, -6f), new GeometryVisionFactory(factorySettings));
             yield return null;
             List<GameObject> rootGameObjects = new List<GameObject>();
             HashSet<Transform> result = new HashSet<Transform>();

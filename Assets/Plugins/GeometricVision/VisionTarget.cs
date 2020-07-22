@@ -11,6 +11,10 @@ namespace Plugins.GeometricVision
 {
     [Serializable]
     public class TargetingEvents : UnityEvent{ }
+    
+    /// <summary>
+    /// Contains user defined targeting instructions for the GeometryVision object
+    /// </summary>
     [Serializable]
     public class VisionTarget
     {
@@ -18,17 +22,26 @@ namespace Plugins.GeometricVision
         [SerializeField,  Tooltip("Choose what geometry to target or use.")] private GeometryType geometryType;
     
         [SerializeField] private BoolReactiveProperty target = new BoolReactiveProperty();
-        //Cannot get Reactive value from serialized property, so this boolean variable handles it job on the inspector gui under the hood.
+        //Cannot get Reactive value from serialized property, so this boolean variable handles its job on the inspector gui behind the scenes.
+        //See UI/VisionTypeDrawer.cs
         //It is not visible on the inspector but removing serialization makes it un findable
-        [SerializeField] private bool targetHidden;
-        [SerializeField] private Action actionToPerform;
+        [SerializeField] private bool targetActionsTemplateSlotVisible;
         [SerializeField, Layer, Tooltip("Choose what layer from unity layers settings to use")] private int targetLayer = 31;
         public bool Subscribed { get; set; }
         public ActionsTemplateObject targetingActions;
-        private IGeoTargeting targetingSystem = null;
+        //GeometryVision plugin needs to be able to target both GameObjects and Entities at the same time
+        private IGeoTargeting targetingSystemGameObjects = null;
         private IGeoTargeting targetingSystemEntities = null;
+        
+        /// <summary>
+        /// Constructor for the GeometryVision target object
+        /// </summary>
 
-        public VisionTarget(GeometryType geoType, int layerIndex, IGeoTargeting targetingSystem)
+        /// <param name="geoType"></param>
+        /// <param name="layerIndex"></param>
+        /// <param name="targetingSystem"></param>
+        /// <exception cref="ArgumentNullException"></exception>
+        public VisionTarget(GeometryType geoType, int layerIndex, IGeoTargeting targetingSystem, bool targetingEnabled)
         {
             GeometryType = geoType;
             targetLayer = layerIndex;
@@ -38,14 +51,28 @@ namespace Plugins.GeometricVision
                 throw new ArgumentNullException(nameof(targetingSystem));
             }
 
-            this.TargetingSystem = targetingSystem;
-            
+            target.Value = targetingEnabled;
+            AssignTargetingSystem(targetingSystem);
+
             Target.Value = true;
+            
+            void AssignTargetingSystem(IGeoTargeting geoTargeting)
+            {
+                if (geoTargeting.IsForEntities())
+                {
+                    TargetingSystemEntities = geoTargeting;
+                }
+                else
+                {
+                    TargetingSystemGameObjects = geoTargeting;
+                }
+            }
         }
-        public IGeoTargeting TargetingSystem
+        
+        public IGeoTargeting TargetingSystemGameObjects
         {
-            get { return targetingSystem; }
-            set { targetingSystem = value; }
+            get { return targetingSystemGameObjects; }
+            set { targetingSystemGameObjects = value; }
         }
 
         public IGeoTargeting TargetingSystemEntities
@@ -81,16 +108,10 @@ namespace Plugins.GeometricVision
             set { enabled = value; }
         }
 
-        public bool TargetHidden
+        public bool TargetActionsTemplateSlotVisible
         {
-            get { return targetHidden; }
-            set { targetHidden = value; }
+            get { return targetActionsTemplateSlotVisible; }
+            set { targetActionsTemplateSlotVisible = value; }
         }
     }
-
-    public class ExposePropertyAttribute : PropertyAttribute {
-        public string PropertyName;
-        public ExposePropertyAttribute(string propName) { PropertyName = propName; }
-    }
-    
 }

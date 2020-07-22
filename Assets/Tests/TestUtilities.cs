@@ -98,8 +98,7 @@ public static class TestUtilities
         return scenePaths;
     }
 
-    public static GameObject SetupGeoVision2(Vector3 position,
-        GeometryVisionFactory factory, bool edgesTargeted)
+    public static GameObject SetupGeoVision2(Vector3 position, GeometryVisionFactory factory, bool edgesTargeted)
     {
         var geoTypesToTarget = new List<GeometryType>();
         if (edgesTargeted)
@@ -110,15 +109,10 @@ public static class TestUtilities
         GameObject geoVision = factory.CreateGeometryVision(position, Quaternion.identity, 25, geoTypesToTarget, 0, true);
         return geoVision;
     }
-
-    public static GameObject SetupGeoVision(Vector3 position, GeometryVisionFactory factory, bool edgesTargeted)
+    //TODO: Settings as object
+    public static GameObject SetupGeoVision(Vector3 position, GeometryVisionFactory factory)
     {
         var geoTypesToTarget = new List<GeometryType>();
-        if (edgesTargeted)
-        {
-            geoTypesToTarget.Add(GeometryType.Lines);
-        }
-
         GameObject geoVision = factory.CreateGeometryVision(position, Quaternion.identity, 25, geoTypesToTarget, 0, true);
         return geoVision;
     }
@@ -143,17 +137,13 @@ public static class TestUtilities
         return scenePaths;
     }
 
-    public static Tuple<GeometryVisionFactory, EditorBuildSettingsScene[]> SetupBuildSettings(string scenePath)
+    public static EditorBuildSettingsScene[] SetupBuildSettings(string scenePath)
     {
         Debug.Log("SetupBuildSettings: " + scenePath);
 
         EditorBuildSettingsScene[] originalScenes = AddSceneToBuildSettings(scenePath);
 
-
-        var returnValues =
-            new Tuple<GeometryVisionFactory, EditorBuildSettingsScene[]>(new GeometryVisionFactory(), originalScenes);
-
-        return returnValues;
+        return originalScenes;
     }
  
     public static void SetupScene(string scenePath)
@@ -242,8 +232,21 @@ public static class TestUtilities
         }
         Debug.Log("----amount of scenes loaded: EditorBuildSettings.scenes.Length" + EditorBuildSettings.scenes.Length);
         Debug.Log("----amount of scenes loaded SceneManager.sceneCount: " + EditorSceneManager.sceneCount);
-        var returnValues =
-            new Tuple<GeometryVisionFactory, EditorBuildSettingsScene[]>(new GeometryVisionFactory(), originalScenes);
-        
+       
+    }
+
+    public static bool CheckThatImplementationIsOnTheList<T>(HashSet<T> listToCheck, Type type)
+    {
+        bool found = false;
+            
+        foreach (var targetingProgram in listToCheck)
+        {
+            if (targetingProgram.GetType() == type)
+            {
+                found = true;
+            }
+        }
+
+        return found;
     }
 }

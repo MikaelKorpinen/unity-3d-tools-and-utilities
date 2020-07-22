@@ -19,7 +19,13 @@ namespace Tests
     [TestFixture]
     public class GeoUtilitiesTests
     {
-        private const string version = TestSettings.Version;
+        private GeometryDataModels.FactorySettings factorySettings = new GeometryDataModels.FactorySettings
+        {
+            fielOfView =  25f,
+            processGameObjects = true,
+            processGameObjectsEdges = false,
+            edgesTargeted = true
+        };
 
         [TearDown]
         public void TearDown()
@@ -27,8 +33,7 @@ namespace Tests
             TestUtilities.PostCleanUpBuildSettings(TestSessionVariables.BuildScenes);
         }
 
-
-        [UnityTest, Performance, Version(version)]
+        [UnityTest, Performance, Version(TestSettings.Version)]
         [Timeout(TestSettings.defaultPerformanceTests)]
         [PrebuildSetup(typeof(SceneBuildSettingsSetupBeforeTestsGameObjects))]
         public IEnumerator GetEdgesOnCubeReturns18Edges([ValueSource(typeof(TestUtilities), nameof(TestUtilities.GetScenesForGameObjectsFromPath))]
@@ -45,7 +50,7 @@ namespace Tests
             var testCubes = Object.FindObjectsOfType<GameObject>();
             yield return null;
             var testCubeCount = testCubes.Where(tc => tc.name.Contains("Cube")).ToList().Count;
-            var geoVision = TestUtilities.SetupGeoVision(new Vector3(0f, 0f, -6f), new GeometryVisionFactory(), true);
+            var geoVision = TestUtilities.SetupGeoVision(new Vector3(0f, 0f, -6f), new GeometryVisionFactory(factorySettings));
 
             var cube = GameObject.Find("Cube");
             yield return null;
@@ -55,7 +60,7 @@ namespace Tests
                     .Length);
         }
 
-        [UnityTest, Performance, Version(version)]
+        [UnityTest, Performance, Version(TestSettings.Version)]
         [Timeout(TestSettings.defaultPerformanceTests)]
         [PrebuildSetup(typeof(SceneBuildSettingsSetupBeforeTestsGameObjects))]
         public IEnumerator NoResultIfNoGeometryTargeted([ValueSource(typeof(TestUtilities), nameof(TestUtilities.GetScenesForGameObjectsFromPath))]
@@ -76,7 +81,8 @@ namespace Tests
             yield return null;
 
             cube.transform.position = Vector3.zero;
-            var geoVision = TestUtilities.SetupGeoVision(new Vector3(0f, 0f, -6f), new GeometryVisionFactory(), false);
+            factorySettings.edgesTargeted = false;
+            var geoVision = TestUtilities.SetupGeoVision(new Vector3(0f, 0f, -6f), new GeometryVisionFactory(factorySettings));
             yield return null;
             GeometryDataModels.Edge[] edges;
             var geoEye = geoVision.GetComponent<GeometryVisionEye>();
@@ -89,7 +95,7 @@ namespace Tests
             Assert.AreEqual(expectedEdgeCount, visibleEdgeCount);
         }
 
-        [UnityTest, Performance, Version(version)]
+        [UnityTest, Performance, Version(TestSettings.Version)]
         [Timeout(TestSettings.defaultPerformanceTests)]
         [PrebuildSetup(typeof(SceneBuildSettingsSetupBeforeTestsGameObjects))]
         public IEnumerator GetEdgesOnPartiallyVisibleCubeReturnsRightAmountOfEdges(
@@ -110,11 +116,12 @@ namespace Tests
             var cube = GameObject.Find("Cube");
             yield return null;
             cube.transform.position = Vector3.zero;
-            var geoVision = TestUtilities.SetupGeoVision(new Vector3(0f, 0f, -6f), new GeometryVisionFactory(), true);
+            factorySettings.edgesTargeted = true;
+            var geoVision = TestUtilities.SetupGeoVision(new Vector3(0f, 0f, -6f), new GeometryVisionFactory(factorySettings));
             yield return null;
             GeometryDataModels.Edge[] edges;
             var geoEye = geoVision.GetComponent<GeometryVisionEye>();
-            geoVision.GetComponent<GeometryVision>().TargetedGeometries.Add(new VisionTarget(GeometryType.Lines,0, new GeometryLineTargeting()));
+            geoVision.GetComponent<GeometryVision>().TargetingInstructions.Add(new VisionTarget(GeometryType.Lines,0, new GeometryLineTargeting(), false));
             /////Put camera at position where it can only see text cube 3d model partially
             var position = new Vector3(-0.69f, 0.352f, -4.34f);
             //Need to wait till update loop finishes for frustum to update. On windows machines not happen as fast as on Linux for some reason.
@@ -126,7 +133,7 @@ namespace Tests
             Assert.AreEqual(expectedEdgeCount, visibleEdgeCount);
         }
 
-        [UnityTest, Performance, Version(version)]
+        [UnityTest, Performance, Version(TestSettings.Version)]
         [Timeout(TestSettings.defaultPerformanceTests)]
         [PrebuildSetup(typeof(SceneBuildSettingsSetupBeforeTestsGameObjects))]
         public IEnumerator GetEdgesOnPartiallyVisibleCubeReturns3EdgesMultiThreaded(
@@ -147,7 +154,8 @@ namespace Tests
             var cube = GameObject.Find("Cube");
             yield return null;
             cube.transform.position = Vector3.zero;
-            var geoVision = TestUtilities.SetupGeoVision(new Vector3(0f, 0f, -6f), new GeometryVisionFactory(), true);
+            factorySettings.edgesTargeted = true;
+            var geoVision = TestUtilities.SetupGeoVision(new Vector3(0f, 0f, -6f), new GeometryVisionFactory(factorySettings));
             yield return null;
             GeometryDataModels.Edge[] edges;
             var geoEye = geoVision.GetComponent<GeometryVisionEye>();
@@ -157,7 +165,7 @@ namespace Tests
             Assert.AreEqual(expectedEdgeCount, visibleEdgeCount);
         }
 
-        [UnityTest, Performance, Version(version)]
+        [UnityTest, Performance, Version(TestSettings.Version)]
         [Timeout(TestSettings.defaultPerformanceTests)]
         [PrebuildSetup(typeof(SceneBuildSettingsSetupBeforeTestsGameObjects))]
         public IEnumerator CubeReturnsCorrectEdgesWhenMovingCameraBackAndForth(
@@ -180,7 +188,8 @@ namespace Tests
 
             yield return null;
             cube.transform.position = Vector3.zero;
-            var geoVision = TestUtilities.SetupGeoVision(new Vector3(0f, 0f, -6f), new GeometryVisionFactory(), true);
+            factorySettings.edgesTargeted = true;
+            var geoVision = TestUtilities.SetupGeoVision(new Vector3(0f, 0f, -6f), new GeometryVisionFactory(factorySettings));
             yield return null;
             var geoEye = geoVision.GetComponent<GeometryVisionEye>();
             /////Put camera at starting position so it can see the 3d model.
@@ -215,7 +224,7 @@ namespace Tests
             var edgesT = edges;
             geoVision.transform.position = position;
             geoVision.GetComponent<GeometryVision>().RegenerateVisionArea(25);
-            geoVision.GetComponent<GeometryVision>().Head.GetProcessor<GeometryVisionProcessor>().CheckSceneChanges(geoEye.GeoVision);
+            geoVision.GetComponent<GeometryVision>().Head.GetProcessor<GeometryVisionProcessor>().CheckSceneChanges(geoVision.GetComponent<GeometryVision>());
             Measure.Method(() => { MeshUtilities.UpdateEdgesVisibility(geoVision.GetComponent<GeometryVision>().Planes, geoEye.SeenGeoInfos); }).Run();
             var visibleEdgeCount = 0;
 

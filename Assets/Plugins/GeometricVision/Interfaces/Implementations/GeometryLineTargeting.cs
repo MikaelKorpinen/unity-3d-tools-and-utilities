@@ -21,5 +21,10 @@ namespace Plugins.GeometricVision.Interfaces.Implementations
                 return GeometryType.Lines;
             }
         }
+
+        public bool IsForEntities()
+        {
+            return false;
+        }
     }
 }

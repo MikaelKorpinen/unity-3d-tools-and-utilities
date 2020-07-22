@@ -17,6 +17,12 @@ namespace Tests
         private const string version = TestSettings.Version;
         
         private Tuple<GeometryVisionFactory, EditorBuildSettingsScene[]> factoryAndOriginalScenes;
+        GeometryDataModels.FactorySettings factorySettings = new GeometryDataModels.FactorySettings
+        {
+            fielOfView =  25f,
+            processGameObjects = true,
+            processGameObjectsEdges = false,
+        };
         
         [TearDown]
         public void TearDown()
@@ -35,10 +41,9 @@ namespace Tests
 
             var expectedObjectCount = TestUtilities.GetObjectCountFromScene(Vector3.zero);
             yield return null;
-            var geoVision = TestUtilities.SetupGeoVision(new Vector3(0f, 0f, -6f), new GeometryVisionFactory(), false);
+            var geoVision = TestUtilities.SetupGeoVision(new Vector3(0f, 0f, -6f), new GeometryVisionFactory(factorySettings));
             yield return null;
-            yield return null;
-            yield return null;
+
             var geoEye = geoVision.GetComponent<GeometryVision>().GetEye<GeometryVisionEye>();
             Assert.AreEqual(expectedObjectCount, geoEye.seenTransforms.Count);
         }
@@ -49,27 +54,26 @@ namespace Tests
         public IEnumerator GameObjectIsRemovedAndAddedBackIfOutsideFrustum([ValueSource(typeof(TestUtilities), nameof(TestUtilities.GetScenesForGameObjectsFromPath))] string scenePath)
         {
             TestUtilities.SetupScene(scenePath);
-            for (int i = 0; i < 50; i++){yield return null;}
+            for (int i = 0; i < 25; i++){yield return null;}
             
             var expectedObjectCount = TestUtilities.GetObjectCountFromScene(Vector3.zero);
             int expectedObjectCount2 = 0;
             int expectedObjectCount3 = expectedObjectCount;
-            var geoVision = TestUtilities.SetupGeoVision(new Vector3(0f, 0f, -6f), new GeometryVisionFactory(), false);
+
+            var geoVision = TestUtilities.SetupGeoVision(new Vector3(0f, 0f, -6f), new GeometryVisionFactory(factorySettings));
             yield return null;
-            
-            Assert.AreEqual(expectedObjectCount, geoVision.GetComponent<GeometryVisionEye>().seenTransforms.Count);  
+            var geoVisionComponent = geoVision.GetComponent<GeometryVision>();
+            var geoEye = geoVisionComponent.GetEye<GeometryVisionEye>();
+            Assert.AreEqual(expectedObjectCount, geoEye.seenTransforms.Count);  
 
             geoVision.transform.position = new Vector3(10f,10f,10);//Move Object outside the cube
-            
-            geoVision.GetComponent<GeometryVision>().RegenerateVisionArea(25);
-            
             yield return null;         
-            
-            Assert.AreEqual(expectedObjectCount2, geoVision.GetComponent<GeometryVisionEye>().seenTransforms.Count);
+
+            Assert.AreEqual(expectedObjectCount2, geoEye.seenTransforms.Count);
             
             geoVision.transform.position = new Vector3(0f,0f,-6f);//Move Object back to the cube
             yield return null;
-            Assert.AreEqual(expectedObjectCount3, geoVision.GetComponent<GeometryVisionEye>().seenTransforms.Count);
+            Assert.AreEqual(expectedObjectCount3, geoEye.seenTransforms.Count);
         }
     }
 }

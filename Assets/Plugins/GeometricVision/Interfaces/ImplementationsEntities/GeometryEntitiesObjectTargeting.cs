@@ -111,5 +111,10 @@ namespace Plugins.GeometricVision.Interfaces.ImplementationsEntities
         {
             get { return GeometryType.Objects; }
         }
+
+        public bool IsForEntities()
+        {
+            return true;
+        }
     }
 }

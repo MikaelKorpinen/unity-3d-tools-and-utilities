@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using Plugins.GeometricVision.Interfaces.Implementations;
+using Plugins.GeometricVision.Interfaces.ImplementationsEntities;
 using Unity.EditorCoroutines.Editor;
 using UnityEngine;
 
@@ -16,9 +17,9 @@ namespace Plugins.GeometricVision
     {
         [SerializeField] private bool debugMode;
         private GeometryVisionEye eye;
-        [SerializeField]private List<IGeoTargeting> targetingPrograms =new List<IGeoTargeting>();
+        [SerializeField]private HashSet<IGeoTargeting> targetingPrograms =new HashSet<IGeoTargeting>();
 
-        public List<IGeoTargeting> TargetingPrograms
+        public HashSet<IGeoTargeting> TargetingPrograms
         {
             get { return targetingPrograms; }
             set { targetingPrograms = value; }
@@ -29,7 +30,7 @@ namespace Plugins.GeometricVision
             InitializeTargeting();
         }
 
-        void Start()
+        void Awake()
         {
             InitializeTargeting();
         }
@@ -62,7 +63,7 @@ namespace Plugins.GeometricVision
         {
             if (TargetingPrograms == null)
             {
-                TargetingPrograms = new List<IGeoTargeting>();
+                TargetingPrograms = new HashSet<IGeoTargeting>();
             }
 
             if (GetComponent<GeometryVisionEye>() == null)
@@ -72,27 +73,16 @@ namespace Plugins.GeometricVision
             }
         }
 
-        public void AddTargetedGeometry(VisionTarget geometryContainer)
+        public void AddTargetingProgram(VisionTarget targetingInstructions)
         {
-            if (geometryContainer.GeometryType == GeometryType.Objects)
-            {
-                IGeoTargeting targetingSystem = new GeometryObjectTargeting();
-                geometryContainer.TargetingSystem = targetingSystem;
-                TargetingPrograms.Add(geometryContainer.TargetingSystem);
-            }
-            else if (geometryContainer.GeometryType == GeometryType.Lines)
-            {
-                IGeoTargeting targetingSystem = new GeometryLineTargeting();
-                geometryContainer.TargetingSystem = targetingSystem;
-                TargetingPrograms.Add(geometryContainer.TargetingSystem);
-            }
+            TargetingPrograms.Add(targetingInstructions.TargetingSystemGameObjects);
         }
 
-        public void RemoveTarget(VisionTarget geometryType)
+        public void RemoveTargetingProgram(VisionTarget geometryType)
         {
-            if (geometryType.TargetingSystem != null)
+            if (geometryType.TargetingSystemGameObjects != null)
             {
-                TargetingPrograms.Remove(geometryType.TargetingSystem);
+                TargetingPrograms.Remove(geometryType.TargetingSystemGameObjects);
             }
         }
     }

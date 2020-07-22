@@ -22,6 +22,7 @@ namespace Plugins.GeometricVision.Interfaces.ImplementationsEntities
         }
 
         public string Id { get; set; }
+        public GeometryVisionHead Head { get; set;  }
 
         [SerializeField] private bool debugMode;
         [SerializeField] private bool hideEdgesOutsideFieldOfView = true;
@@ -37,7 +38,7 @@ namespace Plugins.GeometricVision.Interfaces.ImplementationsEntities
         [SerializeField, Tooltip(" Geometry is extracted from collider instead of renderers mesh")]
         private bool targetColliderMeshes;
 
-        [SerializeField] private List<VisionTarget> targetedGeometries = new List<VisionTarget>();
+        private List<VisionTarget> targetedGeometries = new List<VisionTarget>();
 
         private IDisposable entityToggleObservable = null;
         private int lastCount;
@@ -52,13 +53,6 @@ namespace Plugins.GeometricVision.Interfaces.ImplementationsEntities
 
         private void Initialize()
         {
-            if (isObjectsTargeted(targetedGeometries) == false)
-            {
-                targetedGeometries = new List<VisionTarget>();
-                IGeoTargeting targeting = new GeometryObjectTargeting();
-                targetedGeometries.Add(new VisionTarget(GeometryType.Objects, 0, targeting));
-            }
-
             seenGeoInfos = new List<GeometryDataModels.GeoInfo>();
             Debugger = new EyeDebugger();
             seenTransforms = new HashSet<Transform>();

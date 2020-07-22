@@ -20,9 +20,6 @@
               <e p="RotationSpeedAuthoring_IJobChunk.cs" t="Include" />
               <e p="RotationSpeedSystem_ForEach.cs" t="Include" />
               <e p="RotationSpeedSystem_IJobChunk.cs" t="Include" />
-              <e p="Spawner_SpawnAndRemove.cs" t="Include" />
-              <e p="SpawnerAuthoring_SpawnAndRemove.cs" t="Include" />
-              <e p="SpawnerSystem_SpawnAndRemove.cs" t="Include" />
             </e>
             <e p="GeometricVision.asmdef" t="Include" />
             <e p="GeometryDataModels.cs" t="Include" />
@@ -350,16 +347,26 @@
           </e>
         </e>
         <e p="Tests" t="Include">
-          <e p="CreationalTests.cs" t="Include" />
-          <e p="CreationalTestsEntities.cs" t="Include" />
-          <e p="EyeDebuggerTests.cs" t="Include" />
-          <e p="FrustumTestsGeometry.cs" t="Include" />
-          <e p="FrustumTestsObjects.cs" t="Include" />
           <e p="GeoUtilitiesTests.cs" t="Include" />
-          <e p="ProcessingTestsObjects.cs" t="Include" />
           <e p="SceneBuildSettingsSetupBeforeTestsGameObjects.cs" t="Include" />
-          <e p="TargetingTests.cs" t="Include" />
           <e p="Tests.asmdef" t="Include" />
+          <e p="TestScenesEntities" t="Include">
+            <e p="Spawner_SpawnAndRemove.cs" t="Include" />
+            <e p="SpawnerAuthoring_SpawnAndRemove.cs" t="Include" />
+            <e p="SpawnerSystem_SpawnAndRemove.cs" t="Include" />
+          </e>
+          <e p="TestScriptsForEntities" t="Include">
+            <e p="CreationalTestsEntities.cs" t="Include" />
+            <e p="TargetingTestsEntities.cs" t="Include" />
+          </e>
+          <e p="TestScriptsForGameObjects" t="Include">
+            <e p="CreationalTests.cs" t="Include" />
+            <e p="EyeDebuggerTests.cs" t="Include" />
+            <e p="FrustumTestsGeometry.cs" t="Include" />
+            <e p="FrustumTestsObjects.cs" t="Include" />
+            <e p="ProcessingTestsObjects.cs" t="Include" />
+            <e p="TargetingTests.cs" t="Include" />
+          </e>
           <e p="TestUtilities.cs" t="Include" />
         </e>
       </e>

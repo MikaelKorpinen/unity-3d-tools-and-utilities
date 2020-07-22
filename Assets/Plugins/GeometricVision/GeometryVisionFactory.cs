@@ -2,25 +2,29 @@
 using GeometricVision;
 using Plugins.GeometricVision.Interfaces;
 using Plugins.GeometricVision.Interfaces.Implementations;
+using Plugins.GeometricVision.Interfaces.ImplementationsEntities;
 using UnityEngine;
 
 namespace Plugins.GeometricVision
 {
     public class GeometryVisionFactory
     {
+        private readonly GeometryDataModels.FactorySettings settings;
+        public  GeometryVisionFactory(GeometryDataModels.FactorySettings settings)
+        {
+            this.settings = settings;
+        }
         public GameObject CreateGeometryVision(Vector3 startingPosition, Quaternion rotation, float fieldOfView,
             GeometryVision geoVisionComponent, List<GeometryType> geoTypes, int layerIndex)
         {
-            geoVisionComponent.GameObjectBasedProcessing.Value = true;
             var geoVisionManagerGO = CreateGeovisionManagerGameObject();
-            var processor = CreateGeometryProcessor(geoVisionManagerGO, geoVisionComponent);
-            CreateHead(geoVisionManagerGO, geoVisionComponent, processor);
-            CreateEye(geoVisionManagerGO, fieldOfView, geoVisionComponent);
 
-         //   AddDefaultTarget(geoTypes, layerIndex, geoVisionComponent);
+            CreateHead(geoVisionManagerGO, geoVisionComponent);
+            CreateGeometryProcessor(geoVisionManagerGO);
+            CreateEye(geoVisionManagerGO, geoVisionComponent);
+            geoVisionComponent.InitUnityCamera();
             geoVisionManagerGO.transform.position = startingPosition;
             geoVisionManagerGO.transform.rotation = rotation;
-
             
             return geoVisionComponent.gameObject;
         }
@@ -39,21 +43,32 @@ namespace Plugins.GeometricVision
         public GameObject CreateGeometryVision(Vector3 startingPosition, Quaternion rotation, float fieldOfView,
             List<GeometryType> geoTypes, int layerIndex, bool debugModeEnabled)
         {
-
+            if (settings.edgesTargeted)
+            {
+                geoTypes.Add(GeometryType.Lines);
+            }
             var geoVisionManagerGO = CreateGeovisionManagerGameObject();
             
             var geoVisionComponent = CreateGeoVision(new GameObject(), debugModeEnabled);
-            var processor = CreateGeometryProcessor(geoVisionManagerGO, geoVisionComponent);
+            CreateHead(geoVisionManagerGO, geoVisionComponent);
+            CreateGeometryProcessor(geoVisionManagerGO);
+            geoVisionComponent.InitUnityCamera();
 
-            var head = CreateHead(geoVisionManagerGO, geoVisionComponent, processor);
-            CreateEye(geoVisionManagerGO, fieldOfView, geoVisionComponent);
+            CreateEye(geoVisionManagerGO, geoVisionComponent);
             
-            var gameObject = geoVisionComponent.gameObject;
-            var transform = gameObject.transform;
+            var geometryVision = geoVisionComponent.gameObject;
+            var transform = geometryVision.transform;
             transform.position = startingPosition;
             transform.rotation = rotation;
             AddAdditionalTargets(geoVisionComponent, geoTypes,layerIndex);
-            return gameObject;
+            return geometryVision;
+        }
+
+        private void ConfigureGeometryVision(GeometryDataModels.FactorySettings factorySettings, GeometryVision geoVisionComponent)
+        {
+            geoVisionComponent.EntityBasedProcessing.Value = factorySettings.processEntities;
+            geoVisionComponent.GameObjectBasedProcessing.Value = factorySettings.processGameObjects;
+            geoVisionComponent.InitializeSystems();
         }
 
         private void AddAdditionalTargets(GeometryVision geoVision, List<GeometryType> geoTypes, int layerIndex)
@@ -62,16 +77,15 @@ namespace Plugins.GeometricVision
             {
                 if (geoType == GeometryType.Lines)
                 {
-                    geoVision.TargetedGeometries.Add(new VisionTarget(GeometryType.Lines,layerIndex,new GeometryLineTargeting()));
+                    geoVision.TargetingInstructions.Add(new VisionTarget(GeometryType.Lines,layerIndex,new GeometryLineTargeting(), settings.defaultTargeting));
                 }                
                 if (geoType == GeometryType.Objects)
                 {
-                    geoVision.TargetedGeometries.Add(new VisionTarget(GeometryType.Lines,layerIndex,new GeometryLineTargeting()));
+                    geoVision.TargetingInstructions.Add(new VisionTarget(GeometryType.Objects,layerIndex,new GeometryObjectTargeting(), settings.defaultTargeting));
                 }
-              
                 if (geoType == GeometryType.Vertices)
                 {
-                    geoVision.TargetedGeometries.Add(new VisionTarget(GeometryType.Vertices,layerIndex,new GeometryVertexTargeting()));
+                    geoVision.TargetingInstructions.Add(new VisionTarget(GeometryType.Vertices,layerIndex,new GeometryVertexTargeting(), settings.defaultTargeting));
                 }
             }
         }
@@ -87,20 +101,17 @@ namespace Plugins.GeometricVision
             return geoVision;
         }
 
-        private static GeometryVision CreateGeoVision(GameObject geoVision, bool debugModeEnabled)
+        private GeometryVision CreateGeoVision(GameObject geoVision, bool debugModeEnabled)
         {
             geoVision.AddComponent<GeometryVision>();
             var geoVisionComponent = geoVision.GetComponent<GeometryVision>();
             geoVisionComponent.Id = new Hash128().ToString();
             geoVisionComponent.DebugMode = debugModeEnabled;
-            geoVisionComponent.GameObjectBasedProcessing.Value = true;
-            geoVisionComponent.EntityBasedProcessing.Value = false;
-            
+            ConfigureGeometryVision(this.settings, geoVisionComponent);
             return geoVisionComponent;
         }
 
-        private GeometryVisionHead CreateHead(GameObject geoVisionHead, GeometryVision geoVisionComponent,
-            GeometryVisionProcessor processor)
+        private GeometryVisionHead CreateHead(GameObject geoVisionHead, GeometryVision geoVisionComponent)
         {
             if (geoVisionHead.GetComponent<GeometryVisionHead>() == null)
             {
@@ -108,7 +119,6 @@ namespace Plugins.GeometricVision
             }
 
             var head = geoVisionHead.GetComponent<GeometryVisionHead>();
-            head.AddProcessor(processor);
             if (head.GeoVisions == null)
             {
                 head.GeoVisions = new HashSet<GeometryVision>();  
@@ -118,32 +128,58 @@ namespace Plugins.GeometricVision
             return geoVisionHead.GetComponent<GeometryVisionHead>();
         }
 
-        internal GeometryVisionEye CreateEye(GameObject geoVisionManager, float fieldOfView, GeometryVision geoVisionComponent)
+        internal void CreateEye(GameObject geoVisionManager,  GeometryVision geoVisionComponent)
         {
-            if (geoVisionComponent.gameObject.GetComponent<GeometryVisionEye>()==null)
+            var head = geoVisionManager.GetComponent<GeometryVisionHead>();
+            if (settings.processGameObjects)
             {
-                geoVisionComponent.gameObject.AddComponent<GeometryVisionEye>();
+                var eye = geoVisionComponent.GetEye<GeometryVisionEye>();
+                if (eye == null)
+                {
+                    geoVisionComponent.gameObject.AddComponent<GeometryVisionEye>();
+                    geoVisionComponent.Eyes.Add(geoVisionComponent.gameObject.GetComponent<GeometryVisionEye>());
+                    eye = geoVisionComponent.GetEye<GeometryVisionEye>();
+                    eye.Head = geoVisionManager.GetComponent<GeometryVisionHead>();
+                    eye.Id = new Hash128().ToString();
+                    eye.GeoVision = geoVisionComponent;
+                }
+            }
+            if (settings.processEntities)
+            {
+                var eye = geoVisionComponent.GetEye<GeometryVisionEntityEye>();
+                if (eye == null)
+                {
+                    geoVisionComponent.Eyes.Add(new GeometryVisionEntityEye());
+                    eye = geoVisionComponent.GetEye<GeometryVisionEntityEye>();
+                    eye.Head = geoVisionManager.GetComponent<GeometryVisionHead>();
+                    eye.Id = new Hash128().ToString();
+                    eye.GeoVision = geoVisionComponent;
+                }
             }
 
-            var eye = geoVisionComponent.gameObject.GetComponent<GeometryVisionEye>();
-            eye.Head = geoVisionManager.GetComponent<GeometryVisionHead>();
-            eye.Id = new Hash128().ToString();
-            eye.GeoVision = geoVisionComponent;
-            geoVisionComponent.InitUnityCamera();
-            geoVisionComponent.Eyes.Add(geoVisionComponent.gameObject.GetComponent<GeometryVisionEye>());
- 
-            return geoVisionComponent.gameObject.GetComponent<GeometryVisionEye>();
+
+            
         }
 
-        private GeometryVisionProcessor CreateGeometryProcessor(GameObject geoVisionManager,
-            GeometryVision geoVisionComponent)
+        private void CreateGeometryProcessor(GameObject geoVisionManager)
         {
-            if (geoVisionManager.GetComponent<GeometryVisionProcessor>() == null)
+            var head = geoVisionManager.GetComponent<GeometryVisionHead>();
+            if (settings.processGameObjects)
             {
-                geoVisionManager.AddComponent<GeometryVisionProcessor>();
+                if (head.GetProcessor<GeometryVisionEntityProcessor>()== null)
+                {
+                    geoVisionManager.AddComponent<GeometryVisionProcessor>();
+                    head.AddProcessor(geoVisionManager.GetComponent<GeometryVisionProcessor>());
+                }
             }
             
-            return geoVisionManager.GetComponent<GeometryVisionProcessor>();
+            if (settings.processEntities)
+            {
+                if (head.GetProcessor<GeometryVisionEntityProcessor>() == null)
+                {
+                    head.AddProcessor(new GeometryVisionEntityProcessor());
+                }
+            }
         }
     }
 }

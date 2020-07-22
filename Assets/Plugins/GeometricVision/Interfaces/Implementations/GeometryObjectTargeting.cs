@@ -62,6 +62,9 @@ namespace Plugins.GeometricVision.Interfaces.Implementations
             }
         }
 
-
+        public bool IsForEntities()
+        {
+            return false;
+        }
     }
 }

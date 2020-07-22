@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using Plugins.GeometricVision.Interfaces;
+using Plugins.GeometricVision.Interfaces.Implementations;
 using UnityEngine;
 using Object = System.Object;
 
@@ -18,9 +19,14 @@ namespace Plugins.GeometricVision
     public class GeometryVisionHead : MonoBehaviour
     {
         private HashSet<GeometryVision> geoVisions;
-        private List<IGeoProcessor> processors;
+        private List<IGeoProcessor> processors = new List<IGeoProcessor>();
         public GeometryVisionMemory GeoMemory { get; } = new GeometryVisionMemory();
         public EyeDebugger EyeDebugger { get; } = new EyeDebugger();
+
+        private void Awake()
+        {
+            processors = new List<IGeoProcessor>();
+        }
 
         void Reset()
         {
@@ -76,9 +82,41 @@ namespace Plugins.GeometricVision
 
         public void RemoveProcessor<T>()
         {
-            InterfaceUtilities.RemoveInterfaceImplementationOfTypeFromList(typeof(T), ref processors);
+            InterfaceUtilities.RemoveInterfaceImplementationsOfTypeFromList(typeof(T), ref processors);
+            if (typeof(T) == typeof(GeometryVisionProcessor))
+            {
+                var processor = GetComponent<GeometryVisionProcessor>();
+                //also remove the mono behaviour from gameObject, if it is one. TODO: get the if implements monobehaviour
+                //Currently there is only 2 types. Other one is MonoBehaviour and the other one not
+                if (Application.isPlaying && processor != null)
+                {
+                    Destroy(processor);
+                }
+                else if (Application.isPlaying == false && processor != null)
+                {
+                    DestroyImmediate(processor); 
+                }
+            }
         }
         
+        public void RemoveProcessors<T>()
+        {
+            InterfaceUtilities.RemoveInterfaceImplementationsOfTypeFromList(typeof(T), ref processors);
+            if (typeof(T) == typeof(GeometryVisionProcessor))
+            {
+                var processor = GetComponent<GeometryVisionProcessor>();
+                //also remove the mono behaviour from gameObject, if it is one. TODO: get the if implements monobehaviour
+                //Currently there is only 2 types
+                if (Application.isPlaying && processor != null)
+                {
+                    Destroy(processor);
+                }
+                else if (Application.isPlaying == false && processor != null)
+                {
+                    DestroyImmediate(processor); 
+                }
+            }
+        }
         public HashSet<GeometryVision> GeoVisions
         {
             get { return geoVisions; }

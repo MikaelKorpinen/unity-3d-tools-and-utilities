@@ -18,7 +18,16 @@ namespace Tests
     public class FrustumTestsGeometry
     {
         private const string version = TestSettings.Version;
- 
+         
+        private readonly GeometryDataModels.FactorySettings factorySettings = new GeometryDataModels.FactorySettings
+        {
+            fielOfView =  25f,
+            processGameObjects = true,
+            processGameObjectsEdges = false,
+            edgesTargeted = true
+        };
+
+        
         [TearDown]
         public void TearDown()
         {
@@ -36,7 +45,7 @@ namespace Tests
                 yield return null;
             }
             int expectedObjectCount = GameObject.FindObjectsOfType<Renderer>().Length;
-            var geoVision = TestUtilities.SetupGeoVision(new Vector3(0f, 0f, -6f), new GeometryVisionFactory(), false);
+            var geoVision = TestUtilities.SetupGeoVision(new Vector3(0f, 0f, -6f), new GeometryVisionFactory(factorySettings));
 
             yield return null;
             yield return null;
@@ -59,7 +68,7 @@ namespace Tests
 
             int expectedObjectCount2 = 0;
             int expectedObjectCount3 = expectedObjectCount1;
-            var geoVision = TestUtilities.SetupGeoVision(new Vector3(0f, 0f, -6f), new GeometryVisionFactory(), false);
+            var geoVision = TestUtilities.SetupGeoVision(new Vector3(0f, 0f, -6f), new GeometryVisionFactory(factorySettings));
             
             yield return null;
             yield return null;
@@ -88,7 +97,7 @@ namespace Tests
             {
                 yield return null;
             }
-            var geoVision = TestUtilities.SetupGeoVision(new Vector3(0f, 0f, -6f), new GeometryVisionFactory(), false);
+            var geoVision = TestUtilities.SetupGeoVision(new Vector3(0f, 0f, -6f), new GeometryVisionFactory(factorySettings));
             yield return null;
             geoVision.transform.position = new Vector3(10f, 10f, 10f);
             yield return null;

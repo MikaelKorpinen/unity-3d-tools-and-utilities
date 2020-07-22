@@ -58,7 +58,7 @@ namespace Plugins.GeometricVision.Interfaces.Implementations
             {
                 lastCount = currentObjectCount;
                 UpdateSceneObjects(RootObjects, AllObjects);
-                ExtractGeometry(AllObjects, geoVision.Head.GeoMemory.GeoInfos, geoVision.TargetedGeometries);
+                ExtractGeometry(AllObjects, geoVision.Head.GeoMemory.GeoInfos, geoVision.TargetingInstructions);
             }
         }
 

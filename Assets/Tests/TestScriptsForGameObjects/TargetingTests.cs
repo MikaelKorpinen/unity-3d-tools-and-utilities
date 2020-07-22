@@ -1,22 +1,27 @@
 ﻿using System;
 using System.Collections;
-using System.Collections.Generic;
 using GeometricVision;
 using NUnit.Framework;
 using Plugins.GeometricVision;
 using Unity.PerformanceTesting;
 using UnityEditor;
 using UnityEngine;
-using UnityEngine.SceneManagement;
 using UnityEngine.TestTools;
 
-namespace Tests
+namespace Tests.TestScriptsForGameObjects
 {
     public class TargetingTests 
     {
-        private const string version = TestSettings.Version;
         private Tuple<GeometryVisionFactory, EditorBuildSettingsScene[]> factoryAndOriginalScenes;
-        
+                
+        private readonly GeometryDataModels.FactorySettings factorySettings = new GeometryDataModels.FactorySettings
+        {
+            fielOfView =  25f,
+            processGameObjects = true,
+            processGameObjectsEdges = false,
+            edgesTargeted = true
+        };
+
         [TearDown]
         public void TearDown()
         {
@@ -33,7 +38,7 @@ namespace Tests
             {
                 yield return null;
             }
-            var geoVision = TestUtilities.SetupGeoVision(new Vector3(0f, 0f, -6f), new GeometryVisionFactory(), false);
+            var geoVision = TestUtilities.SetupGeoVision(new Vector3(0f, 0f, -6f), new GeometryVisionFactory(factorySettings));
             yield return null;
             yield return null;
             int AmountOfTargetingSystemsRegistered = 0;

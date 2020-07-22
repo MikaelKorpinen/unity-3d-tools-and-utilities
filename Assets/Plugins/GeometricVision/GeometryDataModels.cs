@@ -1,5 +1,7 @@
 ﻿using System.Collections;
+using System.Collections.Generic;
 using Unity.Entities;
+using Unity.Mathematics;
 using UnityEngine;
 
 namespace Plugins.GeometricVision
@@ -12,7 +14,9 @@ namespace Plugins.GeometricVision
         Objects
     }
 
-
+    /// <summary>
+    /// Contains most of the public data blueprints for the GeometryVision plugin
+    /// </summary>
     public static class GeometryDataModels
     {
         public struct Edge
@@ -57,6 +61,17 @@ namespace Plugins.GeometricVision
             far = 5,
         }
 
+        public struct FactorySettings
+        {
+            public bool processGameObjects;
+            public bool processEntities;
+            public bool processGameObjectsEdges;
+            public List<VisionTarget> targetInstructions;
+            public float fielOfView;
+            public bool edgesTargeted;
+            public bool defaultTargeting;
+        }
+        
         /// <summary>
         /// Great and easy idea for Blittable type boolean from playerone-studio.com
         /// </summary>

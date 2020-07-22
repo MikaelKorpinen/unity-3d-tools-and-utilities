@@ -19,5 +19,10 @@ namespace Plugins.GeometricVision.Interfaces.Implementations
                 return GeometryType.Vertices;
             }
         }
+
+        public bool IsForEntities()
+        {
+            return false;
+        }
     }
 }

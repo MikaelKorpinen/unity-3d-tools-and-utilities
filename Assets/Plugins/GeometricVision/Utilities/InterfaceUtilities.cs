@@ -36,7 +36,7 @@ public static class InterfaceUtilities
         return found;
     }
 
-    public static void RemoveInterfaceImplementationOfTypeFromList<T>(Type typeToCheck, ref List<T> implementations)
+    public static void RemoveInterfaceImplementationsOfTypeFromList<T>(Type typeToCheck, ref List<T> implementations)
     {
 
         List<T> tempList = new List<T>();
@@ -51,7 +51,7 @@ public static class InterfaceUtilities
         implementations = tempList;
     }
 
-    public static void RemoveInterfaceImplementationOfTypeFromList<T>(Type typeToCheck, ref HashSet<T> implementations)
+    public static void RemoveInterfaceImplementationsOfTypeFromList<T>(Type typeToCheck, ref HashSet<T> implementations)
     {
         HashSet<T> tempList = new HashSet<T>(implementations);
 

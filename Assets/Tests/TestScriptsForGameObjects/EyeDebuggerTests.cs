@@ -18,7 +18,15 @@ namespace Tests
     public class EyeDebuggerTests
     {
         private const string version = TestSettings.Version;
-
+        
+        private readonly GeometryDataModels.FactorySettings factorySettings = new GeometryDataModels.FactorySettings
+        {
+            fielOfView =  25f,
+            processGameObjects = true,
+            processGameObjectsEdges = false,
+            edgesTargeted = true
+        };
+        
         [TearDown]
         public void TearDown()
         {
@@ -46,10 +54,11 @@ namespace Tests
             var cube = GameObject.Find("Cube");
             yield return null;
             cube.transform.position = Vector3.zero;
-            var geoVision = TestUtilities.SetupGeoVision(new Vector3(0f, 0f, -6f), new GeometryVisionFactory(), true);
+            var geoVision = TestUtilities.SetupGeoVision(new Vector3(0f, 0f, -6f), new GeometryVisionFactory(factorySettings));
             yield return null;
             GeometryDataModels.Edge[] edges;
-            var geoEye = geoVision.GetComponent<GeometryVisionEye>();
+            var geoVisionComponent = geoVision.GetComponent<GeometryVision>();
+            var geoEye = geoVisionComponent.GetEye<GeometryVisionEye>();
             /////Put camera at position where it can only see text cube 3d model partially
             var position = new Vector3(-0.69f, 0.352f, -4.34f);
             //Need to wait till update loop finishes for frustum to update. On windows machines not happen as fast as on Linux for some reason.
@@ -82,10 +91,11 @@ namespace Tests
             var cube = GameObject.Find("Cube");
             yield return null;
             cube.transform.position = Vector3.zero;
-            var geoVision = TestUtilities.SetupGeoVision(new Vector3(0f, 0f, -6f), new GeometryVisionFactory(), true);
+            var geoVision = TestUtilities.SetupGeoVision(new Vector3(0f, 0f, -6f), new GeometryVisionFactory(factorySettings));
             yield return null;
             GeometryDataModels.Edge[] edges;
-            var geoEye = geoVision.GetComponent<GeometryVisionEye>();
+            var geoVisionComponent = geoVision.GetComponent<GeometryVision>();
+            var geoEye = geoVisionComponent.GetEye<GeometryVisionEye>();
             /////Put camera at position where it can only see text cube 3d model partially(3 edges of side of the cube)
             var position = new Vector3(-0.69f, 0.352f, -4.34f);
             var visibleEdgeCount =
@@ -117,9 +127,10 @@ namespace Tests
 
             yield return null;
             cube.transform.position = Vector3.zero;
-            var geoVision = TestUtilities.SetupGeoVision(new Vector3(0f, 0f, -6f), new GeometryVisionFactory(), true);
+            var geoVision = TestUtilities.SetupGeoVision(new Vector3(0f, 0f, -6f), new GeometryVisionFactory(factorySettings));
             yield return null;
-            var geoEye = geoVision.GetComponent<GeometryVisionEye>();
+            var geoVisionComponent = geoVision.GetComponent<GeometryVision>();
+            var geoEye = geoVisionComponent.GetEye<GeometryVisionEye>();
             /////Put camera at starting position so it can see the 3d model.
             GeometryDataModels.Edge[] edges = new GeometryDataModels.Edge[0];
             var position = new Vector3(-0.69f, 0.352f, -4.34f);
@@ -149,16 +160,16 @@ namespace Tests
             edges = new GeometryDataModels.Edge[0];
             var edgesT = edges;
             geoVision.transform.position = position;
-            var geoVis = geoVision.GetComponent<GeometryVision>();
-            geoVis.RegenerateVisionArea(25);
-            geoVis.Head.GetProcessor<GeometryVisionProcessor>().CheckSceneChanges(geoEye.GeoVision);
+            var geoVisionComponent = geoVision.GetComponent<GeometryVision>();
+            geoVisionComponent.RegenerateVisionArea(25);
+            geoVisionComponent.Head.GetProcessor<GeometryVisionProcessor>().CheckSceneChanges(geoEye.GeoVision);
             MeshUtilities.UpdateEdgesVisibility(geoVision.GetComponent<GeometryVision>().Planes, geoEye.SeenGeoInfos);
             var visibleEdgeCount = 0;
             Measure.Method(() =>
             {
-                geoVis.Head.EyeDebugger.Debug(geoEye);
-                visibleEdgeCount = geoVis.Head.EyeDebugger.AmountOfSeenEdges;
-                geoVis.Head.EyeDebugger.AmountOfSeenEdges = 0;
+                geoVisionComponent.Head.EyeDebugger.Debug(geoEye);
+                visibleEdgeCount = geoVisionComponent.Head.EyeDebugger.AmountOfSeenEdges;
+                geoVisionComponent.Head.EyeDebugger.AmountOfSeenEdges = 0;
             }).Run();
 
 

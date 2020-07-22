@@ -9,12 +9,11 @@ namespace Plugins.GeometricVision.Utilities
     public static class GeometryVisionUtilities
     {
         // Start is called before the first frame update
-        public static void SetupGeometryVision(GeometryVisionHead head, GeometryVision geoVision, List<VisionTarget> targetTypes)
+        public static void SetupGeometryVision(GeometryVisionHead head, GeometryVision geoVision, List<VisionTarget> targetTypes, GeometryDataModels.FactorySettings settings)
         {
             if (head == null)
             {
-
-                var factory = new GeometryVisionFactory();
+                var factory = new GeometryVisionFactory(settings);
                 var geoTypesToTarget = new List<GeometryType>();
                 
                 foreach (var targetType in targetTypes)
@@ -27,10 +26,11 @@ namespace Plugins.GeometricVision.Utilities
             }
         }
         
-        public static void SetupGeometryVisionEye(GeometryVisionHead head, GeometryVision geoVision, float fov)
+        public static void SetupGeometryVisionEye(GeometryVisionHead head, GeometryVision geoVision, GeometryDataModels.FactorySettings factorySettings)
         {
-            var factory = new GeometryVisionFactory();
-                factory.CreateEye(head.gameObject, fov, geoVision);
+            
+            var factory = new GeometryVisionFactory(factorySettings);
+                factory.CreateEye(head.gameObject, geoVision);
         }
     }
 }

@@ -104,7 +104,7 @@ namespace Plugins.GeometricVision.Interfaces.Implementations
 
             UpdateSeenGeometryObjects(allGeoInfos, seenGeometry, geoCount);
 
-            foreach (var geometryType in GeoVision.TargetedGeometries)
+            foreach (var geometryType in GeoVision.TargetingInstructions)
             {
                 if (geometryType.GeometryType == GeometryType.Lines && geometryType.Enabled)
                 {
