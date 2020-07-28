@@ -16,17 +16,12 @@ namespace Plugins.GeometricVision.Interfaces.ImplementationsEntities
     [DisableAutoCreation]
     public class GeometryVisionEntityEye : SystemBase, IGeoEye
     {
-        public GeometryVisionEntityEye()
-        {
-
-        }
 
         public string Id { get; set; }
         public GeometryVisionHead Head { get; set;  }
 
         [SerializeField] private bool debugMode;
         [SerializeField] private bool hideEdgesOutsideFieldOfView = true;
-        [SerializeField] private float fieldOfView = 25f;
         [SerializeField] private List<GeometryDataModels.GeoInfo> seenGeoInfos = new List<GeometryDataModels.GeoInfo>();
 
         public GeometryVision GeoVision { get; set; }
@@ -40,7 +35,7 @@ namespace Plugins.GeometricVision.Interfaces.ImplementationsEntities
 
         private List<VisionTarget> targetedGeometries = new List<VisionTarget>();
 
-        private IDisposable entityToggleObservable = null;
+
         private int lastCount;
         private EntityQuery query = new EntityQuery();
         private BeginInitializationEntityCommandBufferSystem m_EntityCommandBufferSystem;
@@ -89,7 +84,7 @@ namespace Plugins.GeometricVision.Interfaces.ImplementationsEntities
             );
 
             lastCount = query.CalculateEntityCount();
-            Debug.Log(lastCount);
+//            Debug.Log(lastCount);
             // Schedule job to check visibilities
             NativeArray<Plane> planes2 = new NativeArray<Plane>(planes, Allocator.Temp);
             bool objectsTargeted = false, linesTargeted = false;
@@ -221,7 +216,6 @@ namespace Plugins.GeometricVision.Interfaces.ImplementationsEntities
         /// </summary>
         public void UpdateVisibility()
         {
-            this.Enabled = true;
             Update();
         }
 

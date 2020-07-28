@@ -30,8 +30,8 @@ namespace Plugins.GeometricVision.UI
             var toggleField = new PropertyField(property.FindPropertyRelative("enabled"));
             var visionTypeField = new PropertyField(property.FindPropertyRelative("geometryType"));
             var layerField = new PropertyField(property.FindPropertyRelative("targetLayer"));
-            var targetField = new PropertyField(property.FindPropertyRelative("target"));
-            var targetField2 = new PropertyField(property.FindPropertyRelative("targetHidden"));
+            var targetField = new PropertyField(property.FindPropertyRelative("isTargetingEnabled"));
+            var targetField2 = new PropertyField(property.FindPropertyRelative("isTargetActionsTemplateSlotVisible"));
             var actionsTemplate = new PropertyField(property.FindPropertyRelative("targetingActions"));
 
             container.Add(toggleField);
@@ -154,9 +154,9 @@ namespace Plugins.GeometricVision.UI
                 property.FindPropertyRelative("targetLayer").intValue);
 
             EditorGUI.LabelField(labelRectTargeting, "Targeting:");
-            EditorGUI.PropertyField(toggleRectTargeting, property.FindPropertyRelative("target"), GUIContent.none);
+            EditorGUI.PropertyField(toggleRectTargeting, property.FindPropertyRelative("isTargetingEnabled"), GUIContent.none);
 
-            var istarget = property.FindPropertyRelative("targetHidden").boolValue;
+            var istarget = property.FindPropertyRelative("isTargetActionsTemplateSlotVisible").boolValue;
 
             if (istarget)
             {

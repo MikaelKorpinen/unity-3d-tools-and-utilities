@@ -2,6 +2,7 @@
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;
+using UnityEngine;
 using Random = Unity.Mathematics.Random;
 
 // Systems can schedule work to run on worker threads.
@@ -56,10 +57,10 @@ namespace Plugins.GeometricVision.EntityScripts
                             var instance = commandBuffer.Instantiate(entityInQueryIndex, spawner.Prefab);
 
                             // Place the instantiated in a grid with some noise
-                            var position = math.transform(location.Value, new float3(x * 1.3F, noise.cnoise(new float2(x, y) * 0.21F) * 2, y * 1.3F));
+                            var position =(Vector3) math.transform(location.Value, new float3(x * 1.3F - spawner.CountX, y * 1.3F, noise.cnoise(new float2(x, y) * 0.21F) * 2 + 25) );
                             commandBuffer.SetComponent(entityInQueryIndex, instance, new Translation { Value = position });
                             //   commandBuffer.SetComponent(entityInQueryIndex, instance, new LifeTime { Value = random.NextFloat(10.0F, 100.0F) });
-                            //   commandBuffer.SetComponent(entityInQueryIndex, instance, new RotationSpeed_SpawnAndRemove { RadiansPerSecond = math.radians(random.NextFloat(25.0F, 90.0F)) });
+                           // commandBuffer.SetComponent(entityInQueryIndex, instance, new RotationSpeed_SpawnAndRemove { RadiansPerSecond = math.radians(random.NextFloat(25.0F, 90.0F)) });
                         }
                     }
 

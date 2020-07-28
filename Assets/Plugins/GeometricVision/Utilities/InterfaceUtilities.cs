@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using Plugins.GeometricVision.Interfaces;
 using UnityEngine;
+using Object = UnityEngine.Object;
 
 public static class InterfaceUtilities
 {
@@ -53,13 +54,13 @@ public static class InterfaceUtilities
 
     public static void RemoveInterfaceImplementationsOfTypeFromList<T>(Type typeToCheck, ref HashSet<T> implementations)
     {
-        HashSet<T> tempList = new HashSet<T>(implementations);
+        HashSet<T> tempList = new HashSet<T>();
 
-        foreach (var processor in tempList)
+        foreach (var implementation in implementations)
         {
-            if (processor.GetType() == typeToCheck)
+            if (implementation.GetType() != typeToCheck)
             {
-                implementations.Remove(processor);
+                tempList.Add(implementation);
             }
         }
 
@@ -79,15 +80,29 @@ public static class InterfaceUtilities
 
         return interfaceToReturn;
     }
-
+    
+    public static HashSet<T> GetInterfaceImplementationsOfTypeFromList<T>(Type typeToCheck, HashSet<T> implementations)
+    {
+        HashSet<T> toReturn = new HashSet<T>();
+        foreach (var implementation in implementations)
+        {
+            if (implementation.GetType() == typeToCheck)
+            {
+                toReturn.Add(implementation);
+            }
+        }
+        return toReturn;
+    }
+    
     public static T GetInterfaceImplementationOfTypeFromList<T>(Type typeToCheck, HashSet<T> implementations)
     {
         T interfaceToReturn = default(T);
-        foreach (var processor in implementations)
+        foreach (var implementation in implementations)
         {
-            if (processor.GetType() == typeToCheck)
+            if (implementation.GetType() == typeToCheck)
             {
-                interfaceToReturn = processor;
+                interfaceToReturn = implementation;
+                break;
             }
         }
 

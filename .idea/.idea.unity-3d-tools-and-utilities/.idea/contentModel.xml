@@ -12,14 +12,7 @@
             </e>
             <e p="EdgeComparer.cs" t="Include" />
             <e p="EntityScripts" t="Include">
-              <e p="LifeTimeSystem.cs" t="Include" />
               <e p="MeshRenderingAuthoring.cs" t="Include" />
-              <e p="RotationSpeed_ForEach.cs" t="Include" />
-              <e p="RotationSpeed_IJobChunk.cs" t="Include" />
-              <e p="RotationSpeed_SpawnAndRemove.cs" t="Include" />
-              <e p="RotationSpeedAuthoring_IJobChunk.cs" t="Include" />
-              <e p="RotationSpeedSystem_ForEach.cs" t="Include" />
-              <e p="RotationSpeedSystem_IJobChunk.cs" t="Include" />
             </e>
             <e p="GeometricVision.asmdef" t="Include" />
             <e p="GeometryDataModels.cs" t="Include" />
@@ -44,6 +37,7 @@
               <e p="ImplementationsEntities" t="Include">
                 <e p="GeometryEntitiesLineTargeting.cs" t="Include" />
                 <e p="GeometryEntitiesObjectTargeting.cs" t="Include" />
+                <e p="GeometryEntitiesObjectTargetingNoChunks.cs" t="Include" />
                 <e p="GeometryVisionEntityEye.cs" t="Include" />
                 <e p="GeometryVisionEntityProcessor.cs" t="Include" />
               </e>
@@ -347,10 +341,12 @@
           </e>
         </e>
         <e p="Tests" t="Include">
+          <e p="CreationalTestsGameObjectsAndEntitiesSimultaneously.cs" t="Include" />
           <e p="GeoUtilitiesTests.cs" t="Include" />
           <e p="SceneBuildSettingsSetupBeforeTestsGameObjects.cs" t="Include" />
           <e p="Tests.asmdef" t="Include" />
           <e p="TestScenesEntities" t="Include">
+            <e p="RotationSpeed_SpawnAndRemove.cs" t="Include" />
             <e p="Spawner_SpawnAndRemove.cs" t="Include" />
             <e p="SpawnerAuthoring_SpawnAndRemove.cs" t="Include" />
             <e p="SpawnerSystem_SpawnAndRemove.cs" t="Include" />

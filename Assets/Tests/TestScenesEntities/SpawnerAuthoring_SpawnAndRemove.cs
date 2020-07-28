@@ -7,7 +7,7 @@ using UnityEngine;
 namespace Tests.TestScenesEntities
 {
     [RequiresEntityConversion]
-    [ConverterVersion("eh", 1)]
+    [ConverterVersion("Mikael", 1)]
     public class SpawnerAuthoring_SpawnAndRemove : MonoBehaviour, IDeclareReferencedPrefabs, IConvertGameObjectToEntity
     {
         public GameObject Prefab;

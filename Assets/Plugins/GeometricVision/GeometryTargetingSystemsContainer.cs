@@ -21,7 +21,6 @@ namespace Plugins.GeometricVision
 
         public HashSet<IGeoTargeting> TargetingPrograms
         {
-            get { return targetingPrograms; }
             set { targetingPrograms = value; }
         }
 
@@ -61,28 +60,31 @@ namespace Plugins.GeometricVision
         
         private void InitializeTargeting()
         {
-            if (TargetingPrograms == null)
+            if (targetingPrograms == null)
             {
                 TargetingPrograms = new HashSet<IGeoTargeting>();
             }
-
-            if (GetComponent<GeometryVisionEye>() == null)
-            {
-                gameObject.AddComponent<GeometryVisionEye>();
-                eye = GetComponent<GeometryVisionEye>();
-            }
+        }
+        
+        public void AddTargetingProgram(IGeoTargeting targetingSystem)
+        {
+            targetingPrograms.Add(targetingSystem);
         }
 
-        public void AddTargetingProgram(VisionTarget targetingInstructions)
+        public T GetTargetingProgram<T>()
         {
-            TargetingPrograms.Add(targetingInstructions.TargetingSystemGameObjects);
+            return (T) InterfaceUtilities.GetInterfaceImplementationOfTypeFromList(typeof(T), targetingPrograms);
         }
-
-        public void RemoveTargetingProgram(VisionTarget geometryType)
+        
+        public int GetTargetingProgramsCount()
         {
-            if (geometryType.TargetingSystemGameObjects != null)
+            return targetingPrograms.Count;
+        }
+        public void RemoveTargetingProgram(IGeoTargeting targetingSystem)
+        {
+            if (targetingSystem != null)
             {
-                TargetingPrograms.Remove(geometryType.TargetingSystemGameObjects);
+                targetingPrograms.Remove(targetingSystem);
             }
         }
     }

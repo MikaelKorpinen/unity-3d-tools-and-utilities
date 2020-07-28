@@ -19,7 +19,8 @@ namespace Tests.TestScriptsForGameObjects
             fielOfView =  25f,
             processGameObjects = true,
             processGameObjectsEdges = false,
-            edgesTargeted = true
+            edgesTargeted = false,
+            defaultTargeting = true,
         };
 
         [TearDown]
@@ -40,10 +41,10 @@ namespace Tests.TestScriptsForGameObjects
             }
             var geoVision = TestUtilities.SetupGeoVision(new Vector3(0f, 0f, -6f), new GeometryVisionFactory(factorySettings));
             yield return null;
-            yield return null;
+   
             int AmountOfTargetingSystemsRegistered = 0;
             int expectedObjectCount1 = 1;
-            Measure.Method(() => { AmountOfTargetingSystemsRegistered = geoVision.GetComponent<GeometryTargetingSystemsContainer>().TargetingPrograms.Count; }).Run();
+            Measure.Method(() => { AmountOfTargetingSystemsRegistered = geoVision.GetComponent<GeometryTargetingSystemsContainer>().GetTargetingProgramsCount(); }).Run();
 
             Debug.Log("total targeting systems: " + AmountOfTargetingSystemsRegistered);
             Assert.AreEqual(expectedObjectCount1, AmountOfTargetingSystemsRegistered);

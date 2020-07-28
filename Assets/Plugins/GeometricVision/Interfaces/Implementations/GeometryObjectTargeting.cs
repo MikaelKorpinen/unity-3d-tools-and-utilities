@@ -12,8 +12,7 @@ namespace Plugins.GeometricVision.Interfaces.Implementations
         {
             List<GeometryDataModels.Target> targetInfos = new List<GeometryDataModels.Target>();
             targetInfos =GetProjectionDataForTargets(rayLocation, rayDirectionWS, targets, targetInfos);
-            targetInfos = targetInfos.OrderBy(target => target.distanceToRay).ToList();
-            
+
             return targetInfos;
             
         }
@@ -42,7 +41,6 @@ namespace Plugins.GeometricVision.Interfaces.Implementations
 
             return targetInfos;
         }
-        
         
         private Vector3 pointToRaySpace(Vector3 rayLocation,  Vector3 target)
         {

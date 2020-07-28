@@ -19,7 +19,7 @@ namespace Plugins.GeometricVision
     /// </summary>
     public static class GeometryDataModels
     {
-        public struct Edge
+        public struct Edge:IComponentData
         {
             public int firstEdgePointIndex;
             public int secondEdgePointIndex;
@@ -45,6 +45,8 @@ namespace Plugins.GeometricVision
             public Vector3 projectedTargetPosition;
             public float distanceToRay;
             public float distanceToCastOrigin;
+            public bool isEntity;
+
             public IEnumerator GetEnumerator()
             {
                 throw new System.NotImplementedException();

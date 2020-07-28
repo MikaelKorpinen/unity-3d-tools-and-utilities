@@ -19,18 +19,18 @@ namespace Plugins.GeometricVision
     public class GeometryVisionHead : MonoBehaviour
     {
         private HashSet<GeometryVision> geoVisions;
-        private List<IGeoProcessor> processors = new List<IGeoProcessor>();
+        private HashSet<IGeoProcessor> processors = new HashSet<IGeoProcessor>();
         public GeometryVisionMemory GeoMemory { get; } = new GeometryVisionMemory();
         public EyeDebugger EyeDebugger { get; } = new EyeDebugger();
 
         private void Awake()
         {
-            processors = new List<IGeoProcessor>();
+            processors = new HashSet<IGeoProcessor>();
         }
 
         void Reset()
         {
-            processors = new List<IGeoProcessor>();
+            processors = new HashSet<IGeoProcessor>();
         }
 
         private void Update()
@@ -44,7 +44,7 @@ namespace Plugins.GeometricVision
                     {
                         processor.Debug(geoVision);
                     }
-                    geoVision.RegenerateVisionArea(geoVision.Camera1.fieldOfView);
+                    geoVision.RegenerateVisionArea(geoVision.FieldOfView);
                     foreach (var geoEye in geoVision.Eyes)
                     {
                         geoEye.UpdateVisibility();
@@ -62,7 +62,7 @@ namespace Plugins.GeometricVision
         {
             if (processors == null)
             {
-                processors = new List<IGeoProcessor>();
+                processors = new HashSet<IGeoProcessor>();
             }
 
             if (InterfaceUtilities.ListContainsInterfaceImplementationOfType(processor.GetType(), processors) == false)
@@ -79,7 +79,7 @@ namespace Plugins.GeometricVision
         {
             return (T) InterfaceUtilities.GetInterfaceImplementationOfTypeFromList(typeof(T), processors);
         }
-
+        
         public void RemoveProcessor<T>()
         {
             InterfaceUtilities.RemoveInterfaceImplementationsOfTypeFromList(typeof(T), ref processors);

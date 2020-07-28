@@ -21,17 +21,17 @@ namespace Plugins.GeometricVision
         public bool enabled = true;
         [SerializeField,  Tooltip("Choose what geometry to target or use.")] private GeometryType geometryType;
     
-        [SerializeField] private BoolReactiveProperty target = new BoolReactiveProperty();
+        [SerializeField] private BoolReactiveProperty isTargetingEnabled = new BoolReactiveProperty();
         //Cannot get Reactive value from serialized property, so this boolean variable handles its job on the inspector gui behind the scenes.
         //See UI/VisionTypeDrawer.cs
         //It is not visible on the inspector but removing serialization makes it un findable
-        [SerializeField] private bool targetActionsTemplateSlotVisible;
+        [SerializeField] private bool isTargetActionsTemplateSlotVisible;
         [SerializeField, Layer, Tooltip("Choose what layer from unity layers settings to use")] private int targetLayer = 31;
         public bool Subscribed { get; set; }
         public ActionsTemplateObject targetingActions;
         //GeometryVision plugin needs to be able to target both GameObjects and Entities at the same time
-        private IGeoTargeting targetingSystemGameObjects = null;
-        private IGeoTargeting targetingSystemEntities = null;
+        private IGeoTargeting targetingSystemGameObjects = null;//TODO:consider: remove these
+        private IGeoTargeting targetingSystemEntities = null;//TODO:same
         
         /// <summary>
         /// Constructor for the GeometryVision target object
@@ -46,16 +46,15 @@ namespace Plugins.GeometricVision
             GeometryType = geoType;
             targetLayer = layerIndex;
             
-            if (null == targetingSystem)
+            if (targetingSystem == null)
             {
                 throw new ArgumentNullException(nameof(targetingSystem));
             }
 
-            target.Value = targetingEnabled;
+            isTargetingEnabled.Value = targetingEnabled;
             AssignTargetingSystem(targetingSystem);
-
-            Target.Value = true;
             
+            isTargetActionsTemplateSlotVisible = targetingEnabled;
             void AssignTargetingSystem(IGeoTargeting geoTargeting)
             {
                 if (geoTargeting.IsForEntities())
@@ -96,10 +95,10 @@ namespace Plugins.GeometricVision
         /// <summary>
         /// Use the targeting system, if Target.Value set to true
         /// </summary>
-        public BoolReactiveProperty Target
+        public BoolReactiveProperty IsTargetingEnabled
         {
-            get { return target; }
-            set { target = value; }
+            get { return isTargetingEnabled; }
+            set { isTargetingEnabled = value; }
         }
 
         public bool Enabled
@@ -108,10 +107,10 @@ namespace Plugins.GeometricVision
             set { enabled = value; }
         }
 
-        public bool TargetActionsTemplateSlotVisible
+        public bool IsTargetActionsTemplateSlotVisible
         {
-            get { return targetActionsTemplateSlotVisible; }
-            set { targetActionsTemplateSlotVisible = value; }
+            get { return isTargetActionsTemplateSlotVisible; }
+            set { isTargetActionsTemplateSlotVisible = value; }
         }
     }
 }

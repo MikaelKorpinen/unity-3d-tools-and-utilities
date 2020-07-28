@@ -17,8 +17,6 @@ namespace Plugins.GeometricVision.Interfaces.Implementations
 
         public HashSet<Transform> AllObjects;
         public List<GameObject> RootObjects;
-        private bool collidersTargeted;
-
 
         public HashSet<Transform> GetTransforms(List<GameObject> objs)
         {
@@ -58,7 +56,7 @@ namespace Plugins.GeometricVision.Interfaces.Implementations
             {
                 lastCount = currentObjectCount;
                 UpdateSceneObjects(RootObjects, AllObjects);
-                ExtractGeometry(AllObjects, geoVision.Head.GeoMemory.GeoInfos, geoVision.TargetingInstructions);
+                ExtractGeometry(AllObjects, geoVision.Head.GeoMemory.GeoInfos, geoVision.TargetingInstructions, false);
             }
         }
 
@@ -139,7 +137,7 @@ namespace Plugins.GeometricVision.Interfaces.Implementations
         /// <param name="geoInfos"></param>
         /// <param name="targetedGeometries"></param>
         private void ExtractGeometry(HashSet<Transform> seenObjects, List<GeometryDataModels.GeoInfo> geoInfos,
-            List<VisionTarget> targetedGeometries)
+            List<VisionTarget> targetedGeometries, bool collidersTargeted)
         {
             foreach (var seenObject in seenObjects)
             {

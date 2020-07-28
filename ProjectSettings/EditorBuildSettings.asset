@@ -4,5 +4,11 @@
 EditorBuildSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 2
-  m_Scenes: []
+  m_Scenes:
+  - enabled: 1
+    path: Assets/Tests/TestScenesEntities/SimpleModel_frustum_test_with_entities.unity
+    guid: 568563ebcf6480d40b7e60cef22c68de
+  - enabled: 1
+    path: Assets/Tests/TestScenesEntities/SimpleModel_frustum_test_with_entities_2x_Spawners.unity
+    guid: 2a7af48f336a2ef4a89d60c0916075b1
   m_configObjects: {}

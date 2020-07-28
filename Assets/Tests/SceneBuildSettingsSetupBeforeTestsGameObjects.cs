@@ -42,7 +42,6 @@ namespace Tests
     internal static class TestSessionVariables
     {
         internal static EditorBuildSettingsScene[] BuildScenes;
-        internal static Scene startScene;
     }
 
 #endif

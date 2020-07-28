@@ -42,7 +42,7 @@ namespace Tests.TestScriptsForEntities
             var geoVision = TestUtilities.SetupGeoVision(new Vector3(0f, 0f, -6f), new GeometryVisionFactory(factorySettings));
             yield return null;
 
-            bool isAdded = TestUtilities.CheckThatImplementationIsOnTheList(geoVision.GetComponent<GeometryTargetingSystemsContainer>().TargetingPrograms, typeof(GeometryEntitiesObjectTargeting));
+            bool isAdded = geoVision.GetComponent<GeometryTargetingSystemsContainer>().GetTargetingProgram<GeometryEntitiesObjectTargeting>() != null;
             
             Assert.True(isAdded);
         }

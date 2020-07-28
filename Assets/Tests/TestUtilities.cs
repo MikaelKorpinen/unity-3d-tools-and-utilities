@@ -109,7 +109,7 @@ public static class TestUtilities
         GameObject geoVision = factory.CreateGeometryVision(position, Quaternion.identity, 25, geoTypesToTarget, 0, true);
         return geoVision;
     }
-    //TODO: Settings as object
+
     public static GameObject SetupGeoVision(Vector3 position, GeometryVisionFactory factory)
     {
         var geoTypesToTarget = new List<GeometryType>();
