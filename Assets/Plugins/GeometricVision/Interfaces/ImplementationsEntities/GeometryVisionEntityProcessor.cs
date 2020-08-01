@@ -13,6 +13,7 @@ namespace Plugins.GeometricVision.Interfaces.ImplementationsEntities
 {
     /// <inheritdoc />
     [DisableAutoCreation]
+    [AlwaysUpdateSystem]
     [UpdateAfter(typeof(GeometryVisionEntityEye))]
     public class GeometryVisionEntityProcessor : SystemBase, IGeoProcessor
     {
@@ -76,35 +77,19 @@ namespace Plugins.GeometricVision.Interfaces.ImplementationsEntities
             job2.translations.Dispose();
             job2.targets.Dispose();
 
-            currentObjectCount = entityQuery.CalculateEntityCountWithoutFiltering();
+            currentObjectCount = entityQuery.CalculateEntityCount();
             UnityEngine.Debug.Log("currentObjectCount " + currentObjectCount);
-
-            entityQuery = GetEntityQuery(
-                ComponentType.ReadOnly<GeoInfoEntityComponent>()
-            );
-
-
-            Entities
-                .WithStoreEntityQueryInField(ref entityQuery)
-                .WithName("GeometryVision")
-                .WithBurst(FloatMode.Default, FloatPrecision.Standard, true)
-                .ForEach((Entity entity, int entityInQueryIndex, in GeoInfoEntityComponent geoInfo,
-                    in LocalToWorld location) =>
-                {
-                    //  commandBuffer.DestroyEntity(entityInQueryIndex, entity);
-                }).ScheduleParallel();
-            float deltaTime = Time.DeltaTime;
 
 
             m_EntityCommandBufferSystem.AddJobHandleForProducer(Dependency);
 
 
             // CheckSceneChanges(GeoVision);
-            if (extractGeometry)
+            /*if (extractGeometry)
             {
                 ExtractGeometry(commandBuffer, _targetedGeometries);
                 extractGeometry = false;
-            }
+            }*/
         }
         
         [BurstCompile]
@@ -136,11 +121,11 @@ namespace Plugins.GeometricVision.Interfaces.ImplementationsEntities
                 List<GeometryDataModels.GeoInfo> geos = new List<GeometryDataModels.GeoInfo>();
                 // GeometryDataModels.GeoInfo geo = new GeometryDataModels.GeoInfo();
                 Entities
-                    .WithChangeFilter<GeoInfoEntityComponent>()
+                    .WithChangeFilter<GeometryDataModelsEntities.GeoInfoEntityComponent>()
                     .WithBurst(FloatMode.Default, FloatPrecision.Standard, true)
-                    .ForEach((DynamicBuffer<VerticesBuffer> vBuffer, DynamicBuffer<TrianglesBuffer> tBuffer,
-                        LocalToWorldMatrix localToWorldMatrix, DynamicBuffer<EdgesBuffer> edgeBuffer,
-                        GeoInfoEntityComponent geoE) =>
+                    .ForEach((DynamicBuffer<GeometryDataModelsEntities.VerticesBuffer> vBuffer, DynamicBuffer<GeometryDataModelsEntities.TrianglesBuffer> tBuffer,
+                        GeometryDataModelsEntities.LocalToWorldMatrix localToWorldMatrix, DynamicBuffer<GeometryDataModelsEntities.EdgesBuffer> edgeBuffer,
+                        GeometryDataModelsEntities.GeoInfoEntityComponent geoE) =>
                     {
                         //    MeshUtilities.BuildEdgesFromNativeArrays(localToWorldMatrix.Matrix, tBuffer, vBuffer).CopyTo(geo.edges);
                         //      geos.Add(geo);

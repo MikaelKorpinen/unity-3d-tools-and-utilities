@@ -82,5 +82,7 @@ namespace Plugins.GeometricVision
             False = 0,
             True = 1
         }
+  
+
     }
 }

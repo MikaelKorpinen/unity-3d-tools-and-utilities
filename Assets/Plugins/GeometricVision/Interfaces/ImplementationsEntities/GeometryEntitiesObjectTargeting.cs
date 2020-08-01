@@ -14,6 +14,7 @@ namespace Plugins.GeometricVision.Interfaces.ImplementationsEntities
 {
     /// <inheritdoc />
     [DisableAutoCreation]
+    [AlwaysUpdateSystem]
     public class GeometryEntitiesObjectTargeting : SystemBase, IGeoTargeting
     {
         private BeginInitializationEntityCommandBufferSystem m_EntityCommandBufferSystem;
@@ -27,11 +28,13 @@ namespace Plugins.GeometricVision.Interfaces.ImplementationsEntities
         {
             // Cache the BeginInitializationEntityCommandBufferSystem in a field, so we don't have to create it every frame
             m_EntityCommandBufferSystem = World.GetOrCreateSystem<BeginInitializationEntityCommandBufferSystem>();
+            
         }
 
 
         protected override void OnUpdate()
         {
+            
             entityQuery = GetEntityQuery(
                 ComponentType.ReadOnly<GeometryDataModels.Target>()
             );
@@ -42,11 +45,6 @@ namespace Plugins.GeometricVision.Interfaces.ImplementationsEntities
                 ComponentType.ReadOnly<GeometryDataModels.Target>()
             );
             
-            entityQuery = GetEntityQuery(
-                new EntityQueryDesc()
-                {
-                    All = new ComponentType[] {ComponentType.ChunkComponent<GeometryDataModels.Target>()},
-                });
             
             entityQuery = GetEntityQuery(typeof(Translation),typeof(GeometryDataModels.Target) );
 

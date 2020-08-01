@@ -35,7 +35,7 @@ namespace Tests
 
         [UnityTest, Performance, Version(version)]
         [Timeout(TestSettings.defaultPerformanceTests)]
-        [PrebuildSetup(typeof(SceneBuildSettingsSetupBeforeTestsGameObjects))]
+        [PrebuildSetup(typeof(SceneBuildSettingsSetupBeforeTestsEntities))]
         public IEnumerator TestSceneGetsLoadedForGameObjectsAndEntities(
             [ValueSource(typeof(TestUtilities), nameof(TestUtilities.GetScenesForEntitiesFromPath))]
             string scenePath)
@@ -57,7 +57,7 @@ namespace Tests
 
         [UnityTest, Performance, Version(version)]
         [Timeout(TestSettings.defaultPerformanceTests)]
-        [PrebuildSetup(typeof(SceneBuildSettingsSetupBeforeTestsGameObjects))]
+        [PrebuildSetup(typeof(SceneBuildSettingsSetupBeforeTestsEntities))]
         public IEnumerator GeometryVisionGetsCreatedWithFactory(
             [ValueSource(typeof(TestUtilities), nameof(TestUtilities.GetScenesForEntitiesFromPath))]
             string scenePath)
@@ -88,7 +88,7 @@ namespace Tests
 
         [UnityTest, Performance, Version(version)]
         [Timeout(TestSettings.defaultSmallTest)]
-        [PrebuildSetup(typeof(SceneBuildSettingsSetupBeforeTestsGameObjects))]
+        [PrebuildSetup(typeof(SceneBuildSettingsSetupBeforeTestsEntities))]
         public IEnumerator GeometryVisionGetsCreatedWithoutFactory(
             [ValueSource(typeof(TestUtilities), nameof(TestUtilities.GetScenesForEntitiesFromPath))]
             string scenePath)
@@ -122,7 +122,7 @@ namespace Tests
 
         [UnityTest, Performance, Version(version)]
         [Timeout(TestSettings.defaultSmallTest)]
-        [PrebuildSetup(typeof(SceneBuildSettingsSetupBeforeTestsGameObjects))]
+        [PrebuildSetup(typeof(SceneBuildSettingsSetupBeforeTestsEntities))]
         public IEnumerator GeometryVisionHasBasicComponentsWhenCreatedWithoutFactory(
             [ValueSource(typeof(TestUtilities), nameof(TestUtilities.GetScenesForEntitiesFromPath))]
             string scenePath)
@@ -269,7 +269,7 @@ namespace Tests
 
         [UnityTest, Performance, Version(TestSettings.Version)]
         [Timeout(TestSettings.defaultPerformanceTests)]
-        [PrebuildSetup(typeof(SceneBuildSettingsSetupBeforeTestsGameObjects))]
+        [PrebuildSetup(typeof(SceneBuildSettingsSetupBeforeTestsEntities))]
         public IEnumerator TargetingSystemGetsAddedOnlyWithoutFactory(
             [ValueSource(typeof(TestUtilities), nameof(TestUtilities.GetScenesForEntitiesFromPath))]
             string scenePath)

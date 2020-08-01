@@ -32,7 +32,7 @@ namespace Plugins.GeometricVision.Utilities
         }
 
         static NativeArray<GeometryDataModels.Edge> BuildEdgesFromNativeArrays(Matrix4x4 localToWorldMatrix,
-            DynamicBuffer<TrianglesBuffer> indices, DynamicBuffer<VerticesBuffer> vertices)
+            DynamicBuffer<GeometryDataModelsEntities.TrianglesBuffer> indices, DynamicBuffer<GeometryDataModelsEntities.VerticesBuffer> vertices)
         {
             Vector3 v1 = Vector3.zero;
             int t1Index;
@@ -184,7 +184,7 @@ namespace Plugins.GeometricVision.Utilities
 
             return edges;
         }
-        public static void UpdateEdgesVisibility(NativeArray<Plane>  planes, DynamicBuffer<EdgesBuffer> edges)
+        public static void UpdateEdgesVisibility(NativeArray<Plane>  planes, DynamicBuffer<GeometryDataModelsEntities.EdgesBuffer> edges)
         {
             GeometryDataModels.Edge edge = new GeometryDataModels.Edge();
             for (var index = 0; index < edges.Length; index++)

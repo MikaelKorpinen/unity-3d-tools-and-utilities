@@ -362,7 +362,6 @@ namespace Tests
             var geoVision =
                 TestUtilities.SetupGeoVision(new Vector3(0f, 0f, -6f), new GeometryVisionFactory(factorySettings));
             yield return null;
-            yield return null;
             int AmountOfTargetingSystemsRegistered = 0;
             int expectedObjectCount1 = 1;
 

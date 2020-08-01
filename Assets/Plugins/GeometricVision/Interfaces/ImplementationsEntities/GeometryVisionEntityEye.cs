@@ -80,7 +80,7 @@ namespace Plugins.GeometricVision.Interfaces.ImplementationsEntities
             // UpdateVisibility();
 
             query = GetEntityQuery(
-                ComponentType.ReadOnly<GeoInfoEntityComponent>()
+                ComponentType.ReadOnly<GeometryDataModels.Target>()
             );
 
             lastCount = query.CalculateEntityCount();
@@ -102,13 +102,14 @@ namespace Plugins.GeometricVision.Interfaces.ImplementationsEntities
                 }
             }
 
+            /*
             GeometryDataModels.Edge edge = new GeometryDataModels.Edge();
             Entities
                 .WithStoreEntityQueryInField(ref query)
                 .WithName("GeoInfoVisibility_Checks")
                 .WithBurst(FloatMode.Default, FloatPrecision.Standard, true)
-                .ForEach((ref Translation translation, ref Visible visible, ref Entity entity,
-                    in GeoInfoEntityComponent geoInfo) =>
+                .ForEach((ref Translation translation, ref GeometryDataModelsEntities.Visible visible, ref Entity entity,
+                    in GeometryDataModelsEntities.GeoInfoEntityComponent geoInfo) =>
                 {
                     //   float deltaTime = Time.DeltaTime;
 
@@ -146,12 +147,8 @@ namespace Plugins.GeometricVision.Interfaces.ImplementationsEntities
                     //    ProcessTargetedGeometriesVisibility(entity, translation, visible);
                 })
                 .ScheduleParallel();
-            // this.seenTransforms = UpdateObjectVisibility( );
-            //     SeenGeoInfos = UpdateGeometryVisibility(planes, GeoVision.Head.GetProcessor<GeometryVisionEntityProcessor>().GeoInfos, seenGeoInfos);
-            //   enabled = false;
-            //   run = false;
+                */
 
-            // Debug();
             lastCount = query.CalculateEntityCount();
         }
 
@@ -183,7 +180,7 @@ namespace Plugins.GeometricVision.Interfaces.ImplementationsEntities
             return true;
         }
 
-        private void ProcessTargetedGeometriesVisibility(Entity entity, Translation translation, Visible visible)
+        private void ProcessTargetedGeometriesVisibility(Entity entity, Translation translation, GeometryDataModelsEntities.Visible visible)
         {
             foreach (var geometryType in TargetedGeometries)
             {
@@ -194,13 +191,13 @@ namespace Plugins.GeometricVision.Interfaces.ImplementationsEntities
 
                 if (geometryType.GeometryType == GeometryType.Lines && geometryType.Enabled)
                 {
-                    var edgeBuffer = EntityManager.GetBuffer<EdgesBuffer>(entity);
+                    var edgeBuffer = EntityManager.GetBuffer<GeometryDataModelsEntities.EdgesBuffer>(entity);
                     // MeshUtilities.UpdateEdgesVisibility(planes, edgeBuffer);
                 }
             }
         }
 
-        private Visible UpdateEntityVisibility(Translation translation, Visible visible)
+        private GeometryDataModelsEntities.Visible UpdateEntityVisibility(Translation translation, GeometryDataModelsEntities.Visible visible)
         {
             if (MeshUtilities.IsInsideFrustum(translation.Value, planes))
             {

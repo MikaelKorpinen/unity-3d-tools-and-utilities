@@ -16,6 +16,7 @@
             </e>
             <e p="GeometricVision.asmdef" t="Include" />
             <e p="GeometryDataModels.cs" t="Include" />
+            <e p="GeometryDataModelsEntities.cs" t="Include" />
             <e p="GeometryTargetingSystemsContainer.cs" t="Include" />
             <e p="GeometryVision.cs" t="Include" />
             <e p="GeometryVisionFactory.cs" t="Include" />

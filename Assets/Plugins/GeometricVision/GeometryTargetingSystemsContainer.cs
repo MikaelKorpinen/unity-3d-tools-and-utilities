@@ -60,10 +60,7 @@ namespace Plugins.GeometricVision
         
         private void InitializeTargeting()
         {
-            if (targetingPrograms == null)
-            {
-                TargetingPrograms = new HashSet<IGeoTargeting>();
-            }
+            TargetingPrograms = new HashSet<IGeoTargeting>();
         }
         
         public void AddTargetingProgram(IGeoTargeting targetingSystem)
