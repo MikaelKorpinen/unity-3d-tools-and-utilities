@@ -58,14 +58,12 @@ namespace Plugins.GeometricVision.Interfaces.ImplementationsEntities
             }
 
             entityQuery = GetEntityQuery(typeof(Translation),typeof(GeometryDataModels.Target) );
-            
-            UnityEngine.Debug.Log("entityQuery.ToEntityArray " + entityQuery.ToEntityArray(Allocator.Temp).Length);
-
 
             var job2 = new ModifyTargets()
             {
                 targets = entityQuery.ToComponentDataArray<GeometryDataModels.Target>(Allocator.Temp),
                 translations = entityQuery.ToComponentDataArray<Translation>(Allocator.Temp),
+                entities= entityQuery.ToEntityArray(Allocator.TempJob),
             };
 
 
@@ -74,15 +72,14 @@ namespace Plugins.GeometricVision.Interfaces.ImplementationsEntities
             
             entityQuery.CopyFromComponentDataArray<Translation>(job2.translations);
             entityQuery.CopyFromComponentDataArray<GeometryDataModels.Target>(job2.targets);
-            job2.translations.Dispose();
-            job2.targets.Dispose();
+
 
             currentObjectCount = entityQuery.CalculateEntityCount();
-            UnityEngine.Debug.Log("currentObjectCount " + currentObjectCount);
-
 
             m_EntityCommandBufferSystem.AddJobHandleForProducer(Dependency);
-
+            job2.translations.Dispose();
+            job2.targets.Dispose();
+            job2.entities.Dispose();
 
             // CheckSceneChanges(GeoVision);
             /*if (extractGeometry)
@@ -98,12 +95,19 @@ namespace Plugins.GeometricVision.Interfaces.ImplementationsEntities
             [System.ComponentModel.ReadOnly(true)] public NativeArray<GeometryDataModels.Target> targets;
 
             [System.ComponentModel.ReadOnly(true)] public NativeArray<Translation> translations;
+            public NativeArray<Entity> entities;
+
 
             public void Execute(int index)
             {
                 GeometryDataModels.Target target = targets[index];
                 target.position = translations[index].Value;
+                target.isEntity = true;
+                target.entityId = entities[index].Index;
+                target.entityVersion = entities[index].Version;
+                target.entity = entities[index];
                 targets[index] = target;
+                
             }
         }
         

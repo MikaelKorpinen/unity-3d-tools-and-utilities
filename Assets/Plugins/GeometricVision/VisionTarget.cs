@@ -2,6 +2,7 @@
 using GeometricVision;
 using Plugins.GeometricVision.Interfaces.Implementations;
 using Plugins.GeometricVision.UI;
+
 using Plugins.GeometricVision.UniRx.Scripts.UnityEngineBridge;
 using UniRx;
 using UnityEngine;
@@ -26,7 +27,7 @@ namespace Plugins.GeometricVision
         //See UI/VisionTypeDrawer.cs
         //It is not visible on the inspector but removing serialization makes it un findable
         [SerializeField] private bool isTargetActionsTemplateSlotVisible;
-        [SerializeField, Layer, Tooltip("Choose what layer from unity layers settings to use")] private int targetLayer = 31;
+        [SerializeField,  Tooltip("Choose what layer from unity layers settings to use")] private string targetTag = "";
         public bool Subscribed { get; set; }
         public ActionsTemplateObject targetingActions;
         //GeometryVision plugin needs to be able to target both GameObjects and Entities at the same time
@@ -38,13 +39,13 @@ namespace Plugins.GeometricVision
         /// </summary>
 
         /// <param name="geoType"></param>
-        /// <param name="layerIndex"></param>
+        /// <param name="tagName"></param>
         /// <param name="targetingSystem"></param>
         /// <exception cref="ArgumentNullException"></exception>
-        public VisionTarget(GeometryType geoType, int layerIndex, IGeoTargeting targetingSystem, bool targetingEnabled)
+        public VisionTarget(GeometryType geoType, string tagName, IGeoTargeting targetingSystem, bool targetingEnabled)
         {
             GeometryType = geoType;
-            targetLayer = layerIndex;
+            targetTag = tagName;
             
             if (targetingSystem == null)
             {
@@ -80,10 +81,10 @@ namespace Plugins.GeometricVision
             set { targetingSystemEntities = value; }
         }
 
-        public int TargetLayer
+        public string TargetTag
         {
-            get { return targetLayer; }
-            set { targetLayer = value; }
+            get { return targetTag; }
+            set { targetTag = value; }
         }
 
         public GeometryType GeometryType

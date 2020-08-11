@@ -12,7 +12,14 @@
             </e>
             <e p="EdgeComparer.cs" t="Include" />
             <e p="EntityScripts" t="Include">
-              <e p="MeshRenderingAuthoring.cs" t="Include" />
+              <e p="MeshTargetAuthoring.cs" t="Include" />
+              <e p="TransformEntitySystem.cs" t="Include" />
+            </e>
+            <e p="Examples" t="Include">
+              <e p="ObjectPicking" t="Include">
+                <e p="ObjectPick.cs" t="Include" />
+                <e p="PickObjectScript.cs" t="Include" />
+              </e>
             </e>
             <e p="GeometricVision.asmdef" t="Include" />
             <e p="GeometryDataModels.cs" t="Include" />
@@ -23,25 +30,25 @@
             <e p="GeometryVisionHead.cs" t="Include" />
             <e p="GeometryVisionMemory.cs" t="Include" />
             <e p="GeometryVisionSettings.cs" t="Include" />
+            <e p="ImplementationsEntities" t="Include">
+              <e p="GeometryEntitiesLineTargeting.cs" t="Include" />
+              <e p="GeometryEntitiesObjectTargeting.cs" t="Include" />
+              <e p="GeometryEntitiesObjectTargetingNoChunks.cs" t="Include" />
+              <e p="GeometryVisionEntityEye.cs" t="Include" />
+              <e p="GeometryVisionEntityProcessor.cs" t="Include" />
+            </e>
+            <e p="ImplementationsGameObjects" t="Include">
+              <e p="GeometryLineTargeting.cs" t="Include" />
+              <e p="GeometryObjectTargeting.cs" t="Include" />
+              <e p="GeometryVertexTargeting .cs" t="Include" />
+              <e p="GeometryVisionEye.cs" t="Include" />
+              <e p="GeometryVisionProcessor.cs" t="Include" />
+            </e>
             <e p="Info.cs" t="Include" />
             <e p="Interfaces" t="Include">
               <e p="IGeoEye.cs" t="Include" />
               <e p="IGeoProcessor.cs" t="Include" />
               <e p="IGeoTargeting.cs" t="Include" />
-              <e p="Implementations" t="Include">
-                <e p="GeometryLineTargeting.cs" t="Include" />
-                <e p="GeometryObjectTargeting.cs" t="Include" />
-                <e p="GeometryVertexTargeting .cs" t="Include" />
-                <e p="GeometryVisionEye.cs" t="Include" />
-                <e p="GeometryVisionProcessor.cs" t="Include" />
-              </e>
-              <e p="ImplementationsEntities" t="Include">
-                <e p="GeometryEntitiesLineTargeting.cs" t="Include" />
-                <e p="GeometryEntitiesObjectTargeting.cs" t="Include" />
-                <e p="GeometryEntitiesObjectTargetingNoChunks.cs" t="Include" />
-                <e p="GeometryVisionEntityEye.cs" t="Include" />
-                <e p="GeometryVisionEntityProcessor.cs" t="Include" />
-              </e>
             </e>
             <e p="Jobs" t="Include">
               <e p="EdgeJobs.cs" t="Include" />
@@ -51,7 +58,10 @@
               <e p="Actions.uss" t="Include" />
               <e p="Actions.uxml" t="Include" />
               <e p="ActionsTemplateObject.cs" t="Include" />
-              <e p="VisionTypeDrawer.cs" t="Include" />
+              <e p="Editor" t="Include">
+                <e p="TagSelectorPropertyDrawer.cs" t="Include" />
+                <e p="VisionTypeDrawer.cs" t="Include" />
+              </e>
             </e>
             <e p="UniRx" t="Include">
               <e p="Examples" t="Include">

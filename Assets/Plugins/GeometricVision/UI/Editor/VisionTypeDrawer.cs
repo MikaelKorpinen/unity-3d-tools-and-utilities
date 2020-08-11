@@ -29,7 +29,7 @@ namespace Plugins.GeometricVision.UI
             var container = new VisualElement();
             var toggleField = new PropertyField(property.FindPropertyRelative("enabled"));
             var visionTypeField = new PropertyField(property.FindPropertyRelative("geometryType"));
-            var layerField = new PropertyField(property.FindPropertyRelative("targetLayer"));
+            var layerField = new PropertyField(property.FindPropertyRelative("targetTag"));
             var targetField = new PropertyField(property.FindPropertyRelative("isTargetingEnabled"));
             var targetField2 = new PropertyField(property.FindPropertyRelative("isTargetActionsTemplateSlotVisible"));
             var actionsTemplate = new PropertyField(property.FindPropertyRelative("targetingActions"));
@@ -48,7 +48,7 @@ namespace Plugins.GeometricVision.UI
     /// Handle InspectorGUI part of the GeometricVision component. Also hides components that should not be visible to the user.
     /// </summary>
     [CustomEditor(typeof(GeometryVision))]
-    public class GeometryVisionInspectorGUI : Editor
+    public class GeometryVisionInspectorGui : UnityEditor.Editor
     {
         public override void OnInspectorGUI()
         {
@@ -82,7 +82,7 @@ namespace Plugins.GeometricVision.UI
     /// Checks if user removes GeometricVision component and if it does cleans up all the dependencies
     /// </summary>
     [CustomEditor(typeof(GeometryTargetingSystemsContainer))]
-    public class ClearComponents2 : Editor
+    public class ClearComponents2 : UnityEditor.Editor
     {
         public override void OnInspectorGUI()
         {
@@ -99,7 +99,7 @@ namespace Plugins.GeometricVision.UI
     /// Checks if user removes GeometricVision component and if it does cleans up all the dependencies
     /// </summary>
     [CustomEditor(typeof(GeometryVisionEye))]
-    public class ClearComponents : Editor
+    public class ClearComponents : UnityEditor.Editor
     {
         public override void OnInspectorGUI()
         {
@@ -125,33 +125,35 @@ namespace Plugins.GeometricVision.UI
             position = EditorGUI.PrefixLabel(position, GUIUtility.GetControlID(FocusType.Passive), label);
 
             var intend = EditorGUI.indentLevel;
+            float offsetX = -70;
+            float positionX = position.x + offsetX;
             EditorGUI.indentLevel = 0;
             var offset = position.height / 2 - 6;
-            var labelRect = new Rect(position.x, position.y - offset, 70, position.height);
-            var toggleRect = new Rect(position.x + 55, position.y - offset, 70, position.height);
+            var labelRect = new Rect(positionX, position.y - offset, 70, position.height);
+            var toggleRect = new Rect(positionX + 55, position.y - offset, 70, position.height);
 
-            var seeLabelRect = new Rect(position.x + 75, position.y - offset, 111, position.height);
-            var typeRect = new Rect(position.x + 105, position.y, 70, position.height);
+            var seeLabelRect = new Rect(positionX + 75, position.y - offset, 111, position.height);
+            var typeRect = new Rect(positionX + 105, position.y, 70, position.height);
 
-            var labelLayerRect = new Rect(position.x + 180, position.y - offset, 111, position.height);
-            var layerRect = new Rect(position.x + 220, position.y, 111, position.height);
+            var labelLayerRect = new Rect(positionX + 180, position.y - offset, 111, position.height);
+            var layerRect = new Rect(positionX + 220, position.y, 111, position.height);
 
-            var labelRectTargeting = new Rect(position.x + 340, position.y - offset, 70, position.height);
-            var toggleRectTargeting = new Rect(position.x + 400, position.y, 70, position.height);
+            var labelRectTargeting = new Rect(positionX + 340, position.y - offset, 70, position.height);
+            var toggleRectTargeting = new Rect(positionX + 400, position.y, 70, position.height);
 
-            var labelRectOnTargetFound = new Rect(position.x + 420, position.y - offset, 120, position.height);
-            var onSomethingHappenedEvent = new Rect(position.x + 520, position.y, 200, position.height);
+            var labelRectOnTargetFound = new Rect(positionX + 420, position.y - offset, 120, position.height);
+            var onSomethingHappenedEvent = new Rect(positionX + 520, position.y, 200, position.height);
 
-            EditorGUI.LabelField(labelRect, "enabled:");
-            EditorGUI.PropertyField(toggleRect, property.FindPropertyRelative("enabled"), GUIContent.none);
+       //     EditorGUI.LabelField(labelRect, "enabled:");
+        //    EditorGUI.PropertyField(toggleRect, property.FindPropertyRelative("enabled"), GUIContent.none);
 
             EditorGUI.LabelField(seeLabelRect, "See:");
             EditorGUI.PropertyField(typeRect, property.FindPropertyRelative("geometryType"), GUIContent.none);
             GUIContent label2 = new GUIContent("");
 
-            EditorGUI.LabelField(labelLayerRect, "Layer:");
-            property.FindPropertyRelative("targetLayer").intValue = EditorGUI.LayerField(layerRect, label2,
-                property.FindPropertyRelative("targetLayer").intValue);
+            EditorGUI.LabelField(labelLayerRect, "Tag:");
+            property.FindPropertyRelative("targetTag").stringValue = EditorGUI.TagField(layerRect, label2,
+                property.FindPropertyRelative("targetTag").stringValue);
 
             EditorGUI.LabelField(labelRectTargeting, "Targeting:");
             EditorGUI.PropertyField(toggleRectTargeting, property.FindPropertyRelative("isTargetingEnabled"), GUIContent.none);

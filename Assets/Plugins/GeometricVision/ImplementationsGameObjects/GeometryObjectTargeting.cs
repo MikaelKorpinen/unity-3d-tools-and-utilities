@@ -17,16 +17,16 @@ namespace Plugins.GeometricVision.Interfaces.Implementations
             
         }
 
-        private List<GeometryDataModels.Target> GetProjectionDataForTargets(Vector3 rayLocation, Vector3 rayDirectionWS, List<GeometryDataModels.GeoInfo> targets, List<GeometryDataModels.Target> targetInfos)
+        private List<GeometryDataModels.Target> GetProjectionDataForTargets(Vector3 rayLocation, Vector3 rayDirectionWS, List<GeometryDataModels.GeoInfo> GeoInfos, List<GeometryDataModels.Target> targetInfos)
         {
             GeometryDataModels.Target targetInfo = new GeometryDataModels.Target();
-            foreach (var target in targets)
+            foreach (var geoInfoAsTarget in GeoInfos)
             {
                 targetInfos = GetDataForTarget();
                 
                 List<GeometryDataModels.Target> GetDataForTarget()
                 {
-                    Vector3 point = target.transform.position;
+                    Vector3 point = geoInfoAsTarget.transform.position;
                     Vector3 rayDirectionEndPoint = rayDirectionWS;
                     point = pointToRaySpace(rayLocation, point);
                     rayDirectionEndPoint = pointToRaySpace(rayLocation, rayDirectionWS);
@@ -34,6 +34,7 @@ namespace Plugins.GeometricVision.Interfaces.Implementations
                     targetInfo.position = pointFromRaySpaceToObjectSpace(point, rayLocation);
                     targetInfo.distanceToRay = Vector3.Distance(targetInfo.position, targetInfo.projectedTargetPosition);
                     targetInfo.distanceToCastOrigin = Vector3.Distance(rayLocation, targetInfo.projectedTargetPosition);
+                    targetInfo.GeoInfoHashCode = geoInfoAsTarget.GetHashCode();
                     targetInfos.Add(targetInfo);
                     return targetInfos;
                 }

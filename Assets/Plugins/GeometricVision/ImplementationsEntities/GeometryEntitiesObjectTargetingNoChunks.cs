@@ -1,7 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using Plugins.GeometricVision.EntityScripts;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
@@ -9,7 +7,7 @@ using Unity.Mathematics;
 using Unity.Transforms;
 using UnityEngine;
 
-namespace Plugins.GeometricVision.Interfaces.ImplementationsEntities
+namespace Plugins.GeometricVision.ImplementationsEntities
 {
     /// <inheritdoc />
     [DisableAutoCreation]

@@ -1,24 +1,21 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using Plugins.GeometricVision.EntityScripts;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Jobs;
-using Unity.Mathematics;
 using Unity.Transforms;
 using UnityEngine;
 
-namespace Plugins.GeometricVision.Interfaces.ImplementationsEntities
+namespace Plugins.GeometricVision.ImplementationsEntities
 {
     /// <inheritdoc />
     [DisableAutoCreation]
     [AlwaysUpdateSystem]
     public class GeometryEntitiesObjectTargeting : SystemBase, IGeoTargeting
     {
-        private BeginInitializationEntityCommandBufferSystem m_EntityCommandBufferSystem;
-        private EntityQuery entityQuery = new EntityQuery();
+        private BeginInitializationEntityCommandBufferSystem entityCommandBufferSystem;
+        private EntityQuery entityQuery;
         private GeometryVision geoVision;
         Vector3 rayLocation = Vector3.zero;
         Vector3 rayDirectionWS = Vector3.zero;
@@ -27,36 +24,21 @@ namespace Plugins.GeometricVision.Interfaces.ImplementationsEntities
         protected override void OnCreate()
         {
             // Cache the BeginInitializationEntityCommandBufferSystem in a field, so we don't have to create it every frame
-            m_EntityCommandBufferSystem = World.GetOrCreateSystem<BeginInitializationEntityCommandBufferSystem>();
-            
+            entityCommandBufferSystem = World.GetOrCreateSystem<BeginInitializationEntityCommandBufferSystem>();
         }
 
 
         protected override void OnUpdate()
         {
-            
-            entityQuery = GetEntityQuery(
-                ComponentType.ReadOnly<GeometryDataModels.Target>()
-            );
             Vector3 rayDirWS = rayDirectionWS;
             Vector3 rayLocWS = rayLocation;
             
-            entityQuery = GetEntityQuery(
-                ComponentType.ReadOnly<GeometryDataModels.Target>()
-            );
             
-            
-            entityQuery = GetEntityQuery(typeof(Translation),typeof(GeometryDataModels.Target) );
+            entityQuery = GetEntityQuery(typeof(Translation), typeof(GeometryDataModels.Target));
 
-
-
-
-            var currentObjectCount = entityQuery.CalculateEntityCountWithoutFiltering();
-
-            var job2 = new GetTargetsFromChunk()
+            var job2 = new GetTargetsInParallel()
             {
-                targets  = entityQuery.ToComponentDataArray<GeometryDataModels.Target>(Allocator.Temp),
-                translations = entityQuery.ToComponentDataArray<Translation>(Allocator.Temp),
+                targets = entityQuery.ToComponentDataArray<GeometryDataModels.Target>(Allocator.Temp),
                 rayDirWS = rayDirectionWS,
                 rayLocWS = rayLocation
             };
@@ -65,34 +47,31 @@ namespace Plugins.GeometricVision.Interfaces.ImplementationsEntities
             NativeArray<GeometryDataModels.Target> targets = job2.targets;
 
             //Wait for job completion
-            m_EntityCommandBufferSystem.AddJobHandleForProducer(Dependency);
-            UnityEngine.Debug.Log("targets: " + targets.Length);
+            entityCommandBufferSystem.AddJobHandleForProducer(Dependency);
             sharedTargets = targets.ToList();
             targets.Dispose();
         }
-        
-        [BurstCompile]
-        public struct GetTargetsFromChunk : IJobParallelFor
-        {
-            [System.ComponentModel.ReadOnly(true)]
-            public NativeArray<GeometryDataModels.Target> targets;
 
-            [System.ComponentModel.ReadOnly(true)] public NativeArray<Translation> translations;
+        [BurstCompile]
+        public struct GetTargetsInParallel : IJobParallelFor
+        {
+            [System.ComponentModel.ReadOnly(true)] public NativeArray<GeometryDataModels.Target> targets;
+
             internal Vector3 rayDirWS;
             internal Vector3 rayLocWS;
 
             public void Execute(int i)
             {
                 GeometryDataModels.Target target = targets[i];
-                Vector3 targetLocation =  target.position;
+                Vector3 targetLocation = target.position;
                 Vector3 rayDirection = rayDirWS;
                 Vector3 rayDirectionEndPoint = rayDirWS;
                 targetLocation = pointToRaySpace(rayLocWS, targetLocation);
                 rayDirectionEndPoint = pointToRaySpace(rayLocWS, rayDirection);
 
-                Vector3 pointToRaySpace(Vector3 rayLocation, Vector3 target2)
+                Vector3 pointToRaySpace(Vector3 rayLocation, Vector3 point)
                 {
-                    return target2 - rayLocation;
+                    return point - rayLocation;
                 }
 
 
@@ -124,23 +103,6 @@ namespace Plugins.GeometricVision.Interfaces.ImplementationsEntities
 
         const float kEpisilon = 1.17549435E-38f;
 
-        public static float3 Project2(float3 vector, float3 onNormal)
-        {
-            float3 result;
-
-            float sqrMag = math.dot(onNormal, onNormal);
-            if (sqrMag < kEpisilon)
-                result = float3.zero;
-            else
-                result = onNormal * math.dot(vector, onNormal) / sqrMag;
-
-            return result;
-        }
-
-        public void Debug(GeometryVision geoVisions)
-        {
-        }
-
         public GeometryVision GeoVision
         {
             get { return geoVision; }
@@ -154,8 +116,9 @@ namespace Plugins.GeometricVision.Interfaces.ImplementationsEntities
             this.rayDirectionWS = rayDirectionWS;
             Update();
             sharedTargets.OrderBy(target => target.distanceToRay).ToList();
-      //      UnityEngine.Debug.Log(sharedTargets.Count);
-            if (sharedTargets.Count > 0 &&  sharedTargets[0].distanceToRay == 0 && sharedTargets[0].distanceToCastOrigin == 0)
+            //      UnityEngine.Debug.Log(sharedTargets.Count);
+            if (sharedTargets.Count > 0 && sharedTargets[0].distanceToRay == 0 &&
+                sharedTargets[0].distanceToCastOrigin == 0)
             {
                 sharedTargets = new List<GeometryDataModels.Target>();
             }

@@ -81,15 +81,15 @@ namespace Plugins.GeometricVision
             {
                 if (geoType == GeometryType.Lines)
                 {
-                    geoVision.TargetingInstructions.Add(new VisionTarget(GeometryType.Lines,layerIndex,new GeometryLineTargeting(), settings.defaultTargeting));
+                    geoVision.TargetingInstructions.Add(new VisionTarget(GeometryType.Lines,"",new GeometryLineTargeting(), settings.defaultTargeting));
                 }                
                 if (geoType == GeometryType.Objects)
                 {
-                    geoVision.TargetingInstructions.Add(new VisionTarget(GeometryType.Objects,layerIndex,new GeometryObjectTargeting(), settings.defaultTargeting));
+                    geoVision.TargetingInstructions.Add(new VisionTarget(GeometryType.Objects,"",new GeometryObjectTargeting(), settings.defaultTargeting));
                 }
                 if (geoType == GeometryType.Vertices)
                 {
-                    geoVision.TargetingInstructions.Add(new VisionTarget(GeometryType.Vertices,layerIndex,new GeometryVertexTargeting(), settings.defaultTargeting));
+                    geoVision.TargetingInstructions.Add(new VisionTarget(GeometryType.Vertices,"",new GeometryVertexTargeting(), settings.defaultTargeting));
                 }
             }
         }

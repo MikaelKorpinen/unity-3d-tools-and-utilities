@@ -1,0 +1,33 @@
+{
+    "name": "ObjectPick",
+    "maps": [
+        {
+            "name": "Player",
+            "id": "052784fc-eaa6-4aca-a686-7c5180586063",
+            "actions": [
+                {
+                    "name": "Pick",
+                    "type": "Button",
+                    "id": "be666431-d01c-4e55-b721-c72c7c0d9c2e",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": ""
+                }
+            ],
+            "bindings": [
+                {
+                    "name": "",
+                    "id": "d8ace537-9bfd-410d-a9c6-b4a0d9047972",
+                    "path": "<Mouse>/leftButton",
+                    "interactions": "Press",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Pick",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                }
+            ]
+        }
+    ],
+    "controlSchemes": []
+}

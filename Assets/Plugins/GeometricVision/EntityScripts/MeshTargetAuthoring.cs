@@ -12,9 +12,8 @@ using UnityEngine;
 
 namespace Plugins.GeometricVision.EntityScripts
 {
-    class MeshRenderingAuthoring : MonoBehaviour, IConvertGameObjectToEntity
+    class MeshTargetAuthoring : MonoBehaviour, IConvertGameObjectToEntity
     {
-        public Color Color = Color.white;
         public bool UseColliderMeshInsteadOfRendererMesh = false;
 
         public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem)
@@ -32,7 +31,6 @@ namespace Plugins.GeometricVision.EntityScripts
             }
 
             GeometryDataModels.Edge[] edges = new GeometryDataModels.Edge[1];
-            // ... Or be an asset that is being referenced.
             dstManager.AddBuffer<GeometryDataModelsEntities.EdgesBuffer>(entity);
             dstManager.AddBuffer<GeometryDataModelsEntities.VerticesBuffer>(entity);
             dstManager.AddBuffer<GeometryDataModelsEntities.TrianglesBuffer>(entity);
@@ -81,6 +79,8 @@ namespace Plugins.GeometricVision.EntityScripts
                 projectedTargetPosition = Vector3.zero,
                 distanceToRay = 0,
                 distanceToCastOrigin = 0,
+                entityId = entity.Index,
+                entityVersion = entity.Version
             };
             dstManager.AddComponentData(entity, targetData);
 
