@@ -34,7 +34,6 @@ namespace Plugins.GeometricVision.Examples.ObjectPicking
 
         void Pick()
         {
-            Debug.Log("pick " + geoVision.GetClosestTarget(false));
             if (Vector3.Distance(this.transform.position, geoVision.GetClosestTarget(false).position) < maxDistance)
             {
                 geoVision.MoveClosestTarget(transform.position, 0.5f);

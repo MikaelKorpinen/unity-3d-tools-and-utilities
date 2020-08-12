@@ -360,7 +360,7 @@ namespace Plugins.GeometricVision
                 {
                     transformEntitySystem = entityWorld.CreateSystem<TransformEntitySystem>();
                 }
-                StartCoroutine(moveEntityTarget(transformEntitySystem,closestTarget, newPosition, movementSpeed, closestTarget));
+                StartCoroutine(moveEntityTarget(transformEntitySystem, newPosition, movementSpeed, closestTarget));
                 
             }
             else
@@ -389,15 +389,12 @@ namespace Plugins.GeometricVision
                 yield return new WaitForSeconds(Time.deltaTime* 0.1f);
             }
         }
-        private IEnumerator moveEntityTarget(TransformEntitySystem transformEntitySystem, GeometryDataModels.Target position,
-            Vector3 newPosition, float speedMultiplier, GeometryDataModels.Target target)
+        private IEnumerator moveEntityTarget(TransformEntitySystem transformEntitySystem, Vector3 newPosition, float speedMultiplier, GeometryDataModels.Target target)
         {
             float timeOut = 10f;
-            transformEntitySystem.InitLookForEntity = true;
             while (Vector3.Distance(target.position, newPosition) > 0.1)
             {
-                var animatedPoint = transformEntitySystem.MoveEntityToPosition(closestTarget.entityId, closestTarget.entityVersion,
-                    newPosition, ref closestTarget, speedMultiplier);
+                var animatedPoint = transformEntitySystem.MoveEntityToPosition(newPosition, ref closestTarget, speedMultiplier);
         
                 target.position = animatedPoint;
 
@@ -412,11 +409,6 @@ namespace Plugins.GeometricVision
             }
         }
         
-        private IEnumerator moveTarget()
-        {
-            yield return null;
-        }
-
         private void RotateClosestTarget(Quaternion newRotation)
         {
             var closestTarget = closestTargets[0];
