@@ -38,6 +38,50 @@ public class @ObjectPick : IInputActionCollection, IDisposable
                     ""action"": ""Pick"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""a66fc46b-b715-4195-ab40-074beac9a627"",
+                    ""path"": ""<ViveWand>{RightHand}/triggerPressed"",
+                    ""interactions"": ""Press"",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Pick"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""f58bc805-e7b5-451c-b0fd-0bc175b3e5c4"",
+                    ""path"": ""<ViveWand>/triggerPressed"",
+                    ""interactions"": ""Press"",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Pick"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""79a7b7a0-75fc-4cd7-b3dd-2b5a468f3e46"",
+                    ""path"": ""<XRController>{RightHand}/triggerPressed"",
+                    ""interactions"": ""Press"",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Pick"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""fb4c968d-7a20-4205-8dce-4a64bfb59500"",
+                    ""path"": ""<ViveWand>{RightHand}/gripButton"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Pick"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
                 }
             ]
         }

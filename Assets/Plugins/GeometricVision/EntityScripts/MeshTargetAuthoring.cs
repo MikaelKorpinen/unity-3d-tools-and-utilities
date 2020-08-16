@@ -79,8 +79,7 @@ namespace Plugins.GeometricVision.EntityScripts
                 projectedTargetPosition = Vector3.zero,
                 distanceToRay = 0,
                 distanceToCastOrigin = 0,
-                entityId = entity.Index,
-                entityVersion = entity.Version
+                entity = entity
             };
             dstManager.AddComponentData(entity, targetData);
 

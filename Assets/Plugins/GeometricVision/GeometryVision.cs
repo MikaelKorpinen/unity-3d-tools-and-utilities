@@ -290,7 +290,11 @@ namespace Plugins.GeometricVision
                     {
                         RemoveEntityProcessors();
                         DisableEntityCameras();
-                        entityWorld.DestroySystem(transformEntitySystem);
+                        if (entityWorld.GetExistingSystem<TransformEntitySystem>() != null)
+                        {
+                            entityWorld.DestroySystem(transformEntitySystem);
+                        }
+
                         transformEntitySystem = null;
 
                         foreach (var targetinginstruction in targetingInstructions)
@@ -347,10 +351,14 @@ namespace Plugins.GeometricVision
 
             return closestTarget;
         }
-
+        
+        /// <summary>
+        /// Move entity or closest target
+        /// </summary>
+        /// <param name="newPosition"></param>
+        /// <param name="speedMultiplier"></param>
         public void MoveClosestTarget(Vector3 newPosition, float speedMultiplier)
         {
-            
             var closestTarget = closestTargets[0];
             float speedHoldUp = 0.05f;//Needs to offset speed otherwise its too fast
             float movementSpeed = (closestTarget.distanceToCastOrigin * Time.deltaTime * speedHoldUp) * speedMultiplier;
@@ -361,12 +369,10 @@ namespace Plugins.GeometricVision
                     transformEntitySystem = entityWorld.CreateSystem<TransformEntitySystem>();
                 }
                 StartCoroutine(moveEntityTarget(transformEntitySystem, newPosition, movementSpeed, closestTarget));
-                
             }
             else
             {
-                var geoInfo =
-                    Head.GeoMemory.GeoInfos.FirstOrDefault(info => info.GetHashCode() == closestTarget.GeoInfoHashCode);
+                var geoInfo = Head.GeoMemory.GeoInfos.FirstOrDefault(info => info.GetHashCode() == closestTarget.GeoInfoHashCode);
                 StartCoroutine(moveTarget(geoInfo.transform, newPosition, movementSpeed));
             }
         }
@@ -389,6 +395,7 @@ namespace Plugins.GeometricVision
                 yield return new WaitForSeconds(Time.deltaTime* 0.1f);
             }
         }
+        
         private IEnumerator moveEntityTarget(TransformEntitySystem transformEntitySystem, Vector3 newPosition, float speedMultiplier, GeometryDataModels.Target target)
         {
             float timeOut = 10f;
@@ -409,17 +416,6 @@ namespace Plugins.GeometricVision
             }
         }
         
-        private void RotateClosestTarget(Quaternion newRotation)
-        {
-            var closestTarget = closestTargets[0];
-            if (closestTarget.isEntity)
-            {
-            }
-            else
-            {
-            }
-        }
-
         private void InitGeometryProcessorForEntities(bool toEntities, World world)
         {
             RemoveEntityProcessors();
@@ -432,7 +428,7 @@ namespace Plugins.GeometricVision
             addedProcessor.Update();
         }
 
-        private void InitGeometryCameraForEntities( World world)
+        private void InitGeometryCameraForEntities(World world)
         {
             DisableEntityCameras();
             world.CreateSystem<GeometryVisionEntityEye>();
@@ -494,7 +490,8 @@ namespace Plugins.GeometricVision
                 });
                 targetingInstruction.Subscribed = true;
             }
-
+            
+            //Creates default template scriptable object that can hold actions on what to do when targeting
             void AssignActionsForTargeting(int indexOf)
             {
                 if (targetingInstruction.targetingActions == null)
@@ -504,7 +501,7 @@ namespace Plugins.GeometricVision
                     targetingInstruction.targetingActions = newActions;
                 }
             }
-
+            //RemoveDefaultTargeting for both game objects and entities
             void AddDefaultTargeting(
                 GeometryTargetingSystemsContainer geometryTargetingSystemsContainer)
             {
@@ -519,11 +516,10 @@ namespace Plugins.GeometricVision
                         (IGeoTargeting) targetingInstruction.TargetingSystemEntities);
                 }
             }
-
+            //RemoveDefaultTargeting for both game objects and entities
             void RemoveDefaultTargeting(
                 GeometryTargetingSystemsContainer geometryTargetingSystemsContainer)
             {
-                //Do the same thing here
                 if (gameObjectProcessing.Value == true)
                 {
                     geometryTargetingSystemsContainer.RemoveTargetingProgram(targetingInstruction
@@ -808,6 +804,8 @@ namespace Plugins.GeometricVision
             get { return fieldOfView; }
             set { fieldOfView = value; }
         }
+
+        public bool TargetsAreStatic { get; set; }
 
         public List<GeometryDataModels.Target> GetClosestTargets(List<GeometryDataModels.GeoInfo> GeoInfos)
         {

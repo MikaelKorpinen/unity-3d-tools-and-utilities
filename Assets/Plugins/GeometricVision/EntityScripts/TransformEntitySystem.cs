@@ -21,14 +21,6 @@ namespace Plugins.GeometricVision.EntityScripts
         private float speedMultiplier;
         private NativeArray<bool> moveEntityDone;
         
-        protected override void OnDestroy()
-        {
-            
-            target.Dispose();
-            entityToMove.Dispose();
-            moveEntityDone.Dispose();
-        }
-
 
         protected override void OnUpdate()
         {

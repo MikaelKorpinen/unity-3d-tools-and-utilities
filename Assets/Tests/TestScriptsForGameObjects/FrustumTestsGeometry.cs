@@ -35,9 +35,9 @@ namespace Tests
         }
 
         [UnityTest, Performance, Version(version)]
-        [Timeout(TestSettings.defaultSmallTest)]
-        [PrebuildSetup(typeof(SceneBuildSettingsSetupBeforeTestsGameObjects))]
-        public IEnumerator ObjectWithRendererIsPickedIfInsideFrustum([ValueSource(typeof(TestUtilities), nameof(TestUtilities.GetScenesForGameObjectsFromPath))] string scenePath)
+        [Timeout(TestSettings.DefaultSmallTest)]
+        [PrebuildSetup(typeof(SceneBuildSettingsSetupForGameObjects))]
+        public IEnumerator ObjectWithRendererIsPickedIfInsideFrustum([ValueSource(typeof(TestUtilities), nameof(TestUtilities.GetSimpleTestScenePathsForGameObjects))] string scenePath)
         {
             TestUtilities.SetupScene(scenePath);
             for (int i = 0; i < 50; i++)
@@ -54,10 +54,10 @@ namespace Tests
         }
 
         [UnityTest, Performance, Version(version)]
-        [Timeout(TestSettings.defaultSmallTest)]
-        [PrebuildSetup(typeof(SceneBuildSettingsSetupBeforeTestsGameObjects))]
+        [Timeout(TestSettings.DefaultSmallTest)]
+        [PrebuildSetup(typeof(SceneBuildSettingsSetupForGameObjects))]
         public IEnumerator ObjectWithRendererIsRemovedAndAddedBackIfOutsideFrustum(
-            [ValueSource(typeof(TestUtilities), nameof(TestUtilities.GetScenesForGameObjectsFromPath))] string scenePath)
+            [ValueSource(typeof(TestUtilities), nameof(TestUtilities.GetSimpleTestScenePathsForGameObjects))] string scenePath)
         {
             TestUtilities.SetupScene(scenePath);
             for (int i = 0; i < 50; i++)
@@ -86,10 +86,10 @@ namespace Tests
         }
 
         [UnityTest, Performance, Version(version)]
-        [Timeout(TestSettings.defaultSmallTest)]
-        [PrebuildSetup(typeof(SceneBuildSettingsSetupBeforeTestsGameObjects))]
+        [Timeout(TestSettings.DefaultSmallTest)]
+        [PrebuildSetup(typeof(SceneBuildSettingsSetupForGameObjects))]
         public IEnumerator ObjectWithRendererIsRemovedIfOutsideFrustum(
-            [ValueSource(typeof(TestUtilities), nameof(TestUtilities.GetScenesForGameObjectsFromPath))] string scenePath)
+            [ValueSource(typeof(TestUtilities), nameof(TestUtilities.GetSimpleTestScenePathsForGameObjects))] string scenePath)
         {
             int expectedObjectCount = 0;
             TestUtilities.SetupScene(scenePath);

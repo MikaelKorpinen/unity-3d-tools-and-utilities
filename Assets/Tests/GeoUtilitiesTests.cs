@@ -34,9 +34,9 @@ namespace Tests
         }
 
         [UnityTest, Performance, Version(TestSettings.Version)]
-        [Timeout(TestSettings.defaultPerformanceTests)]
-        [PrebuildSetup(typeof(SceneBuildSettingsSetupBeforeTestsGameObjects))]
-        public IEnumerator GetEdgesOnCubeReturns18Edges([ValueSource(typeof(TestUtilities), nameof(TestUtilities.GetScenesForGameObjectsFromPath))]
+        [Timeout(TestSettings.DefaultPerformanceTests)]
+        [PrebuildSetup(typeof(SceneBuildSettingsSetupForGameObjects))]
+        public IEnumerator GetEdgesOnCubeReturns18Edges([ValueSource(typeof(TestUtilities), nameof(TestUtilities.GetSimpleTestScenePathsForGameObjects))]
             string scenePath)
         {
             int expectedEdgeCount = 12 + 6; //corner edges + triangulated edges
@@ -61,9 +61,9 @@ namespace Tests
         }
 
         [UnityTest, Performance, Version(TestSettings.Version)]
-        [Timeout(TestSettings.defaultPerformanceTests)]
-        [PrebuildSetup(typeof(SceneBuildSettingsSetupBeforeTestsGameObjects))]
-        public IEnumerator NoResultIfNoGeometryTargeted([ValueSource(typeof(TestUtilities), nameof(TestUtilities.GetScenesForGameObjectsFromPath))]
+        [Timeout(TestSettings.DefaultPerformanceTests)]
+        [PrebuildSetup(typeof(SceneBuildSettingsSetupForGameObjects))]
+        public IEnumerator NoResultIfNoGeometryTargeted([ValueSource(typeof(TestUtilities), nameof(TestUtilities.GetSimpleTestScenePathsForGameObjects))]
             string scenePath)
         {
             TestUtilities.SetupScene(scenePath);
@@ -96,10 +96,10 @@ namespace Tests
         }
 
         [UnityTest, Performance, Version(TestSettings.Version)]
-        [Timeout(TestSettings.defaultPerformanceTests)]
-        [PrebuildSetup(typeof(SceneBuildSettingsSetupBeforeTestsGameObjects))]
+        [Timeout(TestSettings.DefaultPerformanceTests)]
+        [PrebuildSetup(typeof(SceneBuildSettingsSetupForGameObjects))]
         public IEnumerator GetEdgesOnPartiallyVisibleCubeReturnsRightAmountOfEdges(
-            [ValueSource(typeof(TestUtilities), nameof(TestUtilities.GetScenesForGameObjectsFromPath))]
+            [ValueSource(typeof(TestUtilities), nameof(TestUtilities.GetSimpleTestScenePathsForGameObjects))]
             string scenePath)
         {
             TestUtilities.SetupScene(scenePath);
@@ -134,10 +134,10 @@ namespace Tests
         }
 
         [UnityTest, Performance, Version(TestSettings.Version)]
-        [Timeout(TestSettings.defaultPerformanceTests)]
-        [PrebuildSetup(typeof(SceneBuildSettingsSetupBeforeTestsGameObjects))]
+        [Timeout(TestSettings.DefaultPerformanceTests)]
+        [PrebuildSetup(typeof(SceneBuildSettingsSetupForGameObjects))]
         public IEnumerator GetEdgesOnPartiallyVisibleCubeReturns3EdgesMultiThreaded(
-            [ValueSource(typeof(TestUtilities), nameof(TestUtilities.GetScenesForGameObjectsFromPath))]
+            [ValueSource(typeof(TestUtilities), nameof(TestUtilities.GetSimpleTestScenePathsForGameObjects))]
             string scenePath)
         {
             TestUtilities.SetupScene(scenePath);
@@ -166,10 +166,10 @@ namespace Tests
         }
 
         [UnityTest, Performance, Version(TestSettings.Version)]
-        [Timeout(TestSettings.defaultPerformanceTests)]
-        [PrebuildSetup(typeof(SceneBuildSettingsSetupBeforeTestsGameObjects))]
+        [Timeout(TestSettings.DefaultPerformanceTests)]
+        [PrebuildSetup(typeof(SceneBuildSettingsSetupForGameObjects))]
         public IEnumerator CubeReturnsCorrectEdgesWhenMovingCameraBackAndForth(
-            [ValueSource(typeof(TestUtilities), nameof(TestUtilities.GetScenesForGameObjectsFromPath))]
+            [ValueSource(typeof(TestUtilities), nameof(TestUtilities.GetSimpleTestScenePathsForGameObjects))]
             string scenePath)
         {
             TestUtilities.SetupScene(scenePath);

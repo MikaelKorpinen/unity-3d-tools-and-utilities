@@ -27,12 +27,12 @@ namespace Plugins.GeometricVision
         //See UI/VisionTypeDrawer.cs
         //It is not visible on the inspector but removing serialization makes it un findable
         [SerializeField] private bool isTargetActionsTemplateSlotVisible;
-        [SerializeField,  Tooltip("Choose what layer from unity layers settings to use")] private string targetTag = "";
+        [SerializeField,  Tooltip("Choose what tag from unity tags settings to use")] private string targetTag = "";
         public bool Subscribed { get; set; }
         public ActionsTemplateObject targetingActions;
         //GeometryVision plugin needs to be able to target both GameObjects and Entities at the same time
-        private IGeoTargeting targetingSystemGameObjects = null;//TODO:consider: remove these
-        private IGeoTargeting targetingSystemEntities = null;//TODO:same
+        private IGeoTargeting targetingSystemGameObjects = null; //TODO:consider: remove these
+        private IGeoTargeting targetingSystemEntities = null; //TODO:same
         
         /// <summary>
         /// Constructor for the GeometryVision target object

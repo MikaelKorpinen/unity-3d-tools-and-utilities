@@ -33,9 +33,9 @@ namespace Tests
         }
 
         [UnityTest, Performance, Version(TestSettings.Version)]
-        [Timeout(TestSettings.defaultPerformanceTests)]
-        [PrebuildSetup(typeof(SceneBuildSettingsSetupBeforeTestsGameObjects))]
-        public IEnumerator SceneObjectCountMatchesTheCountedValue([ValueSource(typeof(TestUtilities), nameof(TestUtilities.GetScenesForGameObjectsFromPath))] string scenePath)
+        [Timeout(TestSettings.DefaultPerformanceTests)]
+        [PrebuildSetup(typeof(SceneBuildSettingsSetupForGameObjects))]
+        public IEnumerator SceneObjectCountMatchesTheCountedValue([ValueSource(typeof(TestUtilities), nameof(TestUtilities.GetSimpleTestScenePathsForGameObjects))] string scenePath)
         {
             TestUtilities.SetupScene(scenePath);
             for (int i = 0; i < 50; i++)
@@ -54,9 +54,9 @@ namespace Tests
         }
 
         [UnityTest, Performance, Version(version)]
-        [Timeout(TestSettings.defaultPerformanceTests)]
-        [PrebuildSetup(typeof(SceneBuildSettingsSetupBeforeTestsGameObjects))]
-        public IEnumerator SceneObjectCountMatchesTheCountedValueWithUnityFindObjects([ValueSource(typeof(TestUtilities), nameof(TestUtilities.GetScenesForGameObjectsFromPath))] string scenePath)
+        [Timeout(TestSettings.DefaultPerformanceTests)]
+        [PrebuildSetup(typeof(SceneBuildSettingsSetupForGameObjects))]
+        public IEnumerator SceneObjectCountMatchesTheCountedValueWithUnityFindObjects([ValueSource(typeof(TestUtilities), nameof(TestUtilities.GetSimpleTestScenePathsForGameObjects))] string scenePath)
         {
             TestUtilities.SetupScene(scenePath);
             for (int i = 0; i < 50; i++)
@@ -73,10 +73,10 @@ namespace Tests
         }
 
         [UnityTest, Performance, Version(version)]
-        [Timeout(TestSettings.defaultPerformanceTests)]
-        [PrebuildSetup(typeof(SceneBuildSettingsSetupBeforeTestsGameObjects))]
+        [Timeout(TestSettings.DefaultPerformanceTests)]
+        [PrebuildSetup(typeof(SceneBuildSettingsSetupForGameObjects))]
         public IEnumerator SceneObjectCountMatchesTheCountedValueWithUnityFindTransformsInChildren(
-            [ValueSource(typeof(TestUtilities), nameof(TestUtilities.GetScenesForGameObjectsFromPath))] string scenePath)
+            [ValueSource(typeof(TestUtilities), nameof(TestUtilities.GetSimpleTestScenePathsForGameObjects))] string scenePath)
         {
             TestUtilities.SetupBuildSettings(scenePath);
             TestUtilities.SetupScene(scenePath);
@@ -103,9 +103,9 @@ namespace Tests
         }
 
         [UnityTest, Performance, Version(version)]
-        [Timeout(TestSettings.defaultPerformanceTests)]
-        [PrebuildSetup(typeof(SceneBuildSettingsSetupBeforeTestsGameObjects))]
-        public IEnumerator GetTransformReturnsCorrectAmountOfObjects([ValueSource(typeof(TestUtilities), nameof(TestUtilities.GetScenesForGameObjectsFromPath))] string scenePath)
+        [Timeout(TestSettings.DefaultPerformanceTests)]
+        [PrebuildSetup(typeof(SceneBuildSettingsSetupForGameObjects))]
+        public IEnumerator GetTransformReturnsCorrectAmountOfObjects([ValueSource(typeof(TestUtilities), nameof(TestUtilities.GetSimpleTestScenePathsForGameObjects))] string scenePath)
         {
             TestUtilities.SetupScene(scenePath);
             for (int i = 0; i < 50; i++)

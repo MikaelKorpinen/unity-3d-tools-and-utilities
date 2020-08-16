@@ -55,9 +55,23 @@ public static class TestUtilities
     /// Usage: Used as parameter in tests. See written tests and ValueSource from docs
     /// </summary>
     /// <returns></returns>
-    public static IEnumerable GetScenesForGameObjectsFromPath()
+    public static IEnumerable GetSimpleTestScenePathsForGameObjects()
     {
-        var testSceneFolderInAssetsFolder = "Tests/TestScenes/";
+        var testSceneFolderInAssetsFolder = TestSettings.GameObjectsSimpleTestsPath;
+        var sceneFolderPath = Application.dataPath + "/" + testSceneFolderInAssetsFolder;
+        List<string> scenePaths = GetSceneFilePaths(sceneFolderPath, testSceneFolderInAssetsFolder).ToList();
+
+        return scenePaths;
+    }
+    
+    /// <summary>
+    /// Gets scene paths for GameObject tests.
+    /// Usage: Used as parameter in tests. See written tests and ValueSource from docs
+    /// </summary>
+    /// <returns></returns>
+    public static IEnumerable GetTargetingTestScenePathsForGameObjects()
+    {
+        var testSceneFolderInAssetsFolder = TestSettings.GameObjectsTargetingTests;
         var sceneFolderPath = Application.dataPath + "/" + testSceneFolderInAssetsFolder;
         List<string> scenePaths = GetSceneFilePaths(sceneFolderPath, testSceneFolderInAssetsFolder).ToList();
 
@@ -69,15 +83,29 @@ public static class TestUtilities
     /// Usage: Used as parameter in tests. See written tests and ValueSource from docs
     /// </summary>
     /// <returns></returns>
-    public static IEnumerable GetScenesForEntitiesFromPath()
+    public static IEnumerable GetSimpleTestScenePathsForEntities()
     {
-        var testSceneFolderInAssetsFolder = "Tests/TestScenesEntities/";
+        var testSceneFolderInAssetsFolder = TestSettings.EntitiesSimpleTestsPath;
         var sceneFolderPath = Application.dataPath + "/" + testSceneFolderInAssetsFolder;
         List<string> scenePaths = GetSceneFilePaths(sceneFolderPath, testSceneFolderInAssetsFolder).ToList();
 
         return scenePaths;
-        
     }
+        
+    /// <summary>
+    /// Gets scene paths for entity tests.
+    /// Usage: Used as parameter in tests. See written tests and ValueSource from docs
+    /// </summary>
+    /// <returns></returns>
+    public static IEnumerable GetTargetingTestScenePathsForEntities()
+    {
+        var testSceneFolderInAssetsFolder = TestSettings.EntitiesTargetingTests;
+        var sceneFolderPath = Application.dataPath + "/" + testSceneFolderInAssetsFolder;
+        List<string> scenePaths = GetSceneFilePaths(sceneFolderPath, testSceneFolderInAssetsFolder).ToList();
+
+        return scenePaths;
+    }
+    
     public static string[] GetSceneFilePaths(string sceneFolderPath, string testSceneFolder)
     {
         DirectoryInfo d = new DirectoryInfo(@sceneFolderPath);
@@ -91,6 +119,7 @@ public static class TestUtilities
 
         return scenePaths2;
     }
+    
     internal static List<string> CreateScenePathFromRelativeAddress(string relativeFolder)
     {
         var sceneFolderPath = Application.dataPath + "/" + relativeFolder;

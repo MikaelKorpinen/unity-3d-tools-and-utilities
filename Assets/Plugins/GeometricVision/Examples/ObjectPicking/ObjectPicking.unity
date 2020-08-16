@@ -1406,7 +1406,7 @@ MonoBehaviour:
   entityBasedProcessing:
     value: 1
   gameObjectProcessing:
-    value: 0
+    value: 1
 --- !u!4 &1789909964
 Transform:
   m_ObjectHideFlags: 0

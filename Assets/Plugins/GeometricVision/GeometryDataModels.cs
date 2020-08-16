@@ -46,10 +46,10 @@ namespace Plugins.GeometricVision
             public float distanceToRay;
             public float distanceToCastOrigin;
             public bool isEntity;
-            public int entityId;
             public int GeoInfoHashCode;
-            public int entityVersion;
             public Entity entity;
+            public bool isBehind;
+
             public IEnumerator GetEnumerator()
             {
                 throw new System.NotImplementedException();

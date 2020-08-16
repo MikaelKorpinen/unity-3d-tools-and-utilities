@@ -101,54 +101,6 @@ namespace Plugins.GeometricVision.Interfaces.ImplementationsEntities
                     linesTargeted = true;
                 }
             }
-
-            /*
-            GeometryDataModels.Edge edge = new GeometryDataModels.Edge();
-            Entities
-                .WithStoreEntityQueryInField(ref query)
-                .WithName("GeoInfoVisibility_Checks")
-                .WithBurst(FloatMode.Default, FloatPrecision.Standard, true)
-                .ForEach((ref Translation translation, ref GeometryDataModelsEntities.Visible visible, ref Entity entity,
-                    in GeometryDataModelsEntities.GeoInfoEntityComponent geoInfo) =>
-                {
-                    //   float deltaTime = Time.DeltaTime;
-
-                    if (objectsTargeted)
-                    {
-                        if (IsInsideFrustum(translation.Value, planes2))
-                        {
-                            visible.IsVisible = GeometryDataModels.Boolean.True;
-                        }
-                    }
-
-                    if (linesTargeted)
-                    {
-                        var edgeBuffer = geoInfo.Edges;
-
-                        for (var index = 0; index < edgeBuffer.Length; index++)
-                        {
-                            var edgeBuf = edgeBuffer[index];
-                            if (IsInsideFrustum(edgeBuffer[index], planes2))
-                            {
-                                edgeBuf.isVisible = True;
-                            }
-                            else
-                            {
-                                edgeBuf.isVisible = False;
-                            }
-
-                            edgeBuffer[index] = edge;
-                        }
-
-                        //  MeshUtilities.UpdateEdgesVisibility(planes2, edgeBuffer);
-                    }
-
-
-                    //    ProcessTargetedGeometriesVisibility(entity, translation, visible);
-                })
-                .ScheduleParallel();
-                */
-
             lastCount = query.CalculateEntityCount();
         }
 

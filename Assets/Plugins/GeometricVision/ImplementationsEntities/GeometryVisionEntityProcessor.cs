@@ -24,7 +24,6 @@ namespace Plugins.GeometricVision.Interfaces.ImplementationsEntities
         private BeginInitializationEntityCommandBufferSystem m_EntityCommandBufferSystem;
         [System.ComponentModel.ReadOnly(true)] public EntityCommandBuffer.Concurrent ConcurrentCommands;
         private int currentObjectCount;
-        private List<VisionTarget> _targetedGeometries = new List<VisionTarget>();
         private GeometryVision geoVision;
         private EntityQuery entityQuery = new EntityQuery();
         private EntityManager entityManager;
@@ -41,8 +40,6 @@ namespace Plugins.GeometricVision.Interfaces.ImplementationsEntities
         {
 
             var commandBuffer = m_EntityCommandBufferSystem.CreateCommandBuffer().ToConcurrent();
-            var localEntityManager = entityManager;
-
 
             EntityQuery entitiesWithoutTargetComponent = GetEntityQuery(
                 new EntityQueryDesc()
@@ -103,8 +100,6 @@ namespace Plugins.GeometricVision.Interfaces.ImplementationsEntities
                 GeometryDataModels.Target target = targets[index];
                 target.position = translations[index].Value;
                 target.isEntity = true;
-                target.entityId = entities[index].Index;
-                target.entityVersion = entities[index].Version;
                 target.entity = entities[index];
                 targets[index] = target;
                 
@@ -146,13 +141,18 @@ namespace Plugins.GeometricVision.Interfaces.ImplementationsEntities
         /// </summary>
         public void CheckSceneChanges(GeometryVision geoVision)
         {
+
             Update();
             this.GeoVision = geoVision;
-            if (currentObjectCount != lastCount)
+            if (currentObjectCount != lastCount && geoVision.TargetsAreStatic)
             {
                 lastCount = currentObjectCount;
                 extractGeometry = true;
-                _targetedGeometries = geoVision.TargetingInstructions;
+            }
+
+            if (geoVision.TargetsAreStatic == false)
+            {
+                extractGeometry = true;
             }
         }
 

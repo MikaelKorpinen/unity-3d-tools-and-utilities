@@ -44,7 +44,6 @@ namespace Plugins.GeometricVision.EntityScripts
             // Since this job only runs on the first frame, we want to ensure Burst compiles it before running to get the best performance (3rd parameter of WithBurst)
             // The actual job will be cached once it is compiled (it will only get Burst compiled once).
             Entities
-                .WithName("SpawnerSystem_SpawnAndRemove")
                 .WithBurst(FloatMode.Default, FloatPrecision.Standard, true)
                 .ForEach((Entity entity, int entityInQueryIndex, in Spawner_SpawnAndRemove spawner, in LocalToWorld location) =>
                 {
