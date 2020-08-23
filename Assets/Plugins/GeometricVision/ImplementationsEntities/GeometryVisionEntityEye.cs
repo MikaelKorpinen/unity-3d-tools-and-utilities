@@ -1,56 +1,46 @@
 ﻿using System;
 using System.Collections.Generic;
-using Plugins.GeometricVision.EntityScripts;
-using Plugins.GeometricVision.Interfaces.Implementations;
+using Plugins.GeometricVision.Interfaces;
+using Plugins.GeometricVision.Interfaces.ImplementationsEntities;
 using Plugins.GeometricVision.Utilities;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
+using Unity.Jobs;
 using Unity.Transforms;
 using UnityEngine;
-using static Plugins.GeometricVision.GeometryDataModels.Boolean;
 
-namespace Plugins.GeometricVision.Interfaces.ImplementationsEntities
+namespace Plugins.GeometricVision.ImplementationsEntities
 {
     [AlwaysUpdateSystem]
     [DisableAutoCreation]
+    [UpdateBefore(typeof(GeometryVisionEntityProcessor))]
     public class GeometryVisionEntityEye : SystemBase, IGeoEye
     {
-
         public string Id { get; set; }
-        public GeometryVisionHead Head { get; set;  }
+        public GeometryVisionHead Head { get; set; }
 
-        [SerializeField] private bool debugMode;
+
         [SerializeField] private bool hideEdgesOutsideFieldOfView = true;
-        [SerializeField] private List<GeometryDataModels.GeoInfo> seenGeoInfos = new List<GeometryDataModels.GeoInfo>();
 
         public GeometryVision GeoVision { get; set; }
-        public Plane[] planes = new Plane[6];
-        [SerializeField] public HashSet<Transform> seenTransforms;
         private EyeDebugger _debugger;
         private bool _addedByFactory;
 
         [SerializeField, Tooltip(" Geometry is extracted from collider instead of renderers mesh")]
         private bool targetColliderMeshes;
 
-        private List<VisionTarget> targetedGeometries = new List<VisionTarget>();
-
-
+        private List<VisionTarget> targetingInstructions = new List<VisionTarget>();
         private int lastCount;
-        private EntityQuery query = new EntityQuery();
-        private BeginInitializationEntityCommandBufferSystem m_EntityCommandBufferSystem;
+        [System.ComponentModel.ReadOnly(true)] private EntityManager entityManager;
+        private BeginInitializationEntityCommandBufferSystem entityCommandBuffer;
+
+
         protected override void OnCreate()
         {
-            m_EntityCommandBufferSystem = World.GetOrCreateSystem<BeginInitializationEntityCommandBufferSystem>();
-            Initialize();
-            Enabled = false;
-        }
-
-        private void Initialize()
-        {
-            seenGeoInfos = new List<GeometryDataModels.GeoInfo>();
+            entityManager = EntityManager;
+            entityCommandBuffer = World.GetOrCreateSystem<BeginInitializationEntityCommandBufferSystem>();
             Debugger = new EyeDebugger();
-            seenTransforms = new HashSet<Transform>();
         }
 
         /// <summary>
@@ -73,24 +63,42 @@ namespace Plugins.GeometricVision.Interfaces.ImplementationsEntities
         }
 
         /// <summary>
-        /// Here is handled object visibility proessing and filtering
+        /// Here is handled object visibility processing and filtering
         /// </summary>
         protected override void OnUpdate()
         {
-            // UpdateVisibility();
+            var commandBuffer = entityCommandBuffer.CreateCommandBuffer().ToConcurrent();
+            var entityQuery = GetEntityQuery(typeof(GeometryDataModels.Target));
+            var planes = new NativeArray<Plane>(6, Allocator.TempJob);
 
-            query = GetEntityQuery(
-                ComponentType.ReadOnly<GeometryDataModels.Target>()
-            );
-
-            lastCount = query.CalculateEntityCount();
-//            Debug.Log(lastCount);
-            // Schedule job to check visibilities
-            NativeArray<Plane> planes2 = new NativeArray<Plane>(planes, Allocator.Temp);
-            bool objectsTargeted = false, linesTargeted = false;
-            for (var index = 0; index < targetedGeometries.Count; index++)
+            planes.CopyFrom(GeoVision.Planes);
+        //    CheckVisibilityDebug(GeoVision.Planes,  entityQuery.ToComponentDataArray<GeometryDataModels.Target>(Allocator.Temp),entityQuery,entityQuery.ToEntityArray(Allocator.Temp) );
+            var job2 = new CheckVisibility()
             {
-                var geometryType = targetedGeometries[index];
+                targets = entityQuery.ToComponentDataArray<GeometryDataModels.Target>(Allocator.TempJob),
+            //    commandBuffer = commandBuffer,
+                planes = new NativeArray<Plane>(6, Allocator.TempJob),
+                entities = entityQuery.ToEntityArray(Allocator.TempJob)
+            };
+            job2.planes.CopyFrom(planes);
+            Dependency = job2.Schedule(job2.targets.Length, 6);
+            Dependency.Complete();
+            //Wait for job completion
+
+           
+            entityCommandBuffer.AddJobHandleForProducer(Dependency);
+            entityQuery.CopyFromComponentDataArray<GeometryDataModels.Target>(job2.targets);
+
+            lastCount = entityQuery.CalculateEntityCount();
+            job2.planes.Dispose();
+            job2.entities.Dispose();
+            job2.targets.Dispose();
+            planes.Dispose();
+            /*
+            bool objectsTargeted = false, linesTargeted = false;
+            for (var index = 0; index < targetingInstructions.Count; index++)
+            {
+                var geometryType = targetingInstructions[index];
                 if (geometryType.GeometryType == GeometryType.Objects && geometryType.Enabled)
                 {
                     objectsTargeted = true;
@@ -101,7 +109,45 @@ namespace Plugins.GeometricVision.Interfaces.ImplementationsEntities
                     linesTargeted = true;
                 }
             }
-            lastCount = query.CalculateEntityCount();
+            */
+        }
+
+        [BurstCompile]
+        public struct CheckVisibility : IJobParallelFor
+        {
+            public NativeArray<GeometryDataModels.Target> targets;
+
+            [System.ComponentModel.ReadOnly(true)] [NativeDisableParallelForRestriction]
+            public NativeArray<Plane> planes;
+
+          //  public EntityCommandBuffer.Concurrent commandBuffer;
+            public NativeArray<Entity> entities;
+
+            public void Execute(int index)
+            {
+                GeometryDataModels.Target target = targets[index];
+                target.isSeen = IsInsideFrustum(target.position, planes);
+                targets[index] = target;
+               // commandBuffer.SetComponent(index, entities[index], targets[index] );
+            }
+        }
+
+        public void CheckVisibilityDebug(Plane[] planes, NativeArray<GeometryDataModels.Target> targets,EntityQuery entityQuery, NativeArray<Entity> entities)
+        {
+            
+            for (int i = 0; i < targets.Length; i++)
+            {
+                GeometryDataModels.Target target = targets[i];
+                target.isSeen = IsInsideFrustum(target.position, planes);
+                targets[i] = target;
+                EntityManager.SetComponentData<GeometryDataModels.Target>(entities[i], targets[i]);
+                Debug.Log( target.isSeen);
+    
+
+            }
+            entityQuery.CopyFromComponentDataArray<GeometryDataModels.Target>(targets);
+            targets.Dispose();
+            entities.Dispose();
         }
 
         public static bool IsInsideFrustum(GeometryDataModels.Edge edge, NativeArray<Plane> planes)
@@ -131,10 +177,23 @@ namespace Plugins.GeometricVision.Interfaces.ImplementationsEntities
 
             return true;
         }
-
-        private void ProcessTargetedGeometriesVisibility(Entity entity, Translation translation, GeometryDataModelsEntities.Visible visible)
+        public static bool IsInsideFrustum(Vector3 point, Plane[] planes)
         {
-            foreach (var geometryType in TargetedGeometries)
+            for (var index = 0; index < planes.Length; index++)
+            {
+                var plane = planes[index];
+                if (plane.GetDistanceToPoint(point) < 0)
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+        private void ProcessTargetedGeometriesVisibility(Entity entity, Translation translation,
+            GeometryDataModelsEntities.Visible visible)
+        {
+            foreach (var geometryType in TargetingInstructions)
             {
                 if (geometryType.GeometryType == GeometryType.Objects && geometryType.Enabled)
                 {
@@ -149,12 +208,13 @@ namespace Plugins.GeometricVision.Interfaces.ImplementationsEntities
             }
         }
 
-        private GeometryDataModelsEntities.Visible UpdateEntityVisibility(Translation translation, GeometryDataModelsEntities.Visible visible)
+        private GeometryDataModelsEntities.Visible UpdateEntityVisibility(Translation translation,
+            GeometryDataModelsEntities.Visible visible)
         {
-            if (MeshUtilities.IsInsideFrustum(translation.Value, planes))
+            if (MeshUtilities.IsInsideFrustum(translation.Value, GeoVision.Planes))
             {
                 visible.IsVisible = GeometryDataModels.Boolean.True;
-                lastCount = seenTransforms.Count;
+                //    lastCount = seenTransforms.Count;
             }
 
             return visible;
@@ -165,7 +225,7 @@ namespace Plugins.GeometricVision.Interfaces.ImplementationsEntities
         /// </summary>
         public void UpdateVisibility()
         {
-            Update();
+            this.Update();
         }
 
         public NativeArray<GeometryDataModels.Edge> GetSeenEdges()
@@ -173,15 +233,6 @@ namespace Plugins.GeometricVision.Interfaces.ImplementationsEntities
             throw new NotImplementedException();
         }
 
-        /// <summary>
-        /// Update gameobject visibility. Object that do not have geometry in it
-        /// </summary>
-        private HashSet<Transform> UpdateObjectVisibility()
-        {
-            //    seenTransforms = GetObjectsInsideFrustum(seenTransforms, listToCheck);
-
-            return seenTransforms;
-        }
 
         /// <summary>
         /// Hides Edges, vertices, geometryObject outside th frustum
@@ -196,7 +247,7 @@ namespace Plugins.GeometricVision.Interfaces.ImplementationsEntities
 
             UpdateSeenGeometryObjects(allGeoInfos, seenGeometry, geoCount);
 
-            foreach (var geometryType in TargetedGeometries)
+            foreach (var geometryType in TargetingInstructions)
             {
                 if (geometryType.GeometryType == GeometryType.Lines && geometryType.Enabled)
                 {
@@ -221,7 +272,7 @@ namespace Plugins.GeometricVision.Interfaces.ImplementationsEntities
             {
                 var geInfo = allGeoInfos[i];
 
-                if (GeometryUtility.TestPlanesAABB(planes, allGeoInfos[i].renderer.bounds) &&
+                if (GeometryUtility.TestPlanesAABB(GeoVision.Planes, allGeoInfos[i].renderer.bounds) &&
                     hideEdgesOutsideFieldOfView)
                 {
                     seenGeometry.Add(geInfo);
@@ -235,28 +286,10 @@ namespace Plugins.GeometricVision.Interfaces.ImplementationsEntities
             return seenTransforms;
         }
 
-        public List<VisionTarget> TargetedGeometries
+        public List<VisionTarget> TargetingInstructions
         {
-            get { return targetedGeometries; }
-            set { targetedGeometries = value; }
-        }
-
-        public List<GeometryDataModels.GeoInfo> SeenGeoInfos
-        {
-            get { return seenGeoInfos; }
-            set { seenGeoInfos = value; }
-        }
-
-        public Plane[] Planes
-        {
-            get { return planes; }
-            set { planes = value; }
-        }
-
-        public bool DebugMode
-        {
-            get { return debugMode; }
-            set { debugMode = value; }
+            get { return targetingInstructions; }
+            set { targetingInstructions = value; }
         }
 
         public EyeDebugger Debugger

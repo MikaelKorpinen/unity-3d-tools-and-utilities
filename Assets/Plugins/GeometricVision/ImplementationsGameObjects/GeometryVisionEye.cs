@@ -72,15 +72,15 @@ namespace Plugins.GeometricVision.Interfaces.Implementations
         /// </summary>
         public void UpdateVisibility()
         {
-            seenTransforms = UpdateObjectVisibility(Head.GetProcessor<GeometryVisionProcessor>().GetAllObjects(), seenTransforms);
-            SeenGeoInfos = UpdateGeometryVisibility(GeoVision.Planes, Head.GeoMemory.GeoInfos);
+            seenTransforms = UpdateTransformVisibility(Head.GetProcessor<GeometryVisionProcessor>().GetAllObjects(), seenTransforms);
+            SeenGeoInfos = UpdateRenderedMeshVisibility(GeoVision.Planes, Head.GeoMemory.GeoInfos);
         }
 
 
         /// <summary>
-        /// Update gameobject visibility. Object that do not have geometry in it
+        /// Update GameObject/transform visibility. Object that does not have Mesh or renderer in it
         /// </summary>
-        private HashSet<Transform> UpdateObjectVisibility(List<Transform> listToCheck,
+        private HashSet<Transform> UpdateTransformVisibility(List<Transform> listToCheck,
             HashSet<Transform> seenTransforms)
         {
             seenTransforms = new HashSet<Transform>();
@@ -92,49 +92,43 @@ namespace Plugins.GeometricVision.Interfaces.Implementations
         }
 
         /// <summary>
+        /// Checks all the object that contain render component if they are visible by testing their bounding box
         /// Hides Edges, vertices, geometryObject outside th frustum
         /// </summary>
         /// <param name="planes"></param>
         /// <param name="allGeoInfos"></param>
-        private List<GeometryDataModels.GeoInfo> UpdateGeometryVisibility(Plane[] planes,
+        private List<GeometryDataModels.GeoInfo> UpdateRenderedMeshVisibility(Plane[] planes,
             List<GeometryDataModels.GeoInfo> allGeoInfos)
         {
             int geoCount = allGeoInfos.Count;
-            var seenGeometry = new List<GeometryDataModels.GeoInfo>();
+            var newSeenGeometriesList = new List<GeometryDataModels.GeoInfo>();
 
-            UpdateSeenGeometryObjects(allGeoInfos, seenGeometry, geoCount);
+            UpdateSeenGeometryObjects();
+            
+            // Updates object collection containing geometry and data related to seen object. Usage is to internally update seen geometry objects by checking objects renderer bounds
+            // against eyes/cameras frustum
+            void UpdateSeenGeometryObjects()
+            {
+                for (var i = 0; i < geoCount; i++)
+                {
+                    var geInfo = allGeoInfos[i];
 
+                    if (GeometryUtility.TestPlanesAABB(GeoVision.Planes, allGeoInfos[i].renderer.bounds) &&
+                        hideEdgesOutsideFieldOfView)
+                    {
+                        newSeenGeometriesList.Add(geInfo);
+                    }
+                }
+            }
             foreach (var geometryType in GeoVision.TargetingInstructions)
             {
                 if (geometryType.GeometryType == GeometryType.Lines && geometryType.Enabled)
                 {
-                    MeshUtilities.UpdateEdgesVisibilityParallel(planes, seenGeometry);
+                    MeshUtilities.UpdateEdgesVisibilityParallel(planes, newSeenGeometriesList);
                 }
             }
 
-            return seenGeometry;
-        }
-
-        /// <summary>
-        /// Updates object collection containing geometry and data related to seen object. Usage is to internally update seen geometry objects by checking objects renderer bounds
-        /// against eyes/cameras frustum
-        /// </summary>
-        /// <param name="allGeoInfos"></param>
-        /// <param name="seenGeometry"></param>
-        /// <param name="geoCount"></param>
-        private void UpdateSeenGeometryObjects(List<GeometryDataModels.GeoInfo> allGeoInfos,
-            List<GeometryDataModels.GeoInfo> seenGeometry, int geoCount)
-        {
-            for (var i = 0; i < geoCount; i++)
-            {
-                var geInfo = allGeoInfos[i];
-
-                if (GeometryUtility.TestPlanesAABB(GeoVision.Planes, allGeoInfos[i].renderer.bounds) &&
-                    hideEdgesOutsideFieldOfView)
-                {
-                    seenGeometry.Add(geInfo);
-                }
-            }
+            return newSeenGeometriesList;
         }
 
 

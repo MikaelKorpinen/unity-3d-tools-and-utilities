@@ -31,5 +31,7 @@ namespace Plugins.GeometricVision.Interfaces
         void CheckSceneChanges(GeometryVision geoVision);
 
         void Debug(GeometryVision geoVisions);
+        
+        
     }
 }

@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using GeometricVision;
+using Plugins.GeometricVision.ImplementationsEntities;
 using Plugins.GeometricVision.Interfaces;
 using Plugins.GeometricVision.Interfaces.Implementations;
 using Plugins.GeometricVision.Interfaces.ImplementationsEntities;
@@ -134,7 +135,6 @@ namespace Plugins.GeometricVision
 
         internal void CreateEye(GameObject geoVisionManager,  GeometryVision geoVisionComponent)
         {
-            var head = geoVisionManager.GetComponent<GeometryVisionHead>();
             if (settings.processGameObjects)
             {
                 var eye = geoVisionComponent.GetEye<GeometryVisionEye>();
@@ -160,7 +160,7 @@ namespace Plugins.GeometricVision
                 var eye = geoVisionComponent.GetEye<GeometryVisionEntityEye>();
                 if (eye == null)
                 {
-                    geoVisionComponent.Eyes.Add(new GeometryVisionEntityEye());
+                    geoVisionComponent.AddEye<GeometryVisionEntityEye>();
                     eye = geoVisionComponent.GetEye<GeometryVisionEntityEye>();
                     eye.Head = geoVisionManager.GetComponent<GeometryVisionHead>();
                     eye.Id = new Hash128().ToString();

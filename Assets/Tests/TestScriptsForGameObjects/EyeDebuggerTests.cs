@@ -14,6 +14,10 @@ using Object = UnityEngine.Object;
 
 namespace Tests
 {
+    /// <summary>
+    /// Class tests debugger that is used for showing edges and else.
+    /// If the tests fail it could be because of updating unity or something else that affect the view frustum calculations of the unity camera 
+    /// </summary>
     [TestFixture]
     public class EyeDebuggerTests
     {
@@ -50,17 +54,17 @@ namespace Tests
             var testCubes = Object.FindObjectsOfType<GameObject>();
             yield return null;
             var testCubeCount = testCubes.Where(tc => tc.name.Contains("Cube")).ToList().Count;
-            var expectedEdgeCount = testCubeCount * 3;
+            var expectedEdgeCount = testCubeCount * 5;
             var cube = GameObject.Find("Cube");
             yield return null;
             cube.transform.position = Vector3.zero;
-            var geoVision = TestUtilities.SetupGeoVision(new Vector3(0f, 0f, -6f), new GeometryVisionFactory(factorySettings));
+            var geoVision = TestUtilities.SetupGeoVision(new Vector3(-2.33f, 0f, -6f), new GeometryVisionFactory(factorySettings));
             yield return null;
             GeometryDataModels.Edge[] edges;
             var geoVisionComponent = geoVision.GetComponent<GeometryVision>();
             var geoEye = geoVisionComponent.GetEye<GeometryVisionEye>();
             /////Put camera at position where it can only see text cube 3d model partially
-            var position = new Vector3(-0.69f, 0.352f, -4.34f);
+            var position = new Vector3(-2.33f, 0.352f, -6f);
             //Need to wait till update loop finishes for frustum to update. On windows machines not happen as fast as on Linux for some reason.
             yield return null;
 
@@ -87,17 +91,17 @@ namespace Tests
             var testCubes = Object.FindObjectsOfType<GameObject>();
             yield return null;
             var testCubeCount = testCubes.Where(tc => tc.name.Contains("Cube")).ToList().Count;
-            var expectedEdgeCount = testCubeCount * 3;
+            var expectedEdgeCount = testCubeCount * 5;
             var cube = GameObject.Find("Cube");
             yield return null;
             cube.transform.position = Vector3.zero;
-            var geoVision = TestUtilities.SetupGeoVision(new Vector3(0f, 0f, -6f), new GeometryVisionFactory(factorySettings));
+            var geoVision = TestUtilities.SetupGeoVision(new Vector3(-2.33f, 0f, -6f), new GeometryVisionFactory(factorySettings));
             yield return null;
             GeometryDataModels.Edge[] edges;
             var geoVisionComponent = geoVision.GetComponent<GeometryVision>();
             var geoEye = geoVisionComponent.GetEye<GeometryVisionEye>();
             /////Put camera at position where it can only see text cube 3d model partially(3 edges of side of the cube)
-            var position = new Vector3(-0.69f, 0.352f, -4.34f);
+            var position = new Vector3(-2.33f, 0.352f, -6f);
             var visibleEdgeCount =
                 GetTestResultsFromPositionMultiThreaded(geoVision, geoEye, cube, out edges, position);
             Assert.AreEqual(expectedEdgeCount, visibleEdgeCount);
@@ -121,19 +125,19 @@ namespace Tests
             var testCubes = Object.FindObjectsOfType<GameObject>();
             yield return null;
             var testCubeCount = testCubes.Where(tc => tc.name.Contains("Cube")).ToList().Count;
-            var expectedEdgeCount = testCubeCount * 3;
+            var expectedEdgeCount = testCubeCount * 5;
             var cube = GameObject.Find("Cube");
             yield return null;
 
             yield return null;
             cube.transform.position = Vector3.zero;
-            var geoVision = TestUtilities.SetupGeoVision(new Vector3(0f, 0f, -6f), new GeometryVisionFactory(factorySettings));
+            var geoVision = TestUtilities.SetupGeoVision(new Vector3(-2.33f, 0.352f, -6f), new GeometryVisionFactory(factorySettings));
             yield return null;
             var geoVisionComponent = geoVision.GetComponent<GeometryVision>();
             var geoEye = geoVisionComponent.GetEye<GeometryVisionEye>();
             /////Put camera at starting position so it can see the 3d model.
             GeometryDataModels.Edge[] edges = new GeometryDataModels.Edge[0];
-            var position = new Vector3(-0.69f, 0.352f, -4.34f);
+            var position = new Vector3(-2.33f, 0.352f, -6f);
             yield return null;
             var visibleEdgeCount = GetTestResultsFromPosition(geoVision, geoEye, out edges, position);
             Assert.AreEqual(expectedEdgeCount, visibleEdgeCount);
@@ -146,8 +150,8 @@ namespace Tests
             Assert.AreEqual(expectedEdgeCount, visibleEdgeCount);
 
             //Move the eye back so it only sees 3 edges
-            expectedEdgeCount = testCubeCount * 3;
-            position = new Vector3(-0.69f, 0.352f, -4.34f);
+            expectedEdgeCount = testCubeCount * 5;
+            position = new Vector3(-2.33f, 0.352f, -6f);
             yield return null;
             visibleEdgeCount = GetTestResultsFromPosition(geoVision, geoEye, out edges, position);
 
@@ -188,6 +192,7 @@ namespace Tests
             MeshUtilities.UpdateEdgesVisibilityParallel(geoVis.Planes, geoEye.SeenGeoInfos);
             geoEye.DebugMode = true;
             var visibleEdgeCount = 0;
+            
             Measure.Method(() =>
             {
                 geoVis.Head.EyeDebugger.Debug(geoEye);

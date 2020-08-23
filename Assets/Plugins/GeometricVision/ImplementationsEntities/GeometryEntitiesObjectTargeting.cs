@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using System.Collections;
+using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using Unity.Burst;
 using Unity.Collections;
@@ -14,39 +16,38 @@ namespace Plugins.GeometricVision.ImplementationsEntities
     [AlwaysUpdateSystem]
     public class GeometryEntitiesObjectTargeting : SystemBase, IGeoTargeting
     {
-        private BeginInitializationEntityCommandBufferSystem entityCommandBufferSystem;
         private EntityQuery entityQuery;
         private GeometryVision geoVision;
         Vector3 rayLocation = Vector3.zero;
         Vector3 rayDirectionWS = Vector3.zero;
         NativeArray<GeometryDataModels.Target> targets;
 
-        protected override void OnCreate()
-        {
-            // Cache the BeginInitializationEntityCommandBufferSystem in a field, so we don't have to create it every frame
-            entityCommandBufferSystem = World.GetOrCreateSystem<BeginInitializationEntityCommandBufferSystem>();
-        }
-        
         protected override void OnUpdate()
         {
             entityQuery = GetEntityQuery(typeof(Translation), typeof(GeometryDataModels.Target));
-
             
             var job2 = new GetTargetsInParallel()
             {
                 targets = entityQuery.ToComponentDataArray<GeometryDataModels.Target>(Allocator.TempJob),
-                rayDirWS = rayDirectionWS,
-                rayLocWS = rayLocation
+                rayDirWS = this.rayDirectionWS,
+                rayLocWS = rayLocation,
             };
             
-            this.Dependency = job2.Schedule(job2.targets.Length, 6);
-
-            //Wait for job completion
-            entityCommandBufferSystem.AddJobHandleForProducer(Dependency);
+            this.Dependency = job2.Schedule(job2.targets.Length, 100);
+            this.Dependency.Complete();
             
-            targets = new NativeArray<GeometryDataModels.Target>(job2.targets.Length, Allocator.TempJob);
-            targets.CopyFrom(job2.targets);
-            job2.targets.Dispose();
+            var job3 = new CollectSeenTargets()
+            {
+                targets = job2.targets,
+                seenTargets = new NativeList<GeometryDataModels.Target>( Allocator.TempJob),
+            };
+            
+            this.Dependency = job3.Schedule(job2.targets.Length,  this.Dependency);
+            this.Dependency.Complete();
+            targets = new NativeArray<GeometryDataModels.Target>(job3.seenTargets, Allocator.Temp);
+            
+            job3.targets.Dispose();
+            job3.seenTargets.Dispose();
         }
 
         [BurstCompile]
@@ -73,17 +74,17 @@ namespace Plugins.GeometricVision.ImplementationsEntities
 
 
                 target.projectedTargetPosition = Project(targetLocation, rayDirectionEndPoint) + rayLocWS;
-          
-                Vector3 Project(Vector3 position, Vector3 direction)
+
+                Vector3 Project(Vector3 vector, Vector3 onNormal)
                 {
-                    float num1 = Vector3.Dot(direction, direction);
+                    float num1 = Vector3.Dot(onNormal, onNormal);
                     if (num1 < float.Epsilon)
                         return Vector3.zero;
-                    float num2 = Vector3.Dot(position, direction);
-                    return new Vector3(direction.x * num2 / num1, direction.y * num2 / num1,
-                        direction.z * num2 / num1);
+                    float num2 = Vector3.Dot(vector, onNormal);
+                    return new Vector3(onNormal.x * num2 / num1, onNormal.y * num2 / num1,
+                        onNormal.z * num2 / num1);
                 }
-                
+
                 target.position = pointFromRaySpaceToObjectSpace(targetLocation, rayLocWS);
 
                 Vector3 pointFromRaySpaceToObjectSpace(Vector3 rayLocation, Vector3 target3)
@@ -98,15 +99,42 @@ namespace Plugins.GeometricVision.ImplementationsEntities
             }
         }
 
-        public List<GeometryDataModels.Target> GetTargets(Vector3 rayLocation, Vector3 rayDirectionWS, List<GeometryDataModels.GeoInfo> targets)
+        [BurstCompile]
+        public struct CollectSeenTargets : IJobFor
+        {
+            [System.ComponentModel.ReadOnly(true)] public NativeArray<GeometryDataModels.Target> targets;
+            [WriteOnly][NativeDisableParallelForRestriction] public NativeList<GeometryDataModels.Target> seenTargets;
+            
+            public void Execute(int index)
+            {
+                if (targets[index].isSeen)
+                {
+                    seenTargets.Add(targets[index]);
+                }
+            }
+        }
+        
+        public NativeArray<GeometryDataModels.Target> GetTargetsAsNativeArray(Vector3 rayLocation, Vector3 rayDirection, List<GeometryDataModels.GeoInfo> targets)
         {
             this.rayLocation = rayLocation;
-            this.rayDirectionWS = rayDirectionWS;
+            this.rayDirectionWS = rayDirection;
             Update();
-            this.targets.OrderBy(target => target.distanceToRay).ToList();
-            List<GeometryDataModels.Target> targetsToReturn = this.targets.ToList();
-            this.targets.Dispose();
-            return targetsToReturn;
+      //    this.targets.Sort<GeometryDataModels.Target, DistanceComparer>(new DistanceComparer());
+
+            return this.targets;
+        }
+
+        List<GeometryDataModels.Target> IGeoTargeting.GetTargets(Vector3 rayLocation, Vector3 rayDirection, List<GeometryDataModels.GeoInfo> targets)
+        {
+            throw new System.NotImplementedException();
+        }
+        
+        public class DistanceComparer : IComparer<GeometryDataModels.Target>
+        {
+            public int Compare(GeometryDataModels.Target x, GeometryDataModels.Target y)
+            {
+                return Comparer<float>.Default.Compare(y.distanceToRay, x.distanceToRay);
+            }
         }
 
         public GeometryType TargetedType

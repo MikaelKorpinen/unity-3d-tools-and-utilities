@@ -4,6 +4,7 @@ using System;
 using GeometricVision;
 using NUnit.Framework;
 using Plugins.GeometricVision;
+using Plugins.GeometricVision.ImplementationsEntities;
 using Plugins.GeometricVision.Interfaces;
 using Plugins.GeometricVision.Interfaces.Implementations;
 using Plugins.GeometricVision.Interfaces.ImplementationsEntities;
@@ -35,9 +36,9 @@ namespace Tests
 
         [UnityTest, Performance, Version(version)]
         [Timeout(TestSettings.DefaultPerformanceTests)]
-        [PrebuildSetup(typeof(SceneBuildSettingsSetupForEntities))]
+        [PrebuildSetup(typeof(SceneBuildSettingsSetupForGameObjectsEmptyScene))]
         public IEnumerator TestSceneGetsLoadedForGameObjectsAndEntities(
-            [ValueSource(typeof(TestUtilities), nameof(TestUtilities.GetSimpleTestScenePathsForEntities))]
+            [ValueSource(typeof(TestUtilities), nameof(TestUtilities.GetEmptyScenePathsForGameObjects))]
             string scenePath)
         {
             TestUtilities.SetupScene(scenePath);
@@ -122,9 +123,9 @@ namespace Tests
 
         [UnityTest, Performance, Version(version)]
         [Timeout(TestSettings.DefaultSmallTest)]
-        [PrebuildSetup(typeof(SceneBuildSettingsSetupForEntities))]
+        [PrebuildSetup(typeof(SceneBuildSettingsSetupForGameObjectsEmptyScene))]
         public IEnumerator GeometryVisionHasBasicComponentsWhenCreatedWithoutFactory(
-            [ValueSource(typeof(TestUtilities), nameof(TestUtilities.GetSimpleTestScenePathsForEntities))]
+            [ValueSource(typeof(TestUtilities), nameof(TestUtilities.GetEmptyScenePathsForGameObjects))]
             string scenePath)
         {
             TestUtilities.SetupScene(scenePath);
@@ -161,9 +162,9 @@ namespace Tests
 
         [UnityTest, Performance, Version(version)]
         [Timeout(TestSettings.DefaultSmallTest)]
-        [PrebuildSetup(typeof(SceneBuildSettingsSetupForEntities))]
+        [PrebuildSetup(typeof(SceneBuildSettingsSetupForGameObjectsEmptyScene))]
         public IEnumerator GeometryVisionHasBasicComponentsWhenCreatedWithFactory(
-            [ValueSource(typeof(TestUtilities), nameof(TestUtilities.GetSimpleTestScenePathsForEntities))]
+            [ValueSource(typeof(TestUtilities), nameof(TestUtilities.GetEmptyScenePathsForGameObjects))]
             string scenePath)
         {
             TestUtilities.SetupScene(scenePath);
@@ -194,9 +195,9 @@ namespace Tests
 
         [UnityTest, Performance, Version(version)]
         [Timeout(TestSettings.DefaultSmallTest)]
-        [PrebuildSetup(typeof(SceneBuildSettingsSetupForEntities))]
+        [PrebuildSetup(typeof(SceneBuildSettingsSetupForGameObjectsEmptyScene))]
         public IEnumerator GeometryVisionSwitchingToEntitiesWorksWhenCreatedWithFactory(
-            [ValueSource(typeof(TestUtilities), nameof(TestUtilities.GetSimpleTestScenePathsForEntities))]
+            [ValueSource(typeof(TestUtilities), nameof(TestUtilities.GetEmptyScenePathsForGameObjects))]
             string scenePath)
         {
             TestUtilities.SetupScene(scenePath);
@@ -228,9 +229,9 @@ namespace Tests
 
         [UnityTest, Performance, Version(TestSettings.Version)]
         [Timeout(TestSettings.DefaultPerformanceTests)]
-        [PrebuildSetup(typeof(SceneBuildSettingsSetupForEntities))]
+        [PrebuildSetup(typeof(SceneBuildSettingsSetupForGameObjectsEmptyScene))]
         public IEnumerator TargetingParentComponentGetsAddedWithoutFactory(
-            [ValueSource(typeof(TestUtilities), nameof(TestUtilities.GetSimpleTestScenePathsForEntities))]
+            [ValueSource(typeof(TestUtilities), nameof(TestUtilities.GetEmptyScenePathsForGameObjects))]
             string scenePath)
         {
             TestUtilities.SetupScene(scenePath);
@@ -248,9 +249,9 @@ namespace Tests
 
         [UnityTest, Performance, Version(TestSettings.Version)]
         [Timeout(TestSettings.DefaultPerformanceTests)]
-        [PrebuildSetup(typeof(SceneBuildSettingsSetupForEntities))]
+        [PrebuildSetup(typeof(SceneBuildSettingsSetupForGameObjectsEmptyScene))]
         public IEnumerator TargetingParentComponentGetsAddedAfterCreatedWithFactory(
-            [ValueSource(typeof(TestUtilities), nameof(TestUtilities.GetSimpleTestScenePathsForEntities))]
+            [ValueSource(typeof(TestUtilities), nameof(TestUtilities.GetEmptyScenePathsForGameObjects))]
             string scenePath)
         {
             TestUtilities.SetupScene(scenePath);
@@ -269,9 +270,9 @@ namespace Tests
 
         [UnityTest, Performance, Version(TestSettings.Version)]
         [Timeout(TestSettings.DefaultPerformanceTests)]
-        [PrebuildSetup(typeof(SceneBuildSettingsSetupForEntities))]
+        [PrebuildSetup(typeof(SceneBuildSettingsSetupForGameObjectsEmptyScene))]
         public IEnumerator TargetingSystemGetsAddedOnlyWithoutFactory(
-            [ValueSource(typeof(TestUtilities), nameof(TestUtilities.GetSimpleTestScenePathsForEntities))]
+            [ValueSource(typeof(TestUtilities), nameof(TestUtilities.GetEmptyScenePathsForGameObjects))]
             string scenePath)
         {
             TestUtilities.SetupScene(scenePath);
@@ -302,9 +303,9 @@ namespace Tests
 
         [UnityTest, Performance, Version(TestSettings.Version)]
         [Timeout(TestSettings.DefaultPerformanceTests)]
-        [PrebuildSetup(typeof(SceneBuildSettingsSetupForEntities))]
+        [PrebuildSetup(typeof(SceneBuildSettingsSetupForGameObjectsEmptyScene))]
         public IEnumerator TargetingSystemGetsAddedAfterAfterCreatedWithFactory(
-            [ValueSource(typeof(TestUtilities), nameof(TestUtilities.GetSimpleTestScenePathsForEntities))]
+            [ValueSource(typeof(TestUtilities), nameof(TestUtilities.GetEmptyScenePathsForGameObjects))]
             string scenePath)
         {
             TestUtilities.SetupScene(scenePath);

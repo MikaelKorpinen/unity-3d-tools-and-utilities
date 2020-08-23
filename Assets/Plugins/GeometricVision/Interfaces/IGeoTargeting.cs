@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using GeometricVision;
 using Plugins.GeometricVision;
+using Unity.Collections;
 using UnityEngine;
 
 /// <summary>
@@ -11,6 +12,16 @@ using UnityEngine;
 /// </summary>
 public interface IGeoTargeting
 {
+    /// <summary>
+    /// Gets targets sorted by which target is the closest to the looking direction of the object the GeometricVision
+    /// component is added.
+    /// </summary>
+    /// <param name="rayLocation"></param>
+    /// <param name="rayDirection"></param>
+    /// <param name="targets"></param>
+    /// <returns></returns>
+    NativeArray<GeometryDataModels.Target> GetTargetsAsNativeArray(Vector3 rayLocation, Vector3 rayDirection, List<GeometryDataModels.GeoInfo> targets);
+    
     /// <summary>
     /// Gets targets sorted by which target is the closest to the looking direction of the object the GeometricVision
     /// component is added.

@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using GeometricVision;
 using Plugins.GeometricVision;
+using Tests;
 using UnityEditor;
 using UnityEditor.Build.Content;
 using UnityEditor.SceneManagement;
@@ -25,6 +26,7 @@ public static class TestUtilities
         var rootObjects = new List<GameObject>();
         SceneManager.GetActiveScene().GetRootGameObjects(rootObjects);
         int expectedObjectCount = 0;
+        
         foreach (var root in rootObjects)
         {
             if (root.transform.position.x == coordinates.x && root.transform.position.y == coordinates.y &&
@@ -41,6 +43,7 @@ public static class TestUtilities
     {
         var rootObjects = new List<GameObject>();
         SceneManager.GetActiveScene().GetRootGameObjects(rootObjects);
+        
         int expectedObjectCount = 0;
         foreach (var root in rootObjects)
         {
@@ -63,7 +66,20 @@ public static class TestUtilities
 
         return scenePaths;
     }
-    
+        
+    /// <summary>
+    /// Gets scene paths for GameObject tests.
+    /// Usage: Used as parameter in tests. See written tests and ValueSource from docs
+    /// </summary>
+    /// <returns></returns>
+    public static IEnumerable GetEmptyScenePathsForGameObjects()
+    {
+        var testSceneFolderInAssetsFolder = TestSettings.EmptyScenePath;
+        var sceneFolderPath = Application.dataPath + "/" + testSceneFolderInAssetsFolder;
+        List<string> scenePaths = GetSceneFilePaths(sceneFolderPath, testSceneFolderInAssetsFolder).ToList();
+
+        return scenePaths;
+    }
     /// <summary>
     /// Gets scene paths for GameObject tests.
     /// Usage: Used as parameter in tests. See written tests and ValueSource from docs

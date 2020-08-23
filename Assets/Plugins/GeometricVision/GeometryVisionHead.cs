@@ -37,7 +37,7 @@ namespace Plugins.GeometricVision
         {
             foreach (var processor in processors)
             {
-                foreach (var geoVision in geoVisions)
+                foreach (var geoVision in geoVisions)//processor.GeoVisions
                 {
                     processor.CheckSceneChanges(geoVision);
                     if (geoVision.DebugMode)
@@ -53,7 +53,7 @@ namespace Plugins.GeometricVision
                             EyeDebugger.Debug(geoEye);
                         }
                     }
-                    geoVision.GetClosestTargets(GeoMemory.GeoInfos);
+                    geoVision.UpdateClosestTargets();
                 }
             }
         }

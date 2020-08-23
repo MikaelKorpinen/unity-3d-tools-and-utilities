@@ -2,8 +2,6 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using GeometricVision;
-using GeometricVision.Jobs;
 using Plugins.GeometricVision.EntityScripts;
 using Plugins.GeometricVision.ImplementationsEntities;
 using Plugins.GeometricVision.Interfaces;
@@ -13,11 +11,10 @@ using Plugins.GeometricVision.UI;
 using Plugins.GeometricVision.UniRx.Scripts.UnityEngineBridge;
 using Plugins.GeometricVision.Utilities;
 using UniRx;
-using Unity.EditorCoroutines.Editor;
+using Unity.Collections;
 using Unity.Entities;
 using UnityEditor;
 using UnityEngine;
-using UnityEngine.Rendering;
 using Hash128 = Unity.Entities.Hash128;
 using Object = UnityEngine.Object;
 
@@ -38,7 +35,6 @@ namespace Plugins.GeometricVision
         //[SerializeField] private bool hideEdgesOutsideFieldOfView = true;
         [SerializeField] private float fieldOfView = 25f;
         [SerializeField] private float farDistanceOfView = 25f;
-        [SerializeField] public HashSet<Transform> seenTransforms;
 
         //[SerializeField, Tooltip("Use the mesh from collider")]
         // private bool targetColliderMeshes;
@@ -60,7 +56,7 @@ namespace Plugins.GeometricVision
         private Vector3 forwardWorldCoordinate = Vector3.zero;
         private Transform cachedTransform;
         private List<GeometryDataModels.Target> closestTargets = new List<GeometryDataModels.Target>();
-        private List<GeometryDataModels.Target> closestEntityTargets = new List<GeometryDataModels.Target>();
+        private NativeArray<GeometryDataModels.Target> closestEntityTargets;
         private World entityWorld;
         private EndSimulationEntityCommandBufferSystem commandBufferSystem;
         private GeometryDataModels.Target closestTarget;
@@ -113,7 +109,6 @@ namespace Plugins.GeometricVision
         public void InitializeSystems()
         {
             cachedTransform = transform;
-            seenTransforms = new HashSet<Transform>();
 
             InitUnityCamera();
             InitializeTargeting(TargetingInstructions);
@@ -140,6 +135,7 @@ namespace Plugins.GeometricVision
         {
             var targetingSystemsContainer = GetComponent<GeometryTargetingSystemsContainer>();
             targetingSystemsContainer.TargetingPrograms = new HashSet<IGeoTargeting>();
+            
             foreach (var targetingInstruction in targetingInstructions)
             {
                 if (targetingInstruction.TargetingSystemGameObjects != null)
@@ -165,7 +161,11 @@ namespace Plugins.GeometricVision
 
             return geoTargeting;
         }
-
+        
+        /// <summary>
+        /// Inits unity camera which provides some needed features for geometric vision like Gizmos and matrices.
+        /// The camera is disable dot prevent rendering and frustum culling.
+        /// </summary>
         public void InitUnityCamera()
         {
             Camera1 = gameObject.GetComponent<Camera>();
@@ -372,7 +372,8 @@ namespace Plugins.GeometricVision
             }
             else
             {
-                var geoInfo = Head.GeoMemory.GeoInfos.FirstOrDefault(info => info.GetHashCode() == closestTarget.GeoInfoHashCode);
+                ///Since target component is multithreading friendly it cannot store transform, so this just uses the geoInfoObjects that is made for the gameobjects
+                var geoInfo = Head.GeoMemory.GeoInfos.FirstOrDefault(geoInfoElement => geoInfoElement.GetHashCode() == closestTarget.GeoInfoHashCode);
                 StartCoroutine(moveTarget(geoInfo.transform, newPosition, movementSpeed));
             }
         }
@@ -431,13 +432,11 @@ namespace Plugins.GeometricVision
         private void InitGeometryCameraForEntities(World world)
         {
             DisableEntityCameras();
-            world.CreateSystem<GeometryVisionEntityEye>();
-            GeometryVisionEntityEye eEey =
-                (GeometryVisionEntityEye) world.GetExistingSystem(typeof(GeometryVisionEntityEye));
+            GeometryVisionEntityEye eEey =world.CreateSystem<GeometryVisionEntityEye>();
             AddEye(eEey);
             var eye = GetEye<GeometryVisionEntityEye>();
             eye.GeoVision = this;
-            eye.TargetedGeometries = targetingInstructions;
+            eye.TargetingInstructions = targetingInstructions;
             eye.Update();
         }
 
@@ -501,7 +500,7 @@ namespace Plugins.GeometricVision
                     targetingInstruction.targetingActions = newActions;
                 }
             }
-            //RemoveDefaultTargeting for both game objects and entities
+            //AddDefaultTargeting for both game objects and entities
             void AddDefaultTargeting(
                 GeometryTargetingSystemsContainer geometryTargetingSystemsContainer)
             {
@@ -596,8 +595,7 @@ namespace Plugins.GeometricVision
                 return targetingToReturn;
             }
         }
-
-
+        
         /// <summary>
         /// When the camera is moved, rotated or both the frustum planes that
         /// hold the system together needs to be refreshes/regenerated
@@ -607,28 +605,26 @@ namespace Plugins.GeometricVision
         /// <remarks>Faster way to get the current situation for planes might be to store planes into an object and move them with the eye</remarks>
         private Plane[] RegenerateVisionArea(float fieldOfView, Plane[] planes)
         {
-            Camera1.enabled = true;
-            Camera1.fieldOfView = fieldOfView;
-            Camera1.farClipPlane = farDistanceOfView;
-            planes = GeometryUtility.CalculateFrustumPlanes(Camera1);
-            Camera1.enabled = false;
+            this.fieldOfView = fieldOfView;
+            this.camera.fieldOfView = fieldOfView;
+            this.camera.farClipPlane = farDistanceOfView;
+            GeometryUtility.CalculateFrustumPlanes( this.camera.projectionMatrix *  this.camera.worldToCameraMatrix, planes);
+ 
             return planes;
         }
 
         /// <summary>
-        /// When the camera is moved, rotated or both the frustum planes that
-        /// hold the system together needs to be refreshes/regenerated
+        /// When the camera is moved, rotated or both the frustum planes/view area thats
+        /// are used to filter out what objects are processed needs to be refreshes/regenerated
         /// </summary>
         /// <param name="fieldOfView"></param>
         /// <returns>void</returns>
         /// <remarks>Faster way to get the current situation for planes might be to store planes into an object and move them with the eye</remarks>
         public void RegenerateVisionArea(float fieldOfView)
         {
-            Camera1.enabled = true;
             Camera1.fieldOfView = fieldOfView;
             Camera1.farClipPlane = farDistanceOfView;
-            planes = GeometryUtility.CalculateFrustumPlanes(Camera1);
-            Camera1.enabled = false;
+            GeometryUtility.CalculateFrustumPlanes( this.camera.projectionMatrix *  this.camera.worldToCameraMatrix, planes);
         }
 
         public List<VisionTarget> TargetingInstructions
@@ -701,7 +697,7 @@ namespace Plugins.GeometricVision
         /// </summary>
         /// <param name="eye"></param>
         /// <typeparam name="T"></typeparam>
-        private void AddEye<T>(T eye)
+        public void AddEye<T>(T eye)
         {
             if (eyes == null)
             {
@@ -725,7 +721,7 @@ namespace Plugins.GeometricVision
         /// </summary>
         /// <param name="eye"></param>
         /// <typeparam name="T"></typeparam>
-        private void AddEye<T>()
+        public void AddEye<T>()
         {
             if (eyes == null)
             {
@@ -757,7 +753,11 @@ namespace Plugins.GeometricVision
             }
             else if (GetEye<T>() == null)
             {
-                var eye = entityWorld.GetOrCreateSystem<GeometryVisionEntityEye>();
+                if (entityWorld == null)
+                {
+                    entityWorld = World.DefaultGameObjectInjectionWorld;
+                }
+                var eye = entityWorld.CreateSystem<GeometryVisionEntityEye>();
                 var defaultEyeFromTypeT = (IGeoEye) default(T);
                 //Check that the implementation is not the default one
                 if (Object.Equals(eye, defaultEyeFromTypeT) == false)
@@ -806,48 +806,65 @@ namespace Plugins.GeometricVision
         }
 
         public bool TargetsAreStatic { get; set; }
-
-        public List<GeometryDataModels.Target> GetClosestTargets(List<GeometryDataModels.GeoInfo> GeoInfos)
+        
+        /// <summary>
+        /// Gets targets for both entities and GameObject. Then sorts them.
+        /// </summary>
+        /// <returns>List<GeometryDataModels.Target> - new list of sorted targets.</returns>
+        public List<GeometryDataModels.Target> GetClosestTargets()
         {
-            var newClosestTargets = new List<GeometryDataModels.Target>();
-            foreach (var targetingInstruction in TargetingInstructions)
-            {
-                if (gameObjectProcessing.Value == true)
-                {
-                    var closestTargets = targetingInstruction.TargetingSystemGameObjects.GetTargets(transform.position,
-                        ForwardWorldCoordinate, GeoInfos);
-                    newClosestTargets = closestTargets;
-                }
-
-                if (entityBasedProcessing.Value == true)
-                {
-                    var closestEntityTargets =
-                        targetingInstruction.TargetingSystemEntities.GetTargets(transform.position,
-                            ForwardWorldCoordinate, GeoInfos);
-                    //Only update entities if the burst compiled job has finished its job OnUpdate
-                    //If it has not finished it returns empty list.
-                    if (closestEntityTargets.Count > 0)
-                    {
-                        this.closestEntityTargets = closestEntityTargets;
-                    }
-                }
-            }
-
-            newClosestTargets.AddRange(this.closestEntityTargets);
-
-            if (newClosestTargets.Count > 0)
-            {
-                closestTargets = newClosestTargets.OrderBy(target => target.distanceToRay).ToList();
-            }
-
-
+            List<GeometryDataModels.Target> newClosestTargets = new List<GeometryDataModels.Target>(GetTargetsForGameObjectsAndEntities(this.closestEntityTargets));
             return closestTargets;
         }
 
 
+        /// <summary>
+        /// Updates components internal targets list for both entities and GameObject. Then sorts them.
+        /// </summary>
+        public void UpdateClosestTargets()
+        {
+            List<GeometryDataModels.Target> newClosestTargets = new List<GeometryDataModels.Target>( GetTargetsForGameObjectsAndEntities(this.closestEntityTargets));
+            
+            if (newClosestTargets.Count > 0)
+            {
+                closestTargets = newClosestTargets.OrderBy(target => target.distanceToRay).ToList();
+            }
+        }
+        
+        private List<GeometryDataModels.Target> GetTargetsForGameObjectsAndEntities( NativeArray<GeometryDataModels.Target> closestEntityTargets)
+        {
+            List<GeometryDataModels.Target> newClosestTargets = new List<GeometryDataModels.Target>();
+            foreach (var targetingInstruction in TargetingInstructions)
+            {
+                if (gameObjectProcessing.Value == true)
+                {
+                    newClosestTargets =targetingInstruction.TargetingSystemGameObjects.GetTargets(transform.position, ForwardWorldCoordinate, GetEye<GeometryVisionEye>().SeenGeoInfos);
+                }
+
+                if (entityBasedProcessing.Value == true)
+                {
+                    var entityTargets =
+                        targetingInstruction.TargetingSystemEntities.GetTargetsAsNativeArray(transform.position,
+                            ForwardWorldCoordinate, null);
+                    //Only update entities if the burst compiled job has finished its job OnUpdate
+                    //If it has not finished it returns empty list.
+                    if (entityTargets.Length > 0)
+                    {
+                        closestEntityTargets = entityTargets;
+                    }
+                }
+            }
+
+            if (closestEntityTargets.Length > 0)
+            {
+                newClosestTargets.AddRange(closestEntityTargets);//add range but arrays(closestEntityTargets);
+            }
+
+            return newClosestTargets;
+        }
+        
 #if UNITY_EDITOR
-
-
+        
         /// <summary>
         /// Used for debugging geometry vision and is responsible for drawing debugging info from the data providid by
         /// GeometryVision plugin
@@ -866,7 +883,6 @@ namespace Plugins.GeometricVision
 
             UnityEngine.Debug.DrawLine(transform.position, ForwardWorldCoordinate, Color.blue, 1);
 
-
             DrawTargets(closestTargets);
 
             void DrawTargets(List<GeometryDataModels.Target> closestTargetsIn)
@@ -876,20 +892,21 @@ namespace Plugins.GeometricVision
                 for (var i = 0; i < closestTargetsIn.Count; i++)
                 {
                     var closestTarget = closestTargetsIn[i];
+                    if (closestTarget.distanceToCastOrigin == 0f)
+                    {
+                        continue;
+                    }
                     Vector3 resetToVector = Vector3.zero;
                     var position = DrawVisualIndicator(closestTarget.position, transform.position,
                         closestTarget.distanceToCastOrigin, Color.blue);
-                    DrawVisualIndicator(closestTarget.projectedTargetPosition, closestTarget.position,
-                        closestTarget.distanceToRay,
+                    DrawVisualIndicator(closestTarget.projectedTargetPosition, closestTarget.position, closestTarget.distanceToRay,
                         Color.green);
                     DrawVisualIndicator(position, closestTarget.projectedTargetPosition,
-                        closestTarget.distanceToCastOrigin,
-                        Color.red);
+                        closestTarget.distanceToCastOrigin, Color.red);
 
                     DrawInfo(closestTarget.position, Vector3.down, i);
 
-                    Vector3 DrawVisualIndicator(Vector3 spherePosition, Vector3 lineStartPosition, float distance,
-                        Color color)
+                    Vector3 DrawVisualIndicator(Vector3 spherePosition, Vector3 lineStartPosition, float distance, Color color)
                     {
                         Gizmos.color = color;
                         Gizmos.DrawLine(lineStartPosition, spherePosition);

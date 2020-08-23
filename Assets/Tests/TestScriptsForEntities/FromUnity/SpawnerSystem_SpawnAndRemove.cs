@@ -39,13 +39,13 @@ namespace Plugins.GeometricVision.EntityScripts
             // any, potentially costly, calculations on a worker thread, while queuing up the actual insertions and
             // deletions for later.
             var commandBuffer = m_EntityCommandBufferSystem.CreateCommandBuffer().ToConcurrent();
-        
+
             // Schedule the job that will add Instantiate commands to the EntityCommandBuffer.
             // Since this job only runs on the first frame, we want to ensure Burst compiles it before running to get the best performance (3rd parameter of WithBurst)
             // The actual job will be cached once it is compiled (it will only get Burst compiled once).
             Entities
-                .WithBurst(FloatMode.Default, FloatPrecision.Standard, true)
-                .ForEach((Entity entity, int entityInQueryIndex, in Spawner_SpawnAndRemove spawner, in LocalToWorld location) =>
+                .ForEach((Entity entity, int entityInQueryIndex, in Spawner_SpawnAndRemove spawner,
+                    in LocalToWorld location) =>
                 {
                     var random = new Random(1);
 
@@ -54,12 +54,16 @@ namespace Plugins.GeometricVision.EntityScripts
                         for (var y = 0; y < spawner.CountY; y++)
                         {
                             var instance = commandBuffer.Instantiate(entityInQueryIndex, spawner.Prefab);
-
+                            var separationMultiplier = spawner.separationMultiplier;
                             // Place the instantiated in a grid with some noise
-                            var position =(Vector3) math.transform(location.Value, new float3(x * 1.3F - spawner.CountX, y * 1.3F, noise.cnoise(new float2(x, y) * 0.21F) * 2 + 25) );
-                            commandBuffer.SetComponent(entityInQueryIndex, instance, new Translation { Value = position });
+                            var position = (Vector3) math.transform(location.Value,
+                                new float3(x * 1.3F - spawner.CountX * separationMultiplier, y * 1.3F * separationMultiplier,
+                                    
+                                    noise.cnoise(new float2(x, y) * 0.21F) * 2 + 25) * separationMultiplier);
+                            commandBuffer.SetComponent(entityInQueryIndex, instance,
+                                new Translation {Value = position});
                             //   commandBuffer.SetComponent(entityInQueryIndex, instance, new LifeTime { Value = random.NextFloat(10.0F, 100.0F) });
-                           // commandBuffer.SetComponent(entityInQueryIndex, instance, new RotationSpeed_SpawnAndRemove { RadiansPerSecond = math.radians(random.NextFloat(25.0F, 90.0F)) });
+                            // commandBuffer.SetComponent(entityInQueryIndex, instance, new RotationSpeed_SpawnAndRemove { RadiansPerSecond = math.radians(random.NextFloat(25.0F, 90.0F)) });
                         }
                     }
 

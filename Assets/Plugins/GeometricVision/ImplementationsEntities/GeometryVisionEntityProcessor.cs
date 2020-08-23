@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.ComponentModel;
 using Plugins.GeometricVision.EntityScripts;
+using Plugins.GeometricVision.ImplementationsEntities;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
@@ -21,7 +22,7 @@ namespace Plugins.GeometricVision.Interfaces.ImplementationsEntities
         private bool collidersTargeted;
 
         private bool extractGeometry;
-        private BeginInitializationEntityCommandBufferSystem m_EntityCommandBufferSystem;
+        private BeginInitializationEntityCommandBufferSystem entityCommandBufferSystem;
         [System.ComponentModel.ReadOnly(true)] public EntityCommandBuffer.Concurrent ConcurrentCommands;
         private int currentObjectCount;
         private GeometryVision geoVision;
@@ -32,14 +33,14 @@ namespace Plugins.GeometricVision.Interfaces.ImplementationsEntities
         protected override void OnCreate()
         {
             // Cache the BeginInitializationEntityCommandBufferSystem in a field, so we don't have to create it every frame
-            m_EntityCommandBufferSystem = World.GetOrCreateSystem<BeginInitializationEntityCommandBufferSystem>();
+            entityCommandBufferSystem = World.GetOrCreateSystem<BeginInitializationEntityCommandBufferSystem>();
             entityManager = World.EntityManager;
         }
 
         protected override void OnUpdate()
         {
 
-            var commandBuffer = m_EntityCommandBufferSystem.CreateCommandBuffer().ToConcurrent();
+            entityCommandBufferSystem.CreateCommandBuffer().ToConcurrent();
 
             EntityQuery entitiesWithoutTargetComponent = GetEntityQuery(
                 new EntityQueryDesc()
@@ -51,18 +52,19 @@ namespace Plugins.GeometricVision.Interfaces.ImplementationsEntities
 
             if ( entitiesWithoutTargetComponent.CalculateEntityCount() != 0)
             {
-                entityManager.AddComponent<GeometryDataModels.Target>( entitiesWithoutTargetComponent.ToEntityArray(Allocator.Temp));
+                var entitiesWithOutComponent = entitiesWithoutTargetComponent.ToEntityArray(Allocator.TempJob);
+                entityManager.AddComponent<GeometryDataModels.Target>(entitiesWithOutComponent);
+                entitiesWithOutComponent.Dispose();
             }
 
             entityQuery = GetEntityQuery(typeof(Translation),typeof(GeometryDataModels.Target) );
 
             var job2 = new ModifyTargets()
             {
-                targets = entityQuery.ToComponentDataArray<GeometryDataModels.Target>(Allocator.Temp),
-                translations = entityQuery.ToComponentDataArray<Translation>(Allocator.Temp),
+                targets = entityQuery.ToComponentDataArray<GeometryDataModels.Target>(Allocator.TempJob),
+                translations = entityQuery.ToComponentDataArray<Translation>(Allocator.TempJob),
                 entities= entityQuery.ToEntityArray(Allocator.TempJob),
             };
-
 
             this.Dependency = job2.Schedule(job2.targets.Length, 6);
             this.Dependency.Complete();
@@ -70,10 +72,10 @@ namespace Plugins.GeometricVision.Interfaces.ImplementationsEntities
             entityQuery.CopyFromComponentDataArray<Translation>(job2.translations);
             entityQuery.CopyFromComponentDataArray<GeometryDataModels.Target>(job2.targets);
 
-
+            entityCommandBufferSystem.AddJobHandleForProducer(Dependency);
             currentObjectCount = entityQuery.CalculateEntityCount();
 
-            m_EntityCommandBufferSystem.AddJobHandleForProducer(Dependency);
+
             job2.translations.Dispose();
             job2.targets.Dispose();
             job2.entities.Dispose();
@@ -94,7 +96,6 @@ namespace Plugins.GeometricVision.Interfaces.ImplementationsEntities
             [System.ComponentModel.ReadOnly(true)] public NativeArray<Translation> translations;
             public NativeArray<Entity> entities;
 
-
             public void Execute(int index)
             {
                 GeometryDataModels.Target target = targets[index];
@@ -102,7 +103,6 @@ namespace Plugins.GeometricVision.Interfaces.ImplementationsEntities
                 target.isEntity = true;
                 target.entity = entities[index];
                 targets[index] = target;
-                
             }
         }
         

@@ -25,7 +25,21 @@ namespace Tests
             return scenePaths;
         }
     }
-    
+    public class SceneBuildSettingsSetupForGameObjectsEmptyScene : IPrebuildSetup
+    {
+        public void Setup()
+        {
+            TestSessionVariables.BuildScenes = TestUtilities.SetupBuildSettings(GetScenesFromPathGameObjects());
+        }
+        
+        List<string> GetScenesFromPathGameObjects()
+        {
+            var scenePaths = TestUtilities.CreateScenePathFromRelativeAddress(TestSettings.EmptyScenePath);
+
+            return scenePaths;
+        }
+    }
+
     public class SceneBuildSettingsSetupForEntities : IPrebuildSetup
     {
         public void Setup()

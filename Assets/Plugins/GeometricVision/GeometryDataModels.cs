@@ -39,7 +39,7 @@ namespace Plugins.GeometricVision
             public Mesh colliderMesh;
         }
         
-        public struct Target :IComponentData, IEnumerable
+        public struct Target :IComponentData
         {
             public Vector3 position;
             public Vector3 projectedTargetPosition;
@@ -48,12 +48,9 @@ namespace Plugins.GeometricVision
             public bool isEntity;
             public int GeoInfoHashCode;
             public Entity entity;
-            public bool isBehind;
+            public bool isSeen;
 
-            public IEnumerator GetEnumerator()
-            {
-                throw new System.NotImplementedException();
-            }
+
         }
         
         public enum Plane : ushort

@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using Unity.Collections;
 using Unity.Entities;
 using UnityEngine;
 
@@ -14,7 +15,17 @@ namespace Plugins.GeometricVision.Interfaces.ImplementationsEntities
         
         }
 
-        public List<GeometryDataModels.Target> GetTargets(Vector3 rayLocation, Vector3 rayDirection, List<GeometryDataModels.GeoInfo> targets)
+        public NativeArray<GeometryDataModels.Target> GetTargetsAsNativeArray(Vector3 rayLocation, Vector3 rayDirection, List<GeometryDataModels.GeoInfo> targets)
+        {
+            throw new System.NotImplementedException();
+        }
+
+        List<GeometryDataModels.Target> IGeoTargeting.GetTargets(Vector3 rayLocation, Vector3 rayDirection, List<GeometryDataModels.GeoInfo> targets)
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public NativeList<GeometryDataModels.Target> GetTargets(Vector3 rayLocation, Vector3 rayDirection, List<GeometryDataModels.GeoInfo> targets)
         {
             throw new System.NotImplementedException();
         }

@@ -15,8 +15,8 @@ namespace Plugins.GeometricVision.Interfaces.Implementations
         [SerializeField] private int lastCount = 0;
 
 
-        public HashSet<Transform> AllObjects;
-        public List<GameObject> RootObjects;
+        public HashSet<Transform> AllTransforms { get; set; }
+        public List<GameObject> RootObjects { get; set; }
 
         public HashSet<Transform> GetTransforms(List<GameObject> objs)
         {
@@ -27,14 +27,14 @@ namespace Plugins.GeometricVision.Interfaces.Implementations
 
         public List<Transform> GetAllObjects()
         {
-            return AllObjects.ToList();
+            return AllTransforms.ToList();
         }
         
 
         // Start is called before the first frame update
         void Awake()
         {
-            AllObjects = new HashSet<Transform>();
+            AllTransforms = new HashSet<Transform>();
             RootObjects = new List<GameObject>();
         }
         
@@ -55,8 +55,8 @@ namespace Plugins.GeometricVision.Interfaces.Implementations
             if (currentObjectCount != lastCount)
             {
                 lastCount = currentObjectCount;
-                UpdateSceneObjects(RootObjects, AllObjects);
-                ExtractGeometry(AllObjects, geoVision.Head.GeoMemory.GeoInfos, geoVision.TargetingInstructions, false);
+                UpdateSceneObjects(RootObjects, AllTransforms);
+                ExtractGeometry(AllTransforms, geoVision.Head.GeoMemory.GeoInfos, geoVision.TargetingInstructions, false);
             }
         }
 
@@ -215,16 +215,14 @@ namespace Plugins.GeometricVision.Interfaces.Implementations
         {
             GetTransforms(rootObjects, ref allObjects);
     
-            foreach (var go in AllObjects.ToList()
+            foreach (var go in AllTransforms.ToList()
             ) //Copy to list so we are not modifying the same collection as we are iterating
             {
                 if (go.name == "geoVision")
                 {
-                    AllObjects.Remove(go);
+                    AllTransforms.Remove(go);
                 }
             }
         }
-        
-
     }
 }

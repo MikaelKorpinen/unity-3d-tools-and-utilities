@@ -13,7 +13,7 @@ namespace Tests.TestScenesEntities
         public GameObject Prefab;
         public int CountX;
         public int CountY;
-
+        public int separationMultiplier;
         // Referenced prefabs have to be declared so that the conversion system knows about them ahead of time
         public void DeclareReferencedPrefabs(List<GameObject> referencedPrefabs)
         {
@@ -31,6 +31,7 @@ namespace Tests.TestScenesEntities
                 Prefab = conversionSystem.GetPrimaryEntity(Prefab),
                 CountX = CountX,
                 CountY = CountY,
+                separationMultiplier = this.separationMultiplier
             };
             dstManager.AddComponentData(entity, spawnerData);
         }

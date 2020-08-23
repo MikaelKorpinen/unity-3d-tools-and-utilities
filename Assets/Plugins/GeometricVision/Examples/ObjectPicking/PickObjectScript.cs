@@ -1,14 +1,20 @@
 ﻿using System;
 using UnityEngine;
 using UnityEngine.InputSystem;
+#if STEAMVR
 using Valve.VR;
+#endif
 namespace Plugins.GeometricVision.Examples.ObjectPicking
 {
     public class PickObjectScript : MonoBehaviour
     {
         public int maxDistance;
         private ObjectPick controls ;
+        
+        #if STEAMVR
         public SteamVR_Action_Boolean grabPinchAction = SteamVR_Input.GetAction<SteamVR_Action_Boolean>("GrabPinch");
+        #endif
+        
         private GeometryVision geoVision;
         
         // Start is called before the first frame update
@@ -25,10 +31,12 @@ namespace Plugins.GeometricVision.Examples.ObjectPicking
 
         private void Update()
         {
+            #if STEAMVR
             if (grabPinchAction.GetStateDown(SteamVR_Input_Sources.RightHand))
             {
                 Pick();
             }
+            #endif
         }
 
         void OnEnable()
