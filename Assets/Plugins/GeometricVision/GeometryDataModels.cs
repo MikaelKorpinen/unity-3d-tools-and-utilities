@@ -1,31 +1,30 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
-using Unity.Jobs;
+using Unity.Entities;
+using Unity.Mathematics;
 using UnityEngine;
 
-namespace GeometricVision
+namespace Plugins.GeometricVision
 {
     public enum GeometryType
     {
         all,
         Vertices,
-        Edges,
-        Objects_,
-        Colliders
+        Lines,
+        Objects
     }
 
-
+    /// <summary>
+    /// Contains most of the public data blueprints for the GeometryVision plugin
+    /// </summary>
     public static class GeometryDataModels
     {
-        public struct Edge
+        public struct Edge:IComponentData
         {
             public int firstEdgePointIndex;
             public int secondEdgePointIndex;
-            public int edgeIndex;
             public Vector3 firstVertex;
             public Vector3 secondVertex;
-            public float lengthNonSquared;
-            public Vector3 closestPoint;
             public Boolean isVisible;
         }
 
@@ -37,20 +36,23 @@ namespace GeometricVision
             public GeometryDataModels.Edge[] edges;
             public Mesh mesh;
             private Vector3[] BoundsCorners;
+            public Mesh colliderMesh;
         }
-
-        public struct NativeEdge
+        
+        public struct Target :IComponentData
         {
-            public int firstEdgePointIndex;
-            public int secondEdgePointIndex;
-            public int edgeIndex;
-            public Vector3 firstVertex;
-            public Vector3 secondVertex;
-            public float lengthNonSquared;
-            public Vector3 closestPoint;
-            public byte isVisible;
-        }
+            public Vector3 position;
+            public Vector3 projectedTargetPosition;
+            public float distanceToRay;
+            public float distanceToCastOrigin;
+            public bool isEntity;
+            public int GeoInfoHashCode;
+            public Entity entity;
+            public bool isSeen;
 
+
+        }
+        
         public enum Plane : ushort
         {
             left = 0,
@@ -61,6 +63,17 @@ namespace GeometricVision
             far = 5,
         }
 
+        public struct FactorySettings
+        {
+            public bool processGameObjects;
+            public bool processEntities;
+            public bool processGameObjectsEdges;
+            public List<VisionTarget> targetInstructions;
+            public float fielOfView;
+            public bool edgesTargeted;
+            public bool defaultTargeting;
+        }
+        
         /// <summary>
         /// Great and easy idea for Blittable type boolean from playerone-studio.com
         /// </summary>
@@ -69,5 +82,7 @@ namespace GeometricVision
             False = 0,
             True = 1
         }
+  
+
     }
 }

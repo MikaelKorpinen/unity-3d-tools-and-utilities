@@ -1,25 +1,26 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using GeometricVision;
-using Plugins.GeometricVision;
+using Plugins.GeometricVision.Interfaces;
+using Plugins.GeometricVision.Interfaces.Implementations;
 using UnityEngine;
 
-public static class GeometryVisionUtilities
+namespace Plugins.GeometricVision.Utilities
 {
-    // Start is called before the first frame update
-    public static IGeoBrain getControllerFromGeometryManager(GeometryVisionHead head, GeometryVisionEye eye)
+    public static class GeometryVisionUtilities
     {
-
-        if (head == null)
+        // Start is called before the first frame update
+        public static void SetupGeometryVision(GeometryVisionHead head, GeometryVision geoVision, List<VisionTarget> targetTypes, GeometryDataModels.FactorySettings settings)
         {
-            var factory = new GeometryVisionFactory();
+            var factory = new GeometryVisionFactory(settings);
             var geoTypesToTarget = new List<GeometryType>();
-            geoTypesToTarget.Add(GeometryType.Objects_);
-            var headObject = factory.CreateGeometryVision(new Vector3(0f, 0f, 0f), Quaternion.identity, 25, eye,
-                geoTypesToTarget, 0);
-            return headObject.GetComponent<GeometryVisionBrain>();
-        }
+            
+            foreach (var targetType in targetTypes)
+            {
+                geoTypesToTarget.Add(targetType.GeometryType);
+            }
 
-        return head.GetComponent<GeometryVisionBrain>();
+            factory.CreateGeometryVision(new Vector3(0f, 0f, 0f), Quaternion.identity, 25, geoVision,
+                geoTypesToTarget, 0);
+        }
     }
 }

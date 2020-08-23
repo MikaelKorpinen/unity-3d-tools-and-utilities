@@ -1,0 +1,77 @@
+{
+    "name": "ObjectPick",
+    "maps": [
+        {
+            "name": "Player",
+            "id": "052784fc-eaa6-4aca-a686-7c5180586063",
+            "actions": [
+                {
+                    "name": "Pick",
+                    "type": "Button",
+                    "id": "be666431-d01c-4e55-b721-c72c7c0d9c2e",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": ""
+                }
+            ],
+            "bindings": [
+                {
+                    "name": "",
+                    "id": "d8ace537-9bfd-410d-a9c6-b4a0d9047972",
+                    "path": "<Mouse>/leftButton",
+                    "interactions": "Press",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Pick",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "a66fc46b-b715-4195-ab40-074beac9a627",
+                    "path": "<ViveWand>{RightHand}/triggerPressed",
+                    "interactions": "Press",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Pick",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "f58bc805-e7b5-451c-b0fd-0bc175b3e5c4",
+                    "path": "<ViveWand>/triggerPressed",
+                    "interactions": "Press",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Pick",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "79a7b7a0-75fc-4cd7-b3dd-2b5a468f3e46",
+                    "path": "<XRController>{RightHand}/triggerPressed",
+                    "interactions": "Press",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Pick",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "fb4c968d-7a20-4205-8dce-4a64bfb59500",
+                    "path": "<ViveWand>{RightHand}/gripButton",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Pick",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                }
+            ]
+        }
+    ],
+    "controlSchemes": []
+}
