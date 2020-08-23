@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Xml.Linq;
 using GeometricVision;
+using Plugins.GeometricVision;
 using UnityEngine;
 
 public class EdgeComparer : IEqualityComparer<GeometryDataModels.Edge>

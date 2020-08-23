@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using UniRx;
 using UniRx.InternalUtil;
 using UnityEngine;
 
-namespace UniRx
+namespace Plugins.GeometricVision.UniRx.Scripts.UnityEngineBridge
 {
+
     /// <summary>
     /// Inspectable ReactiveProperty.
     /// </summary>

@@ -4,7 +4,7 @@ using UnityEngine;
 using System.Text.RegularExpressions;
 using System.Collections;
 using System.Linq;
-
+using Plugins.GeometricVision.UniRx.Scripts.UnityEngineBridge;
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
