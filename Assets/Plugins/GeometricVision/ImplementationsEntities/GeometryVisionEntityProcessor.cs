@@ -21,7 +21,7 @@ namespace Plugins.GeometricVision.Interfaces.ImplementationsEntities
         private int lastCount = 0;
         private bool collidersTargeted;
 
-        private bool extractGeometry;
+        //private bool extractGeometry;
         private BeginInitializationEntityCommandBufferSystem entityCommandBufferSystem;
         [System.ComponentModel.ReadOnly(true)] public EntityCommandBuffer.Concurrent ConcurrentCommands;
         private int currentObjectCount;
@@ -147,12 +147,12 @@ namespace Plugins.GeometricVision.Interfaces.ImplementationsEntities
             if (currentObjectCount != lastCount && geoVision.TargetsAreStatic)
             {
                 lastCount = currentObjectCount;
-                extractGeometry = true;
+                //extractGeometry = true;
             }
 
             if (geoVision.TargetsAreStatic == false)
             {
-                extractGeometry = true;
+               // extractGeometry = true;
             }
         }
 

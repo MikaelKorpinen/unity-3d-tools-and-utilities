@@ -1,9 +1,13 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using Plugins.GeometricVision.Interfaces;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Jobs;
 using Unity.Transforms;
+using UnityEditor;
 using UnityEngine;
 
 namespace Plugins.GeometricVision.ImplementationsEntities
@@ -21,30 +25,51 @@ namespace Plugins.GeometricVision.ImplementationsEntities
 
         protected override void OnUpdate()
         {
-            entityQuery = GetEntityQuery(typeof(Translation), typeof(GeometryDataModels.Target));
-            
-            var job2 = new GetTargetsInParallel()
+           
+            if (geoVision.EntityFilterComponent != null)
             {
-                targets = entityQuery.ToComponentDataArray<GeometryDataModels.Target>(Allocator.TempJob),
-                rayDirWS = this.rayDirectionWS,
-                rayLocWS = rayLocation,
-            };
-            
-            this.Dependency = job2.Schedule(job2.targets.Length, 100);
-            this.Dependency.Complete();
-            
-            var job3 = new CollectSeenTargets()
+                //For now there is only support for global filtering on entities. Requires some UI rework
+                var mS = (MonoScript) geoVision.EntityFilterComponent;
+                Type type = mS.GetClass().UnderlyingSystemType;
+       
+                entityQuery = GetEntityQuery(type, typeof(Translation), typeof(GeometryDataModels.Target));
+            }
+            else
             {
-                targets = job2.targets,
-                seenTargets = new NativeList<GeometryDataModels.Target>( Allocator.TempJob),
-            };
+                entityQuery = GetEntityQuery(typeof(Translation), typeof(GeometryDataModels.Target));
+            }
+
+            if (entityQuery.IsEmptyIgnoreFilter == false)
+            {
+                var job2 = new GetTargetsInParallel()
             
-            this.Dependency = job3.Schedule(job2.targets.Length,  this.Dependency);
-            this.Dependency.Complete();
-            targets = new NativeArray<GeometryDataModels.Target>(job3.seenTargets, Allocator.Temp);
+                {
+                    targets = entityQuery.ToComponentDataArray<GeometryDataModels.Target>(Allocator.TempJob),
+                    rayDirWS = this.rayDirectionWS,
+                    rayLocWS = rayLocation,
+                };
             
-            job3.targets.Dispose();
-            job3.seenTargets.Dispose();
+                this.Dependency = job2.Schedule(job2.targets.Length, 100);
+                this.Dependency.Complete();
+            
+                var job3 = new CollectSeenTargets()
+                {
+                    targets = job2.targets,
+                    seenTargets = new NativeList<GeometryDataModels.Target>( Allocator.TempJob),
+                };
+            
+                this.Dependency = job3.Schedule(job2.targets.Length,  this.Dependency);
+                this.Dependency.Complete();
+                this.targets = new NativeArray<GeometryDataModels.Target>(job3.seenTargets, Allocator.Temp);
+            
+                job3.targets.Dispose();
+                job3.seenTargets.Dispose();
+            }
+            else
+            {
+                this.targets = new NativeArray<GeometryDataModels.Target>(0, Allocator.Temp);
+            }
+
         }
 
         [BurstCompile]
@@ -116,16 +141,22 @@ namespace Plugins.GeometricVision.ImplementationsEntities
             this.rayLocation = rayLocation;
             this.rayDirectionWS = rayDirection;
             Update();
-      //    this.targets.Sort<GeometryDataModels.Target, DistanceComparer>(new DistanceComparer());
 
             return this.targets;
         }
 
-        List<GeometryDataModels.Target> IGeoTargeting.GetTargets(Vector3 rayLocation, Vector3 rayDirection, List<GeometryDataModels.GeoInfo> targets)
+        List<GeometryDataModels.Target> IGeoTargeting.GetTargets(Vector3 rayLocation, Vector3 rayDirection,
+            GeometryVision geometryVision, VisionTarget tagetingInstruction)
         {
-            throw new System.NotImplementedException();
+            geoVision = geometryVision;
+            this.rayLocation = rayLocation;
+            this.rayDirectionWS = rayDirection;
+            Update();
+
+            return this.targets.ToList();
         }
         
+        //Usage: this.targets.Sort<GeometryDataModels.Target, DistanceComparer>(new DistanceComparer());
         public class DistanceComparer : IComparer<GeometryDataModels.Target>
         {
             public int Compare(GeometryDataModels.Target x, GeometryDataModels.Target y)

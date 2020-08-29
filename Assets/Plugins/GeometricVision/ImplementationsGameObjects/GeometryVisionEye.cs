@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using Plugins.GeometricVision.ImplementationsGameObjects;
 using Plugins.GeometricVision.Utilities;
 using Unity.Collections;
 using UnityEngine;

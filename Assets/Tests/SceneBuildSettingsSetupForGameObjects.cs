@@ -75,12 +75,12 @@ namespace Tests
     {
         public void Setup()
         {
-            TestSessionVariables.BuildScenes = TestUtilities.SetupBuildSettings(GetScenesForEntitiesFromPath());
+            TestSessionVariables.BuildScenes = TestUtilities.SetupBuildSettings(GetScenesForGameObjectsFromPath());
         }
         
-        List<string>  GetScenesForEntitiesFromPath()
+        List<string>  GetScenesForGameObjectsFromPath()
         {
-            var scenePaths = TestUtilities.CreateScenePathFromRelativeAddress(TestSettings.EntitiesTargetingTests);
+            var scenePaths = TestUtilities.CreateScenePathFromRelativeAddress(TestSettings.GameObjectsTargetingTests);
 
             return scenePaths;
         }

@@ -5,6 +5,7 @@ using GeometricVision;
 using NUnit.Framework;
 using Plugins.GeometricVision;
 using Plugins.GeometricVision.ImplementationsEntities;
+using Plugins.GeometricVision.ImplementationsGameObjects;
 using Plugins.GeometricVision.Interfaces;
 using Plugins.GeometricVision.Interfaces.Implementations;
 using Plugins.GeometricVision.Interfaces.ImplementationsEntities;
@@ -26,6 +27,7 @@ namespace Tests
             processGameObjects = true,
             processEntities = false,
             processGameObjectsEdges = false,
+            defaultTargeting = false
         };
 
         [TearDown]
@@ -148,7 +150,7 @@ namespace Tests
         [UnityTest, Performance, Version(version)]
         [Timeout(TestSettings.DefaultSmallTest)]
         [PrebuildSetup(typeof(SceneBuildSettingsSetupForGameObjectsEmptyScene))]
-        public IEnumerator GeometryVisionHasBasicComponentsWhenCreatedWithoutFactory(
+        public IEnumerator HasBasicComponentsWhenCreatedWithoutFactory(
             [ValueSource(typeof(TestUtilities), nameof(TestUtilities.GetEmptyScenePathsForGameObjects))]
             string scenePath)
         {
@@ -186,7 +188,7 @@ namespace Tests
         [UnityTest, Performance, Version(version)]
         [Timeout(TestSettings.DefaultSmallTest)]
         [PrebuildSetup(typeof(SceneBuildSettingsSetupForGameObjectsEmptyScene))]
-        public IEnumerator GeometryVisionHasBasicComponentsWhenCreatedWithFactory(
+        public IEnumerator HasBasicComponentsWhenCreatedWithFactory(
             [ValueSource(typeof(TestUtilities), nameof(TestUtilities.GetEmptyScenePathsForGameObjects))]
             string scenePath)
         {
@@ -226,7 +228,7 @@ namespace Tests
         [UnityTest, Performance, Version(version)]
         [Timeout(TestSettings.DefaultSmallTest)]
         [PrebuildSetup(typeof(SceneBuildSettingsSetupForGameObjectsEmptyScene))]
-        public IEnumerator GeometryVisionSwitchingToEntitiesWorksWhenCreatedWithFactory(
+        public IEnumerator SwitchingToEntitiesWorksWhenCreatedWithFactory(
             [ValueSource(typeof(TestUtilities), nameof(TestUtilities.GetEmptyScenePathsForGameObjects))]
             string scenePath)
         {

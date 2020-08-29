@@ -1,7 +1,9 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using Unity.Entities;
 using Unity.Mathematics;
+using UnityEditor;
 using UnityEngine;
 
 namespace Plugins.GeometricVision
@@ -35,7 +37,7 @@ namespace Plugins.GeometricVision
             public Transform transform;
             public GeometryDataModels.Edge[] edges;
             public Mesh mesh;
-            private Vector3[] BoundsCorners;
+           // private Vector3[] BoundsCorners;
             public Mesh colliderMesh;
         }
         
@@ -72,6 +74,8 @@ namespace Plugins.GeometricVision
             public float fielOfView;
             public bool edgesTargeted;
             public bool defaultTargeting;
+            public string defaultTag;
+            public Type entityComponentQueryFilter;
         }
         
         /// <summary>

@@ -359,11 +359,12 @@
             <e p="EntityTestingUtilities.cs" t="Include" />
             <e p="FromUnity" t="Include">
               <e p="RotationSpeed_SpawnAndRemove.cs" t="Include" />
-              <e p="Spawner_SpawnAndRemove.cs" t="Include" />
               <e p="SpawnerAuthoring_SpawnAndRemove.cs" t="Include" />
+              <e p="SpawnerData_SpawnAndRemove.cs" t="Include" />
               <e p="SpawnerSystem_SpawnAndRemove.cs" t="Include" />
             </e>
             <e p="FrustumTestsEntities.cs" t="Include" />
+            <e p="RotationSpeed_Authoring.cs" t="Include" />
             <e p="TargetingTestsEntities.cs" t="Include" />
           </e>
           <e p="TestScriptsForGameObjects" t="Include">

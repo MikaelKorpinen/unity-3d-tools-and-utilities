@@ -25,11 +25,12 @@ namespace Plugins.GeometricVision.EntityScripts
         // between recording the commands and instantiating the entities, but in practice this is usually not noticeable.
         //
         BeginInitializationEntityCommandBufferSystem m_EntityCommandBufferSystem;
-
+        private bool runOnce;
         protected override void OnCreate()
         {
             // Cache the BeginInitializationEntityCommandBufferSystem in a field, so we don't have to create it every frame
             m_EntityCommandBufferSystem = World.GetOrCreateSystem<BeginInitializationEntityCommandBufferSystem>();
+            runOnce = true;
         }
 
         protected override void OnUpdate()
@@ -39,37 +40,45 @@ namespace Plugins.GeometricVision.EntityScripts
             // any, potentially costly, calculations on a worker thread, while queuing up the actual insertions and
             // deletions for later.
             var commandBuffer = m_EntityCommandBufferSystem.CreateCommandBuffer().ToConcurrent();
-
-            // Schedule the job that will add Instantiate commands to the EntityCommandBuffer.
-            // Since this job only runs on the first frame, we want to ensure Burst compiles it before running to get the best performance (3rd parameter of WithBurst)
-            // The actual job will be cached once it is compiled (it will only get Burst compiled once).
-            Entities
-                .ForEach((Entity entity, int entityInQueryIndex, in Spawner_SpawnAndRemove spawner,
-                    in LocalToWorld location) =>
-                {
-                    var random = new Random(1);
-
-                    for (var x = 0; x < spawner.CountX; x++)
+            if (runOnce)
+            {
+                // Schedule the job that will add Instantiate commands to the EntityCommandBuffer.
+                // Since this job only runs on the first frame, we want to ensure Burst compiles it before running to get the best performance (3rd parameter of WithBurst)
+                // The actual job will be cached once it is compiled (it will only get Burst compiled once).
+                Entities
+                    .ForEach((Entity entity, int entityInQueryIndex, in SpawnerData_SpawnAndRemove spawner,
+                        in LocalToWorld location) =>
                     {
-                        for (var y = 0; y < spawner.CountY; y++)
+                        var random = new Random(1);
+
+                        for (var x = 0; x < spawner.CountX; x++)
                         {
-                            var instance = commandBuffer.Instantiate(entityInQueryIndex, spawner.Prefab);
-                            var separationMultiplier = spawner.separationMultiplier;
-                            // Place the instantiated in a grid with some noise
-                            var position = (Vector3) math.transform(location.Value,
-                                new float3(x * 1.3F - spawner.CountX * separationMultiplier, y * 1.3F * separationMultiplier,
-                                    
-                                    noise.cnoise(new float2(x, y) * 0.21F) * 2 + 25) * separationMultiplier);
-                            commandBuffer.SetComponent(entityInQueryIndex, instance,
-                                new Translation {Value = position});
-                            //   commandBuffer.SetComponent(entityInQueryIndex, instance, new LifeTime { Value = random.NextFloat(10.0F, 100.0F) });
-                            // commandBuffer.SetComponent(entityInQueryIndex, instance, new RotationSpeed_SpawnAndRemove { RadiansPerSecond = math.radians(random.NextFloat(25.0F, 90.0F)) });
+                            for (var y = 0; y < spawner.CountY; y++)
+                            {
+                                var instance = commandBuffer.Instantiate(entityInQueryIndex, spawner.Prefab);
+                                var separationMultiplier = spawner.separationMultiplier;
+                                // Place the instantiated in a grid with some noise
+                                var position = (Vector3) math.transform(location.Value,
+                                    new float3(x * 1.3F - spawner.CountX * separationMultiplier, y * 1.3F * separationMultiplier, noise.cnoise(new float2(x, y) * 0.21F) * 2 + 25) * separationMultiplier);
+                                commandBuffer.SetComponent(entityInQueryIndex, instance, new Translation {Value = position});
+                                commandBuffer.AddComponent(entityInQueryIndex, instance, new RotationSpeed_SpawnAndRemove { RadiansPerSecond = math.radians(random.NextFloat(25.0F, 90.0F)) });
+                            }
                         }
-                    }
 
-                    commandBuffer.DestroyEntity(entityInQueryIndex, entity);
+                       // commandBuffer.DestroyEntity(entityInQueryIndex, entity);
+                    }).ScheduleParallel();
+                runOnce = false;
+            }
+            var deltaTime = Time.DeltaTime;
+        
+            // The in keyword on the RotationSpeed_SpawnAndRemove component tells the job scheduler that this job will not write to rotSpeedSpawnAndRemove
+            Entities
+                .WithName("RotationSpeedSystem_SpawnAndRemove")
+                .ForEach((ref Rotation rotation, in RotationSpeed_SpawnAndRemove rotSpeedSpawnAndRemove) =>
+                {
+                    // Rotate something about its up vector at the speed given by RotationSpeed_SpawnAndRemove.
+                    rotation.Value = math.mul(math.normalize(rotation.Value), quaternion.AxisAngle(math.up(), rotSpeedSpawnAndRemove.RadiansPerSecond * deltaTime*0.01f));
                 }).ScheduleParallel();
-
             // SpawnJob runs in parallel with no sync point until the barrier system executes.
             // When the barrier system executes we want to complete the SpawnJob and then play back the commands
             // (Creating the entities and placing them). We need to tell the barrier system which job it needs to

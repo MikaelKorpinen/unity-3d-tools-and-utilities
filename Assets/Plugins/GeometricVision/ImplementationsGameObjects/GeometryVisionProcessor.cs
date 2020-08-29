@@ -1,12 +1,11 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using GeometricVision;
+using Plugins.GeometricVision.Interfaces;
 using Plugins.GeometricVision.Utilities;
-using Unity.Collections;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-namespace Plugins.GeometricVision.Interfaces.Implementations
+namespace Plugins.GeometricVision.ImplementationsGameObjects
 {
     /// <inheritdoc />
     [DisallowMultipleComponent]
@@ -29,7 +28,7 @@ namespace Plugins.GeometricVision.Interfaces.Implementations
         {
             return AllTransforms.ToList();
         }
-        
+
 
         // Start is called before the first frame update
         void Awake()
@@ -37,32 +36,33 @@ namespace Plugins.GeometricVision.Interfaces.Implementations
             AllTransforms = new HashSet<Transform>();
             RootObjects = new List<GameObject>();
         }
-        
+
         public int CountSceneObjects()
         {
             SceneManager.GetActiveScene().GetRootGameObjects(RootObjects);
             return CountObjectsInHierarchy(RootObjects);
         }
-        
+
         /// <summary>
         /// Used to check, if things inside scene has changed. Like if new object has been removed or moved.
+        /// This trigger re fetch for desired transforms and objects
         /// </summary>
         public void CheckSceneChanges(GeometryVision geoVision)
         {
             SceneManager.GetActiveScene().GetRootGameObjects(RootObjects);
-
             var currentObjectCount = CountObjectsInHierarchy(RootObjects);
+            
             if (currentObjectCount != lastCount)
             {
                 lastCount = currentObjectCount;
-                UpdateSceneObjects(RootObjects, AllTransforms);
-                ExtractGeometry(AllTransforms, geoVision.Head.GeoMemory.GeoInfos, geoVision.TargetingInstructions, false);
+                UpdateSceneObjects(RootObjects, AllTransforms, "");
+                ExtractGeometry(AllTransforms, geoVision.Head.GeoMemory.GeoInfos, geoVision.TargetingInstructions,
+                    false);
             }
         }
 
         public void Debug(GeometryVision geoVisions)
         {
-            
         }
 
         /// <summary>
@@ -100,12 +100,12 @@ namespace Plugins.GeometricVision.Interfaces.Implementations
         }
 
         /// <summary>
-        /// Gets all the trasforms from list of objects
+        /// Gets all the transforms from list of root objects
         /// </summary>
         /// <param name="rootObjects"></param>
         /// <param name="targetTransforms"></param>
         /// <returns></returns>
-        public void GetTransforms(List<GameObject> rootObjects, ref HashSet<Transform> targetTransforms)
+        public void GetTransformsFromRootObjects(List<GameObject> rootObjects, ref HashSet<Transform> targetTransforms)
         {
             int numberOfObjects = 0;
 
@@ -114,6 +114,21 @@ namespace Plugins.GeometricVision.Interfaces.Implementations
                 var root = rootObjects[index];
                 targetTransforms.Add(root.transform);
                 GetObjectsInTransformHierarchy(root.transform, ref targetTransforms, numberOfObjects + 1);
+            }
+        }
+
+        /// <summary>
+        /// Gets all the transforms from list of objects
+        /// </summary>
+        /// <param name="gameObjects"></param>
+        /// <param name="targetTransforms"></param>
+        /// <returns></returns>
+        public void GetTransforms(List<GameObject> gameObjects, ref HashSet<Transform> targetTransforms)
+        {
+            for (var index = 0; index < gameObjects.Count; index++)
+            {
+                var root = gameObjects[index];
+                targetTransforms.Add(root.transform);
             }
         }
 
@@ -150,7 +165,9 @@ namespace Plugins.GeometricVision.Interfaces.Implementations
                     geoInfos.Add(geoInfo);
                 }
             }
-            GeometryDataModels.GeoInfo GetGeoInfoGeometryData(List<VisionTarget> targetedGeometries2, GeometryDataModels.GeoInfo geoInfo, Transform seenObject)
+
+            GeometryDataModels.GeoInfo GetGeoInfoGeometryData(List<VisionTarget> targetedGeometries2,
+                GeometryDataModels.GeoInfo geoInfo, Transform seenObject)
             {
                 if (GeometryIsTargeted(targetedGeometries2))
                 {
@@ -166,13 +183,12 @@ namespace Plugins.GeometricVision.Interfaces.Implementations
                 }
                 else
                 {
-                    geoInfo.edges = new GeometryDataModels.Edge[0]; 
+                    geoInfo.edges = new GeometryDataModels.Edge[0];
                 }
 
                 return geoInfo;
             }
         }
-
 
 
         private static GeometryDataModels.GeoInfo CreateGeoInfoObject(Transform seenObject, Renderer renderer)
@@ -211,17 +227,15 @@ namespace Plugins.GeometricVision.Interfaces.Implementations
         /// </summary>
         /// <param name="rootObjects"></param>
         /// <param name="allObjects"></param>
-        private void UpdateSceneObjects(List<GameObject> rootObjects, HashSet<Transform> allObjects)
+        private void UpdateSceneObjects(List<GameObject> rootObjects, HashSet<Transform> allObjects, string tagName)
         {
-            GetTransforms(rootObjects, ref allObjects);
-    
-            foreach (var go in AllTransforms.ToList()
-            ) //Copy to list so we are not modifying the same collection as we are iterating
+            if (tagName.Length > 0)
             {
-                if (go.name == "geoVision")
-                {
-                    AllTransforms.Remove(go);
-                }
+                GetTransforms(GameObject.FindGameObjectsWithTag(tagName).ToList(), ref allObjects);
+            }
+            else
+            {
+                GetTransformsFromRootObjects(rootObjects, ref allObjects);
             }
         }
     }
