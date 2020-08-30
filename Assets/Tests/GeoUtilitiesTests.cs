@@ -122,7 +122,7 @@ namespace Tests
             yield return null;
             GeometryDataModels.Edge[] edges;
             var geoEye = geoVision.GetComponent<GeometryVisionEye>();
-            geoVision.GetComponent<GeometryVision>().TargetingInstructions.Add(new VisionTarget(GeometryType.Lines,"", new GeometryLineTargeting(), false,null));
+            geoVision.GetComponent<GeometryVision>().TargetingInstructions.Add(new TargetingInstruction(GeometryType.Lines,"", new GeometryLineTargeting(), false,null));
             /////Put camera at position where it can only see text cube 3d model partially
             var position = new Vector3(-2.33f, 0.352f, -6f);
             //Need to wait till update loop finishes for frustum to update. On windows machines not happen as fast as on Linux for some reason.
@@ -193,7 +193,7 @@ namespace Tests
             var geoVision = TestUtilities.SetupGeoVision(new Vector3(0f, 0f, -6f), new GeometryVisionFactory(factorySettings));
             yield return null;
             var geoEye = geoVision.GetComponent<GeometryVisionEye>();
-            /////Put camera at starting position so it can see the 3d model.
+            //Move the eye back so it only sees 5 edges
             GeometryDataModels.Edge[] edges = new GeometryDataModels.Edge[0];
             var position = new Vector3(-2.33f, 0.352f, -6f);
             yield return null;
@@ -224,8 +224,9 @@ namespace Tests
             edges = new GeometryDataModels.Edge[0];
             var edgesT = edges;
             geoVision.transform.position = position;
-            geoVision.GetComponent<GeometryVision>().RegenerateVisionArea(25);
-            geoVision.GetComponent<GeometryVision>().Head.GetProcessor<GeometryVisionProcessor>().CheckSceneChanges(geoVision.GetComponent<GeometryVision>());
+            var geoVis = geoVision.GetComponent<GeometryVision>();
+            geoVis.RegenerateVisionArea(25);
+            geoVis.Head.GetProcessor<GeometryVisionProcessor>().CheckSceneChanges(geoVision.GetComponent<GeometryVision>());
             Measure.Method(() => { MeshUtilities.UpdateEdgesVisibility(geoVision.GetComponent<GeometryVision>().Planes, geoEye.SeenGeoInfos); }).Run();
             var visibleEdgeCount = 0;
 

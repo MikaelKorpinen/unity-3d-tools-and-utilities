@@ -49,7 +49,7 @@ namespace Tests
             yield return null;
 
             var geoEye = geoVision.GetComponent<GeometryVision>().GetEye<GeometryVisionEye>();
-            Assert.AreEqual(expectedObjectCount, geoEye.seenTransforms.Count);
+            Assert.True( geoEye.seenTransforms.Count >= expectedObjectCount  &&  geoEye.seenTransforms.Count  <= expectedObjectCount + 1);
         }
         
         /// <summary>
@@ -73,16 +73,16 @@ namespace Tests
             yield return null;
             var geoVisionComponent = geoVision.GetComponent<GeometryVision>();
             var geoEye = geoVisionComponent.GetEye<GeometryVisionEye>();
-            Assert.AreEqual(expectedObjectCount, geoEye.seenTransforms.Count);  
+            Assert.True( geoEye.seenTransforms.Count >= expectedObjectCount  &&  geoEye.seenTransforms.Count  <= expectedObjectCount + 1);
 
             geoVision.transform.position = new Vector3(10f,10f,10);//Move Object outside the cube
             yield return null;         
 
-            Assert.AreEqual(expectedObjectCount2, geoEye.seenTransforms.Count);
+            Assert.True( geoEye.seenTransforms.Count >= expectedObjectCount2  &&  geoEye.seenTransforms.Count  <= expectedObjectCount2 + 1);
             
             geoVision.transform.position = new Vector3(0f,0f,-6f);//Move Object back to the cube
             yield return null;
-            Assert.AreEqual(expectedObjectCount3, geoEye.seenTransforms.Count);
+            Assert.True( geoEye.seenTransforms.Count >= expectedObjectCount3  &&  geoEye.seenTransforms.Count  <= expectedObjectCount3 + 1);
         }
     }
 }

@@ -40,7 +40,7 @@ namespace Plugins.GeometricVision.ImplementationsGameObjects
         }
 
         List<GeometryDataModels.Target> IGeoTargeting.GetTargets(Vector3 rayLocation, Vector3 rayDirectionWS,
-            GeometryVision geoVision, VisionTarget targetingInstruction)
+            GeometryVision geoVision, TargetingInstruction targetingInstruction)
         {
             GeometryDataModels.Target targetInfo = new GeometryDataModels.Target();
             List<GeometryDataModels.Target> targetInfos = new List<GeometryDataModels.Target>();

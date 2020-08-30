@@ -70,7 +70,7 @@ namespace Plugins.GeometricVision
             public bool processGameObjects;
             public bool processEntities;
             public bool processGameObjectsEdges;
-            public List<VisionTarget> targetInstructions;
+            public List<TargetingInstruction> targetInstructions;
             public float fielOfView;
             public bool edgesTargeted;
             public bool defaultTargeting;

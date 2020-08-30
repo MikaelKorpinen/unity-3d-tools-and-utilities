@@ -17,7 +17,8 @@ namespace Plugins.GeometricVision
         public  GeometryVisionFactory(GeometryDataModels.FactorySettings settings)
         {
             this.settings = settings;
-            this.settings.defaultTag = "";
+            this.settings.defaultTag = settings.defaultTag;
+            this.settings.entityComponentQueryFilter = settings.entityComponentQueryFilter;
         }
         public GameObject CreateGeometryVision(Vector3 startingPosition, Quaternion rotation, float fieldOfView,
             GeometryVision geoVisionComponent, List<GeometryType> geoTypes, int layerIndex)
@@ -45,7 +46,7 @@ namespace Plugins.GeometricVision
         /// <param name="debugModeEnabled"></param>
         /// <returns></returns>
         public GameObject CreateGeometryVision(Vector3 startingPosition, Quaternion rotation, float fieldOfView,
-            List<GeometryType> geoTypes, int layerIndex, bool debugModeEnabled)
+            List<GeometryType> geoTypes,  bool debugModeEnabled)
         {
             if (settings.edgesTargeted)
             {
@@ -64,19 +65,14 @@ namespace Plugins.GeometricVision
             var transform = geometryVision.transform;
             transform.position = startingPosition;
             transform.rotation = rotation;
+
             AddAdditionalTargets(geoVisionComponent, geoTypes);
 
             geoVisionComponent.InitEntitySwitch();
             geoVisionComponent.InitGameObjectSwitch();
             geoVisionComponent.UpdateTargetingSystemsContainer();
-            return geometryVision;
-        }
 
-        private void ConfigureGeometryVision(GeometryDataModels.FactorySettings factorySettings, GeometryVision geoVisionComponent)
-        {
-            geoVisionComponent.EntityBasedProcessing.Value = factorySettings.processEntities;
-            geoVisionComponent.GameObjectBasedProcessing.Value = factorySettings.processGameObjects;
-            geoVisionComponent.InitializeSystems();
+            return geometryVision;
         }
 
         private void AddAdditionalTargets(GeometryVision geoVision, List<GeometryType> geoTypes)
@@ -113,27 +109,26 @@ namespace Plugins.GeometricVision
                     return ( new GeometryObjectTargeting(),  new GeometryLineTargeting(),  new GeometryVertexTargeting() );
                 }
             }
-
-
+            
             void AssignTargetingSystems()
             {
                 foreach (var geoType in geoTypes)
                 {
                     if (geoType == GeometryType.Objects)
                     {
-                        geoVision.TargetingInstructions.Add(new VisionTarget(GeometryType.Objects, settings.defaultTag,
+                        geoVision.TargetingInstructions.Add(new TargetingInstruction(GeometryType.Objects, settings.defaultTag,
                             systems.Item1, settings.defaultTargeting, settings.entityComponentQueryFilter));
                     }
 
                     if (geoType == GeometryType.Lines)
                     {
-                        geoVision.TargetingInstructions.Add(new VisionTarget(GeometryType.Lines, settings.defaultTag, systems.Item2,
+                        geoVision.TargetingInstructions.Add(new TargetingInstruction(GeometryType.Lines, settings.defaultTag, systems.Item2,
                             settings.defaultTargeting, settings.entityComponentQueryFilter));
                     }
 
                     if (geoType == GeometryType.Vertices)
                     {
-                        geoVision.TargetingInstructions.Add(new VisionTarget(GeometryType.Vertices, settings.defaultTag,
+                        geoVision.TargetingInstructions.Add(new TargetingInstruction(GeometryType.Vertices, settings.defaultTag,
                             systems.Item3, settings.defaultTargeting, settings.entityComponentQueryFilter));
                     }
                 }
@@ -156,10 +151,19 @@ namespace Plugins.GeometricVision
         {
             geoVision.AddComponent<GeometryVision>();
             var geoVisionComponent = geoVision.GetComponent<GeometryVision>();
+            geoVisionComponent.ApplyDefaultTagToTargetingInstructions();
             geoVisionComponent.Id = new Hash128().ToString();
             geoVisionComponent.DebugMode = debugModeEnabled;
             ConfigureGeometryVision(this.settings, geoVisionComponent);
             return geoVisionComponent;
+        }
+
+        private void ConfigureGeometryVision(GeometryDataModels.FactorySettings factorySettings, GeometryVision geoVisionComponent)
+        {
+            geoVisionComponent.EntityBasedProcessing.Value = factorySettings.processEntities;
+            geoVisionComponent.GameObjectBasedProcessing.Value = factorySettings.processGameObjects;
+            geoVisionComponent.DefaultTag = settings.defaultTag;
+            geoVisionComponent.InitializeSystems();
         }
 
         private GeometryVisionHead CreateHead(GameObject geoVisionHead, GeometryVision geoVisionComponent)

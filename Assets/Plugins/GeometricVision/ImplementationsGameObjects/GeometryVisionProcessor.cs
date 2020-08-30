@@ -152,7 +152,7 @@ namespace Plugins.GeometricVision.ImplementationsGameObjects
         /// <param name="geoInfos"></param>
         /// <param name="targetedGeometries"></param>
         private void ExtractGeometry(HashSet<Transform> seenObjects, List<GeometryDataModels.GeoInfo> geoInfos,
-            List<VisionTarget> targetedGeometries, bool collidersTargeted)
+            List<TargetingInstruction> targetedGeometries, bool collidersTargeted)
         {
             foreach (var seenObject in seenObjects)
             {
@@ -166,7 +166,7 @@ namespace Plugins.GeometricVision.ImplementationsGameObjects
                 }
             }
 
-            GeometryDataModels.GeoInfo GetGeoInfoGeometryData(List<VisionTarget> targetedGeometries2,
+            GeometryDataModels.GeoInfo GetGeoInfoGeometryData(List<TargetingInstruction> targetedGeometries2,
                 GeometryDataModels.GeoInfo geoInfo, Transform seenObject)
             {
                 if (GeometryIsTargeted(targetedGeometries2))
@@ -207,7 +207,7 @@ namespace Plugins.GeometricVision.ImplementationsGameObjects
         /// </summary>
         /// <param name="targetedGeometries"></param>
         /// <returns></returns>
-        private bool GeometryIsTargeted(List<VisionTarget> targetedGeometries)
+        private bool GeometryIsTargeted(List<TargetingInstruction> targetedGeometries)
         {
             bool found = false;
             foreach (var visionTarget in targetedGeometries)

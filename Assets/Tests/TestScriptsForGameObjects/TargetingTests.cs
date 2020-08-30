@@ -23,6 +23,7 @@ namespace Tests.TestScriptsForGameObjects
             processGameObjectsEdges = false,
             edgesTargeted = false,
             defaultTargeting = true,
+            defaultTag = ""
         };
 
         [TearDown]

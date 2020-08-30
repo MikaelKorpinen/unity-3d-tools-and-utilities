@@ -52,6 +52,7 @@
             <e p="Jobs" t="Include">
               <e p="EdgeJobs.cs" t="Include" />
             </e>
+            <e p="TargetingInstruction.cs" t="Include" />
             <e p="UI" t="Include">
               <e p="Actions.uss" t="Include" />
               <e p="Actions.uxml" t="Include" />
@@ -346,7 +347,6 @@
               <e p="JobUtilities.cs" t="Include" />
               <e p="MeshUtilities.cs" t="Include" />
             </e>
-            <e p="VisionTarget.cs" t="Include" />
           </e>
         </e>
         <e p="Tests" t="Include">

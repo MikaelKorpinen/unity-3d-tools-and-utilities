@@ -19,7 +19,7 @@ namespace Plugins.GeometricVision
     /// Contains user defined targeting instructions for the GeometryVision object
     /// </summary>
     [Serializable]
-    public class VisionTarget
+    public class TargetingInstruction
     {
         public bool enabled = true;
         [SerializeField,  Tooltip("Choose what geometry to target or use.")] private GeometryType geometryType;
@@ -44,11 +44,11 @@ namespace Plugins.GeometricVision
         /// <param name="tagName"></param>
         /// <param name="targetingSystem"></param>
         /// <exception cref="ArgumentNullException"></exception>
-        public VisionTarget(GeometryType geoType, string tagName, IGeoTargeting targetingSystem, bool targetingEnabled, Type entityQueryFilter)
+        public TargetingInstruction(GeometryType geoType, string tagName, IGeoTargeting targetingSystem, bool targetingEnabled, Type entityQueryFilter)
         {
             GeometryType = geoType;
             targetTag = tagName;
-            this.entityQueryFilter = entityQueryFilter;
+            this.EntityQueryFilter = entityQueryFilter;
 
             isTargetingEnabled.Value = targetingEnabled;
             AssignTargetingSystem(targetingSystem);
@@ -110,6 +110,12 @@ namespace Plugins.GeometricVision
         {
             get { return isTargetActionsTemplateSlotVisible; }
             set { isTargetActionsTemplateSlotVisible = value; }
+        }
+
+        public Type EntityQueryFilter
+        {
+            get { return entityQueryFilter; }
+            set { entityQueryFilter = value; }
         }
     }
 }

@@ -20,7 +20,7 @@ namespace Plugins.GeometricVision.ImplementationsEntities
         }
 
         public List<GeometryDataModels.Target> GetTargets(Vector3 rayLocation, Vector3 rayDirection, GeometryVision geometryVision,
-            VisionTarget targetingInstruction)
+            TargetingInstruction targetingInstruction)
         {
             throw new System.NotImplementedException();
         }

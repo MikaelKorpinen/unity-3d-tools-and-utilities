@@ -21,7 +21,7 @@ namespace Plugins.GeometricVision.UI
     {
     }
 
-    [CustomPropertyDrawer(typeof(VisionTarget))]
+    [CustomPropertyDrawer(typeof(TargetingInstruction))]
     public class VisionTypeDrawerUIE : PropertyDrawer
     {
         public override VisualElement CreatePropertyGUI(SerializedProperty property)
@@ -115,7 +115,7 @@ namespace Plugins.GeometricVision.UI
     /// <summary>
     /// Checks if user removes GeometricVision component and if it does cleans up all the dependencies
     /// </summary>
-    [CustomPropertyDrawer(typeof(VisionTarget))]
+    [CustomPropertyDrawer(typeof(TargetingInstruction))]
     public class VisionTypeDrawer : PropertyDrawer
     {
         public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)

@@ -40,7 +40,7 @@ namespace Plugins.GeometricVision
         //[SerializeField, Tooltip("Use the mesh from collider")]
         // private bool targetColliderMeshes;
 
-        [SerializeField] private List<VisionTarget> targetingInstructions = new List<VisionTarget>();
+        [SerializeField] private List<TargetingInstruction> targetingInstructions;
 
         [SerializeField, Tooltip("Include entities")]
         private BoolReactiveProperty entityBasedProcessing = new BoolReactiveProperty();
@@ -65,15 +65,15 @@ namespace Plugins.GeometricVision
         private EndSimulationEntityCommandBufferSystem commandBufferSystem;
         private GeometryDataModels.Target closestTarget;
         private TransformEntitySystem transformEntitySystem;
-
+        private string defaultTag ="";
         void Reset()
         {
+            targetingInstructions = new List<TargetingInstruction>();
             InitializeSystems();
             if (targetingInstructions.Count == 0)
             {
-
                 targetingInstructions.Add(
-                    new VisionTarget(GeometryType.Objects, "", new GeometryObjectTargeting(), true,
+                    new TargetingInstruction(GeometryType.Objects, DefaultTag, new GeometryObjectTargeting(), true,
                         GetCurrentEntityFilterType()));
             }
         }
@@ -82,6 +82,7 @@ namespace Plugins.GeometricVision
         //Call initialize on Awake to init systems in case Component is created on the factory method.
         void Awake()
         {
+            targetingInstructions = new List<TargetingInstruction>();
             InitializeSystems();
         }
 
@@ -99,15 +100,6 @@ namespace Plugins.GeometricVision
             ValidateTargetingSystems(targetingInstructions);
         }
 
-        // Handles target initialization. Adds needed components and subscribes changing variables to logic that updates the targeting system.
-        private void InitializeTargeting(List<VisionTarget> targetingInstructions)
-        {
-            var geoTargetingSystemsContainer = HandleAddingGeometryTargetingComponent();
-            foreach (var targetingInstruction in targetingInstructions)
-            {
-                OnTargetingEnabled(targetingInstruction, geoTargetingSystemsContainer);
-            }
-        }
 
         /// <summary>
         /// Should be run in case making changes to GUI values from code and want the changes to happen before next frame(instantly).
@@ -132,6 +124,16 @@ namespace Plugins.GeometricVision
             InitEntitySwitch();
             InitGameObjectSwitch();
             UpdateTargetingSystemsContainer();
+        }
+        
+        // Handles target initialization. Adds needed components and subscribes changing variables to logic that updates the targeting system.
+        private void InitializeTargeting(List<TargetingInstruction> targetingInstructions)
+        {
+            var geoTargetingSystemsContainer = HandleAddingGeometryTargetingComponent();
+            foreach (var targetingInstruction in targetingInstructions)
+            {
+                OnTargetingEnabled(targetingInstruction, geoTargetingSystemsContainer);
+            }
         }
 
         /// <summary>
@@ -233,7 +235,7 @@ namespace Plugins.GeometricVision
                 Head.AddProcessor(Head.gameObject.GetComponent<GeometryVisionProcessor>());
             }
         }
-        
+
         /// <summary>
         /// Provides Needed default object targeting for the system in case there is none. Otherwise replaces one from the current users
         /// targeting instructions. 
@@ -244,25 +246,25 @@ namespace Plugins.GeometricVision
             var targetingInstruction = GetTargetingInstructionOfType(GeometryType.Objects);
             if (targetingInstruction == null)
             {
-
-                targetingInstruction = new VisionTarget(GeometryType.Objects, "", targetingSystem, true, GetCurrentEntityFilterType());
-                AssignTargetingSystem(targetingSystem, targetingInstruction);
+                targetingInstruction = new TargetingInstruction(GeometryType.Objects, DefaultTag, targetingSystem, true,
+                    GetCurrentEntityFilterType());
+                AssignTargetingSystem(targetingSystem);
                 targetingInstructions.Add(targetingInstruction);
             }
             else
             {
-                AssignTargetingSystem(targetingSystem, targetingInstruction);
+                AssignTargetingSystem(targetingSystem);
             }
 
-            void AssignTargetingSystem(IGeoTargeting geoTargeting, VisionTarget visionTarget)
+            void AssignTargetingSystem(IGeoTargeting geoTargeting)
             {
                 if (geoTargeting.IsForEntities())
                 {
-                    visionTarget.TargetingSystemEntities = geoTargeting;
+                    targetingInstruction.TargetingSystemEntities = geoTargeting;
                 }
                 else
                 {
-                    visionTarget.TargetingSystemGameObjects = geoTargeting;
+                    targetingInstruction.TargetingSystemGameObjects = geoTargeting;
                 }
             }
         }
@@ -279,7 +281,6 @@ namespace Plugins.GeometricVision
             {
                 return null;
             }
-
         }
 
         /// <summary>
@@ -309,7 +310,7 @@ namespace Plugins.GeometricVision
                     IfEntitiesDisabled(entitiesEnabled);
                 }
             });
-            
+
             //Handles toggle button enabled use case
             void IfEntitiesEnabled(bool entitiesEnabled, bool entitiesBasedProcessing)
             {
@@ -323,7 +324,7 @@ namespace Plugins.GeometricVision
                     IfNoDefaultTargetingAddOne(targetingSystem);
                 }
             }
-            
+
             //Handles toggle button disabled use case
             void IfEntitiesDisabled(bool entitiesEnabled)
             {
@@ -341,14 +342,15 @@ namespace Plugins.GeometricVision
                     foreach (var targetinginstruction in targetingInstructions)
                     {
                         if (targetinginstruction.TargetingSystemEntities != null)
-                        {                       
-                            entityWorld.DestroySystem((ComponentSystemBase) targetinginstruction.TargetingSystemEntities);
+                        {
+                            entityWorld.DestroySystem(
+                                (ComponentSystemBase) targetinginstruction.TargetingSystemEntities);
                         }
                     }
                 }
             }
         }
-        
+
 
         /// <summary>
         /// Remove entity cameras eye so the Head won't be iterating through them.
@@ -505,7 +507,7 @@ namespace Plugins.GeometricVision
         /// </summary>
         /// <param name="targetingInstructions"></param>
         /// <returns></returns>
-        bool isGeometryTypeTargetingInstructionAdded(List<VisionTarget> targetingInstructions, GeometryType geoType)
+        bool isGeometryTypeTargetingInstructionAdded(List<TargetingInstruction> targetingInstructions, GeometryType geoType)
         {
             bool targetingTypeFound = false;
             foreach (var targetingInstruction in targetingInstructions)
@@ -526,7 +528,7 @@ namespace Plugins.GeometricVision
         /// </summary>
         /// <param name="targetingInstruction"></param>
         /// <param name="geoTargetingSystemsContainer"></param>
-        private void OnTargetingEnabled(VisionTarget targetingInstruction,
+        private void OnTargetingEnabled(TargetingInstruction targetingInstruction,
             GeometryTargetingSystemsContainer geoTargetingSystemsContainer)
         {
             if (!targetingInstruction.Subscribed)
@@ -600,15 +602,14 @@ namespace Plugins.GeometricVision
         /// It checks that the targeting system implementations are correct.
         /// </summary>
         /// <param name="targetingInstructions"></param>
-        internal void ValidateTargetingSystems(List<VisionTarget> targetingInstructions)
+        internal void ValidateTargetingSystems(List<TargetingInstruction> targetingInstructions)
         {
             foreach (var targetingInstruction in targetingInstructions)
             {
                 if (gameObjectProcessing.Value == true)
                 {
-                    targetingInstruction.TargetingSystemGameObjects = RunValidation(
-                        targetingInstruction.TargetingSystemGameObjects,
-                        targetingInstruction, new GeometryObjectTargeting(), new GeometryLineTargeting());
+                    targetingInstruction.TargetingSystemGameObjects = AssignNewTargetIngSystem(targetingInstruction,
+                        new GeometryObjectTargeting(), new GeometryLineTargeting());
                 }
 
                 if (entityBasedProcessing.Value == true && Application.isPlaying)
@@ -617,32 +618,16 @@ namespace Plugins.GeometricVision
                     {
                         entityWorld = World.DefaultGameObjectInjectionWorld;
                     }
+
                     var newObjectTargetng = entityWorld.CreateSystem<GeometryEntitiesObjectTargeting>();
                     var newLineTargetng = entityWorld.CreateSystem<GeometryEntitiesLineTargeting>();
 
-                    targetingInstruction.TargetingSystemEntities = RunValidation(
-                        targetingInstruction.TargetingSystemEntities,
-                        targetingInstruction, newObjectTargetng, newLineTargetng);
+                    targetingInstruction.TargetingSystemEntities =
+                        AssignNewTargetIngSystem(targetingInstruction, newObjectTargetng, newLineTargetng);
                 }
             }
 
-            IGeoTargeting RunValidation(IGeoTargeting targetingToValidate, VisionTarget visionTarget,
-                IGeoTargeting newObjectTargeting, IGeoTargeting newLineTargeting)
-            {
-                if (targetingToValidate == null)
-                {
-                    targetingToValidate = AssignNewTargetIngSystem(visionTarget, newObjectTargeting, newLineTargeting);
-                }
-                //In case user changed something then things needs to change
-                else if (targetingToValidate != null && visionTarget.GeometryType != targetingToValidate.TargetedType)
-                {
-                    targetingToValidate = AssignNewTargetIngSystem(visionTarget, newObjectTargeting, newLineTargeting);
-                }
-
-                return targetingToValidate;
-            }
-
-            IGeoTargeting AssignNewTargetIngSystem(VisionTarget visionTarget1, IGeoTargeting newObjectTargeting,
+            IGeoTargeting AssignNewTargetIngSystem(TargetingInstruction visionTarget1, IGeoTargeting newObjectTargeting,
                 IGeoTargeting newLineTargeting)
             {
                 IGeoTargeting targetingToReturn = null;
@@ -802,9 +787,9 @@ namespace Plugins.GeometricVision
         /// </summary>
         /// <param name="type"></param>
         /// <returns></returns>
-        public VisionTarget GetTargetingInstructionOfType(GeometryType type)
+        public TargetingInstruction GetTargetingInstructionOfType(GeometryType type)
         {
-            VisionTarget instructionToReturn = null;
+            TargetingInstruction instructionToReturn = null;
             foreach (var instruction in TargetingInstructions)
             {
                 if (instruction.GeometryType == GeometryType.Objects)
@@ -832,8 +817,7 @@ namespace Plugins.GeometricVision
 
             return newClosestTargets;
         }
-
-
+        
         /// <summary>
         /// Updates components internal targets list for both entities and GameObject. Then sorts them.
         /// </summary>
@@ -847,7 +831,11 @@ namespace Plugins.GeometricVision
                 closestTargets = newClosestTargets.OrderBy(target => target.distanceToRay).ToList();
             }
         }
-
+        
+        /// <summary>
+        /// Use to get list of targets containing data from entities and gameObjects. 
+        /// </summary>
+        /// <returns>List of target objects that can be used to find out closest target.</returns>
         private List<GeometryDataModels.Target> GetTargetsForGameObjectsAndEntities()
         {
             List<GeometryDataModels.Target> newClosestTargets = new List<GeometryDataModels.Target>();
@@ -857,12 +845,31 @@ namespace Plugins.GeometricVision
                 {
                     continue;
                 }
+
+                newClosestTargets = GetGameObjectTargets(targetingInstruction);
+
+                closestEntityTargets = GetEntityTargets(targetingInstruction);
+            }
+
+            newClosestTargets = CombineEntityAndGameObjectTargets(newClosestTargets, closestEntityTargets);
+
+            return newClosestTargets;
+            
+            //Runs the gameObject implementation of the IGeoTargeting interface 
+            List<GeometryDataModels.Target> GetGameObjectTargets(TargetingInstruction targetingInstruction)
+            {
                 if (gameObjectProcessing.Value == true)
                 {
                     newClosestTargets = targetingInstruction.TargetingSystemGameObjects.GetTargets(transform.position,
                         ForwardWorldCoordinate, this, targetingInstruction);
                 }
 
+                return newClosestTargets;
+            }
+            
+            //Runs the entity implementation of the IGeoTargeting interface 
+            List<GeometryDataModels.Target> GetEntityTargets(TargetingInstruction targetingInstruction)
+            {
                 if (entityBasedProcessing.Value == true)
                 {
                     var entityTargets =
@@ -871,20 +878,32 @@ namespace Plugins.GeometricVision
                     //Only update entities if the burst compiled job has finished its job OnUpdate
                     //If it has not finished it returns empty list.
 
-                    closestEntityTargets = entityTargets;
+                    return entityTargets;
                 }
-            }
 
-            if (closestEntityTargets.Count > 0)
+                return new List<GeometryDataModels.Target>();
+            }
+            
+            //Combines 2 lists of targets and return both list as one.
+            List<GeometryDataModels.Target> CombineEntityAndGameObjectTargets(List<GeometryDataModels.Target> gameObjectTargets,
+                List<GeometryDataModels.Target> entityTargets)
             {
-                newClosestTargets.AddRange(closestEntityTargets); //add range but arrays(closestEntityTargets);
+                if (entityTargets.Count > 0)
+                {
+                    gameObjectTargets.AddRange(entityTargets); //add range but arrays(closestEntityTargets);
+                }
+                return gameObjectTargets;
             }
-
-            return newClosestTargets;
         }
-
+        
         public string Id { get; set; }
-
+        public void ApplyDefaultTagToTargetingInstructions()
+        {
+            foreach (var targetingInstruction in TargetingInstructions)
+            {
+                targetingInstruction.TargetTag = defaultTag;
+            }
+        }
         public Vector3 ForwardWorldCoordinate
         {
             get
@@ -908,7 +927,7 @@ namespace Plugins.GeometricVision
             set { entityFilterComponent = value; }
         }
 
-        public List<VisionTarget> TargetingInstructions
+        public List<TargetingInstruction> TargetingInstructions
         {
             get { return targetingInstructions; }
         }
@@ -946,6 +965,12 @@ namespace Plugins.GeometricVision
         public HashSet<IGeoEye> Eyes
         {
             get { return eyes; }
+        }
+
+        public string DefaultTag
+        {
+            get { return defaultTag; }
+            set { defaultTag = value; }
         }
 
 #if UNITY_EDITOR

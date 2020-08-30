@@ -22,11 +22,15 @@ namespace Plugins.GeometricVision.ImplementationsEntities
         Vector3 rayLocation = Vector3.zero;
         Vector3 rayDirectionWS = Vector3.zero;
         NativeArray<GeometryDataModels.Target> targets;
-
+        private Type entityFilterComponent;
         protected override void OnUpdate()
         {
            
-            if (geoVision.EntityFilterComponent != null)
+            if (entityFilterComponent != null)
+            {
+                entityQuery = GetEntityQuery(entityFilterComponent, typeof(Translation), typeof(GeometryDataModels.Target));
+            }
+            else if (geoVision.EntityFilterComponent != null)
             {
                 //For now there is only support for global filtering on entities. Requires some UI rework
                 var mS = (MonoScript) geoVision.EntityFilterComponent;
@@ -146,11 +150,12 @@ namespace Plugins.GeometricVision.ImplementationsEntities
         }
 
         List<GeometryDataModels.Target> IGeoTargeting.GetTargets(Vector3 rayLocation, Vector3 rayDirection,
-            GeometryVision geometryVision, VisionTarget tagetingInstruction)
+            GeometryVision geometryVision, TargetingInstruction tagetingInstruction)
         {
             geoVision = geometryVision;
             this.rayLocation = rayLocation;
             this.rayDirectionWS = rayDirection;
+            this.entityFilterComponent = tagetingInstruction.EntityQueryFilter;
             Update();
 
             return this.targets.ToList();

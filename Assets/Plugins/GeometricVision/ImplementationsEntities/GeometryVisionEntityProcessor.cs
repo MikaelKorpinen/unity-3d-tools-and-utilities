@@ -112,7 +112,7 @@ namespace Plugins.GeometricVision.Interfaces.ImplementationsEntities
         /// <param name="commandBuffer"></param>
         /// <param name="geoInfos"></param>
         private void ExtractGeometry(EntityCommandBuffer.Concurrent commandBuffer,
-            List<VisionTarget> targetedGeometries)
+            List<TargetingInstruction> targetedGeometries)
         {
             // var tG = targetedGeometries;
             if (geometryIsTargeted(targetedGeometries, GeometryType.Lines))
@@ -162,7 +162,7 @@ namespace Plugins.GeometricVision.Interfaces.ImplementationsEntities
         /// <param name="targetedGeometries"></param>
         /// <param name="lines"></param>
         /// <returns></returns>
-        private bool geometryIsTargeted(List<VisionTarget> targetedGeometries, GeometryType type)
+        private bool geometryIsTargeted(List<TargetingInstruction> targetedGeometries, GeometryType type)
         {
             bool found = false;
             foreach (var visionTarget in targetedGeometries)
