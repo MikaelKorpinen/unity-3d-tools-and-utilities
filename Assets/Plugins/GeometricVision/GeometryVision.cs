@@ -732,7 +732,6 @@ namespace Plugins.GeometricVision
         /// Adds eye/camera component to the list and makes sure that the implementation to be added is unique.
         /// Does not add duplicate implementation.
         /// </summary>
-        /// <param name="eye"></param>
         /// <typeparam name="T"></typeparam>
         public void AddEye<T>()
         {

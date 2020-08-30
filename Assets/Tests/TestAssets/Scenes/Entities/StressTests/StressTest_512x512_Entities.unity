@@ -314,7 +314,7 @@ PrefabInstance:
     - target: {fileID: 6322219075536460495, guid: 42506299c821d2243b5d442af709fe52,
         type: 3}
       propertyPath: separationMultiplier
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents:
     - {fileID: 6322219075536460492, guid: 42506299c821d2243b5d442af709fe52, type: 3}
