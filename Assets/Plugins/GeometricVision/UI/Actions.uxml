@@ -1,27 +1,0 @@
-<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements">
-    <ui:ListView focusable="True">
-        <Style src="Actions.uss" />
-    </ui:ListView>
-    <ui:Label text="Actions" name="Actions" style="opacity: 1; top: auto;">
-        <Style src="Actions.uss" />
-    </ui:Label>
-    <ui:IMGUIContainer style="height: 72px;">
-        <Style src="Actions.uss" />
-        <ui:Label text="Start action" />
-        <ui:Toggle label="Enabled" />
-        <uie:FloatField label="Start delay(s)" value="0" />
-        <uie:FloatField label="Start action duration(s)" value="1" />
-        <uie:ObjectField label="Start action" />
-        <uie:ToolbarSpacer style="height: 326px; width: 328px; border-left-width: 19px; border-right-width: 19px; border-top-width: 19px; border-bottom-width: 19px; border-top-left-radius: -5px; border-bottom-left-radius: -5px; border-top-right-radius: -5px; border-bottom-right-radius: -5px;" />
-        <ui:Label text="Main action" />
-        <ui:Toggle label="Enabled" />
-        <uie:FloatField label="Start delay(s)" value="0" />
-        <uie:FloatField label="Action duration(s)" value="1" />
-        <uie:ObjectField label="Action" />
-        <ui:Label text="End action" style="margin-top: 45px;" />
-        <ui:Toggle label="Enabled" />
-        <uie:FloatField label="End action delay" value="0" />
-        <uie:FloatField label="Action duration(s)" value="1" />
-        <uie:ObjectField label="End action" />
-    </ui:IMGUIContainer>
-</ui:UXML>

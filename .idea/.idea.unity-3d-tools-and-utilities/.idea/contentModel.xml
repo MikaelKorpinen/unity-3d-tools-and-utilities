@@ -53,8 +53,6 @@
               <e p="EdgeJobs.cs" t="Include" />
             </e>
             <e p="UI" t="Include">
-              <e p="Actions.uss" t="Include" />
-              <e p="Actions.uxml" t="Include" />
               <e p="ActionsTemplateObject.cs" t="Include" />
               <e p="Editor" t="Include">
                 <e p="TagSelectorPropertyDrawer.cs" t="Include" />
