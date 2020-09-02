@@ -28,17 +28,15 @@ namespace Plugins.GeometricVision.Examples.ObjectPicking
         {
             geoVision = GetComponent<GeometryVision>();
         }
-
+#if STEAMVR
         private void Update()
         {
-            #if STEAMVR
             if (grabPinchAction.GetStateDown(SteamVR_Input_Sources.RightHand))
             {
                 Pick();
             }
-            #endif
         }
-
+#endif
         void OnEnable()
         {
             controls.Player.Pick.Enable();

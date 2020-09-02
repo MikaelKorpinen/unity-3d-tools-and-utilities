@@ -21,8 +21,8 @@ namespace Plugins.GeometricVision.UI
     {
     }
 
-    [CustomPropertyDrawer(typeof(VisionTarget))]
-    public class VisionTypeDrawerUIE : PropertyDrawer
+    [CustomPropertyDrawer(typeof(TargetingInstruction))]
+    public class TargetingInstructionDrawerUIE : PropertyDrawer
     {
         public override VisualElement CreatePropertyGUI(SerializedProperty property)
         {
@@ -115,7 +115,7 @@ namespace Plugins.GeometricVision.UI
     /// <summary>
     /// Checks if user removes GeometricVision component and if it does cleans up all the dependencies
     /// </summary>
-    [CustomPropertyDrawer(typeof(VisionTarget))]
+    [CustomPropertyDrawer(typeof(TargetingInstruction))]
     public class VisionTypeDrawer : PropertyDrawer
     {
         public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
@@ -133,10 +133,10 @@ namespace Plugins.GeometricVision.UI
             var toggleRect = new Rect(positionX + 55, position.y - offset, 70, position.height);
 
             var seeLabelRect = new Rect(positionX + 75, position.y - offset, 111, position.height);
-            var typeRect = new Rect(positionX + 105, position.y, 70, position.height);
+            var geoTypeRect = new Rect(positionX + 105, position.y, 70, position.height);
 
-            var labelLayerRect = new Rect(positionX + 180, position.y - offset, 111, position.height);
-            var layerRect = new Rect(positionX + 220, position.y, 111, position.height);
+            var tagTextRect = new Rect(positionX + 180, position.y - offset, 111, position.height);
+            var tagRect = new Rect(positionX + 220, position.y, 111, position.height);
 
             var labelRectTargeting = new Rect(positionX + 340, position.y - offset, 70, position.height);
             var toggleRectTargeting = new Rect(positionX + 400, position.y, 70, position.height);
@@ -147,12 +147,12 @@ namespace Plugins.GeometricVision.UI
        //     EditorGUI.LabelField(labelRect, "enabled:");
         //    EditorGUI.PropertyField(toggleRect, property.FindPropertyRelative("enabled"), GUIContent.none);
 
-            EditorGUI.LabelField(seeLabelRect, "See:");
-            EditorGUI.PropertyField(typeRect, property.FindPropertyRelative("geometryType"), GUIContent.none);
+         //   EditorGUI.LabelField(seeLabelRect, "See:");
+          //  EditorGUI.PropertyField(geoTypeRect, property.FindPropertyRelative("geometryType"), GUIContent.none);
             GUIContent label2 = new GUIContent("");
 
-            EditorGUI.LabelField(labelLayerRect, "Tag:");
-            property.FindPropertyRelative("targetTag").stringValue = EditorGUI.TagField(layerRect, label2,
+            EditorGUI.LabelField(tagTextRect, "Tag:");
+            property.FindPropertyRelative("targetTag").stringValue = EditorGUI.TagField(tagRect, label2,
                 property.FindPropertyRelative("targetTag").stringValue);
 
             EditorGUI.LabelField(labelRectTargeting, "Targeting:");

@@ -123,7 +123,11 @@ NavMeshSettings:
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
+<<<<<<< HEAD
 --- !u!1 &212232463
+=======
+--- !u!1 &234464089
+>>>>>>> feature-0004/TargetFiltering
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -131,20 +135,38 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
+<<<<<<< HEAD
   - component: {fileID: 212232464}
   m_Layer: 0
   m_Name: SceneObjects
   m_TagString: Untagged
+=======
+  - component: {fileID: 234464095}
+  - component: {fileID: 234464094}
+  - component: {fileID: 234464093}
+  - component: {fileID: 234464092}
+  - component: {fileID: 234464091}
+  - component: {fileID: 234464090}
+  m_Layer: 0
+  m_Name: Cube with entity filter tag (1)
+  m_TagString: Finish
+>>>>>>> feature-0004/TargetFiltering
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
+<<<<<<< HEAD
 --- !u!4 &212232464
 Transform:
+=======
+--- !u!114 &234464090
+MonoBehaviour:
+>>>>>>> feature-0004/TargetFiltering
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
+<<<<<<< HEAD
   m_GameObject: {fileID: 212232463}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 13.5748825, y: -22.578777, z: 31.929325}
@@ -161,10 +183,22 @@ Transform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &234464089
 GameObject:
+=======
+  m_GameObject: {fileID: 234464089}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7558e0dd7be481943a34b9913bffd5a9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  RadiansPerSecond: 0.001
+--- !u!114 &234464091
+MonoBehaviour:
+>>>>>>> feature-0004/TargetFiltering
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
+<<<<<<< HEAD
   serializedVersion: 6
   m_Component:
   - component: {fileID: 234464095}
@@ -178,6 +212,15 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
+=======
+  m_GameObject: {fileID: 234464089}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ea7d7495833204790ba1d3a8755397f8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  ConversionMode: 0
+>>>>>>> feature-0004/TargetFiltering
 --- !u!65 &234464092
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -247,12 +290,21 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 234464089}
+<<<<<<< HEAD
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: -33.804882, y: 22.578777, z: -21.929325}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 212232464}
   m_RootOrder: 4
+=======
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -20.23, y: 0, z: 10}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_RootOrder: 10
+>>>>>>> feature-0004/TargetFiltering
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &282442480
 MonoBehaviour:
@@ -267,7 +319,11 @@ MonoBehaviour:
   m_Name: _0
   m_EditorClassIdentifier: 
   startActionEnabled: 0
+<<<<<<< HEAD
   startDelay: -0.25
+=======
+  startDelay: 0
+>>>>>>> feature-0004/TargetFiltering
   startDuration: 0
   startActionObject: {fileID: 0}
   actionEnabled: 1
@@ -319,7 +375,11 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
+<<<<<<< HEAD
   m_RootOrder: 3
+=======
+  m_RootOrder: 8
+>>>>>>> feature-0004/TargetFiltering
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &339006097
 GameObject:
@@ -426,8 +486,13 @@ GameObject:
   - component: {fileID: 605513720}
   - component: {fileID: 605513719}
   m_Layer: 0
+<<<<<<< HEAD
   m_Name: Cube With Tag
   m_TagString: Finish
+=======
+  m_Name: Cube (4)
+  m_TagString: Untagged
+>>>>>>> feature-0004/TargetFiltering
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -501,12 +566,21 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 605513718}
+<<<<<<< HEAD
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: -23.324883, y: 22.578777, z: -21.929325}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 212232464}
   m_RootOrder: 2
+=======
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -9.75, y: 0, z: 10}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_RootOrder: 4
+>>>>>>> feature-0004/TargetFiltering
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &707493299
 GameObject:
@@ -764,12 +838,21 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1312845517}
+<<<<<<< HEAD
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: -17.694881, y: 22.578777, z: -21.929325}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 212232464}
   m_RootOrder: 1
+=======
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -4.12, y: 0, z: 10}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_RootOrder: 3
+>>>>>>> feature-0004/TargetFiltering
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &1312845522
 MonoBehaviour:
@@ -873,6 +956,7 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1459530901}
+<<<<<<< HEAD
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: -19.164883, y: 26.908777, z: -10.589325}
   m_LocalScale: {x: 16.487, y: 16.489, z: 0.30576}
@@ -880,6 +964,15 @@ Transform:
   - {fileID: 707493300}
   m_Father: {fileID: 212232464}
   m_RootOrder: 5
+=======
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -5.59, y: 4.33, z: 21.34}
+  m_LocalScale: {x: 16.487, y: 16.489, z: 0.30576}
+  m_Children:
+  - {fileID: 707493300}
+  m_Father: {fileID: 0}
+  m_RootOrder: 2
+>>>>>>> feature-0004/TargetFiltering
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &1459530906
 MonoBehaviour:
@@ -958,7 +1051,11 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
+<<<<<<< HEAD
   m_RootOrder: 4
+=======
+  m_RootOrder: 9
+>>>>>>> feature-0004/TargetFiltering
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1650480730
 GameObject:
@@ -974,7 +1071,11 @@ GameObject:
   - component: {fileID: 1650480731}
   - component: {fileID: 1650480735}
   m_Layer: 0
+<<<<<<< HEAD
   m_Name: Entity cube untagged and unfiltered
+=======
+  m_Name: Entity cube untagged and filtered
+>>>>>>> feature-0004/TargetFiltering
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1049,12 +1150,21 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1650480730}
+<<<<<<< HEAD
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: -10.384882, y: 22.578777, z: -21.929325}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 212232464}
   m_RootOrder: 0
+=======
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 3.19, y: 0, z: 10}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_RootOrder: 6
+>>>>>>> feature-0004/TargetFiltering
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &1650480735
 MonoBehaviour:
@@ -1166,10 +1276,19 @@ MonoBehaviour:
     isTargetingEnabled:
       value: 1
     isTargetActionsTemplateSlotVisible: 1
+<<<<<<< HEAD
     targetTag: Finish
     targetingActions: {fileID: 282442480}
   entityBasedProcessing:
     value: 1
+=======
+    targetTag: Untagged
+    targetingActions: {fileID: 282442480}
+  entityBasedProcessing:
+    value: 1
+  entityFilterComponent: {fileID: 11500000, guid: a1949d2deba66734786115c52849092f,
+    type: 3}
+>>>>>>> feature-0004/TargetFiltering
   gameObjectProcessing:
     value: 1
 --- !u!4 &1789909964
@@ -1180,11 +1299,19 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1789909960}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+<<<<<<< HEAD
   m_LocalPosition: {x: -9.81, y: 2.05, z: -5.21}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 2
+=======
+  m_LocalPosition: {x: -3.94, y: 2.05, z: -6.18}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_RootOrder: 7
+>>>>>>> feature-0004/TargetFiltering
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &1789909965
 MonoBehaviour:
@@ -1289,12 +1416,21 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1876867731}
+<<<<<<< HEAD
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: -29.364883, y: 22.578777, z: -21.929325}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 212232464}
   m_RootOrder: 3
+=======
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -15.79, y: 0, z: 10}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_RootOrder: 5
+>>>>>>> feature-0004/TargetFiltering
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &1876867736
 MonoBehaviour:
@@ -1318,6 +1454,13 @@ MonoBehaviour:
   m_GameObject: {fileID: 1876867731}
   m_Enabled: 1
   m_EditorHideFlags: 0
+<<<<<<< HEAD
   m_Script: {fileID: 11500000, guid: a1949d2deba66734786115c52849092f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+=======
+  m_Script: {fileID: 11500000, guid: 7558e0dd7be481943a34b9913bffd5a9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  RadiansPerSecond: 0.001
+>>>>>>> feature-0004/TargetFiltering

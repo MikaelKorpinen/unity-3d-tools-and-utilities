@@ -52,6 +52,7 @@
             <e p="Jobs" t="Include">
               <e p="EdgeJobs.cs" t="Include" />
             </e>
+            <e p="TargetingInstruction.cs" t="Include" />
             <e p="UI" t="Include">
               <e p="ActionsTemplateObject.cs" t="Include" />
               <e p="Editor" t="Include">
@@ -344,7 +345,6 @@
               <e p="JobUtilities.cs" t="Include" />
               <e p="MeshUtilities.cs" t="Include" />
             </e>
-            <e p="VisionTarget.cs" t="Include" />
           </e>
         </e>
         <e p="Tests" t="Include">
@@ -357,11 +357,12 @@
             <e p="EntityTestingUtilities.cs" t="Include" />
             <e p="FromUnity" t="Include">
               <e p="RotationSpeed_SpawnAndRemove.cs" t="Include" />
-              <e p="Spawner_SpawnAndRemove.cs" t="Include" />
               <e p="SpawnerAuthoring_SpawnAndRemove.cs" t="Include" />
+              <e p="SpawnerData_SpawnAndRemove.cs" t="Include" />
               <e p="SpawnerSystem_SpawnAndRemove.cs" t="Include" />
             </e>
             <e p="FrustumTestsEntities.cs" t="Include" />
+            <e p="RotationSpeed_Authoring.cs" t="Include" />
             <e p="TargetingTestsEntities.cs" t="Include" />
           </e>
           <e p="TestScriptsForGameObjects" t="Include">

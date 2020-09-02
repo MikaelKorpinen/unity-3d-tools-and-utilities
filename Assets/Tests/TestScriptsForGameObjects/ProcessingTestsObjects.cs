@@ -1,9 +1,10 @@
-﻿using System;
+﻿    using System;
 using System.Collections;
 using System.Collections.Generic;
 using GeometricVision;
 using NUnit.Framework;
 using Plugins.GeometricVision;
+using Plugins.GeometricVision.ImplementationsGameObjects;
 using Plugins.GeometricVision.Interfaces.Implementations;
 using Unity.PerformanceTesting;
 using UnityEditor;
@@ -122,7 +123,7 @@ namespace Tests
 
             Measure.Method(() =>
             {
-                result = geoVision.GetComponent<GeometryVision>().Head.GetProcessor<GeometryVisionProcessor>().GetTransforms(rootGameObjects);
+                geoVision.GetComponent<GeometryVision>().Head.GetProcessor<GeometryVisionProcessor>().GetTransformsFromRootObjects(rootGameObjects,ref result);
             }).Run();
             
             Debug.Log("total objects: " + result.Count);

@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using Plugins.GeometricVision.ImplementationsGameObjects;
 using Plugins.GeometricVision.Utilities;
 using Unity.Collections;
 using UnityEngine;
@@ -85,7 +86,7 @@ namespace Plugins.GeometricVision.Interfaces.Implementations
         {
             seenTransforms = new HashSet<Transform>();
 
-            seenTransforms = GetObjectsInsideFrustum(seenTransforms, listToCheck);
+            seenTransforms = GetTransformsInsideFrustum(seenTransforms, listToCheck);
 
 
             return seenTransforms;
@@ -132,7 +133,7 @@ namespace Plugins.GeometricVision.Interfaces.Implementations
         }
 
 
-        private HashSet<Transform> GetObjectsInsideFrustum(HashSet<Transform> seenTransforms,
+        private HashSet<Transform> GetTransformsInsideFrustum(HashSet<Transform> seenTransforms,
             List<Transform> allTransforms)
         {
             foreach (var transform in allTransforms)

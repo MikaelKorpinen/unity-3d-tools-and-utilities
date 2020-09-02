@@ -24,6 +24,7 @@ namespace Tests
             fielOfView =  25f,
             processGameObjects = false,
             processEntities = true,
+            defaultTargeting = true,
             processGameObjectsEdges = false,
         };
         

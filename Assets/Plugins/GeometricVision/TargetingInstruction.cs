@@ -1,10 +1,12 @@
 ﻿using System;
 using GeometricVision;
+using Plugins.GeometricVision.Interfaces;
 using Plugins.GeometricVision.Interfaces.Implementations;
 using Plugins.GeometricVision.UI;
 
 using Plugins.GeometricVision.UniRx.Scripts.UnityEngineBridge;
 using UniRx;
+using UnityEditor;
 using UnityEngine;
 using UnityEngine.Events;
 
@@ -17,7 +19,7 @@ namespace Plugins.GeometricVision
     /// Contains user defined targeting instructions for the GeometryVision object
     /// </summary>
     [Serializable]
-    public class VisionTarget
+    public class TargetingInstruction
     {
         public bool enabled = true;
         [SerializeField,  Tooltip("Choose what geometry to target or use.")] private GeometryType geometryType;
@@ -27,13 +29,13 @@ namespace Plugins.GeometricVision
         //See UI/VisionTypeDrawer.cs
         //It is not visible on the inspector but removing serialization makes it un findable
         [SerializeField] private bool isTargetActionsTemplateSlotVisible;
-        [SerializeField,  Tooltip("Choose what tag from unity tags settings to use")] private string targetTag = "";
+        [SerializeField,  Tooltip("Choose what tag from unity tags settings to use")] private string targetTag;
         public bool Subscribed { get; set; }
         public ActionsTemplateObject targetingActions;
         //GeometryVision plugin needs to be able to target both GameObjects and Entities at the same time
         private IGeoTargeting targetingSystemGameObjects = null; //TODO:consider: remove these
         private IGeoTargeting targetingSystemEntities = null; //TODO:same
-        
+        private Type entityQueryFilter;
         /// <summary>
         /// Constructor for the GeometryVision target object
         /// </summary>
@@ -42,15 +44,11 @@ namespace Plugins.GeometricVision
         /// <param name="tagName"></param>
         /// <param name="targetingSystem"></param>
         /// <exception cref="ArgumentNullException"></exception>
-        public VisionTarget(GeometryType geoType, string tagName, IGeoTargeting targetingSystem, bool targetingEnabled)
+        public TargetingInstruction(GeometryType geoType, string tagName, IGeoTargeting targetingSystem, bool targetingEnabled, Type entityQueryFilter)
         {
             GeometryType = geoType;
             targetTag = tagName;
-            
-            if (targetingSystem == null)
-            {
-                throw new ArgumentNullException(nameof(targetingSystem));
-            }
+            this.EntityQueryFilter = entityQueryFilter;
 
             isTargetingEnabled.Value = targetingEnabled;
             AssignTargetingSystem(targetingSystem);
@@ -58,7 +56,7 @@ namespace Plugins.GeometricVision
             isTargetActionsTemplateSlotVisible = targetingEnabled;
             void AssignTargetingSystem(IGeoTargeting geoTargeting)
             {
-                if (geoTargeting.IsForEntities())
+                if (targetingSystem != null &&geoTargeting.IsForEntities())
                 {
                     TargetingSystemEntities = geoTargeting;
                 }
@@ -112,6 +110,12 @@ namespace Plugins.GeometricVision
         {
             get { return isTargetActionsTemplateSlotVisible; }
             set { isTargetActionsTemplateSlotVisible = value; }
+        }
+
+        public Type EntityQueryFilter
+        {
+            get { return entityQueryFilter; }
+            set { entityQueryFilter = value; }
         }
     }
 }

@@ -16,11 +16,10 @@ namespace Tests.TestScriptsForEntities
     {
         private Tuple<GeometryVisionFactory, EditorBuildSettingsScene[]> factoryAndOriginalScenes;
 
-        private readonly GeometryDataModels.FactorySettings factorySettings = new GeometryDataModels.FactorySettings
+        private GeometryDataModels.FactorySettings factorySettings = new GeometryDataModels.FactorySettings
         {
             fielOfView = 25f,
             processEntities = true,
-            processGameObjectsEdges = false,
             defaultTargeting = true,
         };
 
@@ -72,7 +71,6 @@ namespace Tests.TestScriptsForEntities
             yield return null;
 
             GeometryDataModels.Target target = new GeometryDataModels.Target();
-            int expectedObjectCount1 = 1;
             Measure.Method(() => { target = geoVision.GetComponent<GeometryVision>().GetClosestTarget(false); }).Run();
 
             Debug.Log("found targeting system: " + target);
@@ -102,7 +100,6 @@ namespace Tests.TestScriptsForEntities
             float
                 offset = 0.1f; //TODO: Add a way to test boundaries of the geoVision view area. After that is implemented for entities
             GeometryDataModels.Target target = new GeometryDataModels.Target();
-            int expectedObjectCount1 = 1;
 
             for (var index = 0; index < testObjectNames.Length; index++)
             {
@@ -118,6 +115,48 @@ namespace Tests.TestScriptsForEntities
 
             Assert.True(target.isEntity == true);
             Assert.True(target.distanceToCastOrigin > 0);
+        }
+        
+        [UnityTest, Performance, Version(TestSettings.Version)]
+        [Timeout(TestSettings.DefaultPerformanceTests)]
+        [PrebuildSetup(typeof(SceneBuildSettingsSetupForEntitiesTargeting))]
+        public IEnumerator EntityFilteringByComponentWorks([ValueSource(typeof(TestUtilities), nameof(TestUtilities.GetTargetingTestScenePathsForEntities))] string scenePath)
+        {
+            TestUtilities.SetupScene(scenePath);
+            for (int i = 0; i < 50; i++)
+            {
+                yield return null;
+            }
+
+            factorySettings.entityComponentQueryFilter = typeof(RotationSpeed_SpawnAndRemove);
+            var geoVision =
+                TestUtilities.SetupGeoVision(new Vector3(0f, 0f, -6f), new GeometryVisionFactory(factorySettings));
+            yield return null;
+            yield return null;
+            string[] testObjectNames = {"GameObject", "Quad", "Plane", "Cylinder", "Sphere", "Cube"};
+            float
+                offset = 0.1f; //TODO: Add a way to test boundaries of the geoVision view area. After that is implemented for entities
+            GeometryDataModels.Target target = new GeometryDataModels.Target();
+            int amountOfItemsFound = 0;
+            int amountOfExpectedItemsToBeFound = 1;
+            for (var index = 0; index < testObjectNames.Length; index++)
+            {
+                var testObjectName = testObjectNames[index];
+                geoVision.transform.position = new Vector3(index * -2f + offset, 0f, -6f);
+                yield return null;
+                Measure.Method(() => { target = geoVision.GetComponent<GeometryVision>().GetClosestTarget(false); })
+                    .Run();
+                if (Vector3.Distance(target.position, new Vector3(index * -2f, 0f, 10f)) < 0.1f+ offset)
+                {
+                    amountOfItemsFound += 1;
+                    Assert.True(target.isEntity == true);
+                    Assert.True(target.distanceToCastOrigin > 0);
+                }
+            }
+            Assert.True(amountOfItemsFound == amountOfExpectedItemsToBeFound);
+            Debug.Log("found targeting system: " + target);
+
+
         }
     }
 }

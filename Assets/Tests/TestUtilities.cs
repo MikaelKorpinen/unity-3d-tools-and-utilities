@@ -151,14 +151,15 @@ public static class TestUtilities
             geoTypesToTarget.Add(GeometryType.Lines);
         }
 
-        GameObject geoVision = factory.CreateGeometryVision(position, Quaternion.identity, 25, geoTypesToTarget, 0, true);
+        GameObject geoVision = factory.CreateGeometryVision(position, Quaternion.identity, 25, geoTypesToTarget,  true);
         return geoVision;
     }
 
     public static GameObject SetupGeoVision(Vector3 position, GeometryVisionFactory factory)
     {
         var geoTypesToTarget = new List<GeometryType>();
-        GameObject geoVision = factory.CreateGeometryVision(position, Quaternion.identity, 25, geoTypesToTarget, 0, true);
+        geoTypesToTarget.Add(GeometryType.Objects);
+        GameObject geoVision = factory.CreateGeometryVision(position, Quaternion.identity, 25, geoTypesToTarget,  true);
         return geoVision;
     }
 
@@ -259,7 +260,7 @@ public static class TestUtilities
         }        
 
         Debug.Log("----EditorBuildSettings.scenes " +EditorBuildSettings.scenes[0].path); 
-        Debug.Log("----amount of scenes loaded: EditorBuildSettings.scenes.Length" + EditorBuildSettings.scenes.Length);
+        Debug.Log("----amount of scenes loaded: EditorBuildSettings.scenes.Length: " + EditorBuildSettings.scenes.Length);
         Debug.Log("----amount of scenes loaded SceneManager.sceneCount: " + EditorSceneManager.sceneCount);
         var returnValues =originalScenes;
 
@@ -277,7 +278,6 @@ public static class TestUtilities
         }
         Debug.Log("----amount of scenes loaded: EditorBuildSettings.scenes.Length" + EditorBuildSettings.scenes.Length);
         Debug.Log("----amount of scenes loaded SceneManager.sceneCount: " + EditorSceneManager.sceneCount);
-       
     }
 
     public static bool CheckThatImplementationIsOnTheList<T>(HashSet<T> listToCheck, Type type)
