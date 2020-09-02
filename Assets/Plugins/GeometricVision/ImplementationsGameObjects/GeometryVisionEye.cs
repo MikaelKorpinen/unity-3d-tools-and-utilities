@@ -32,7 +32,7 @@ namespace Plugins.GeometricVision.Interfaces.Implementations
 
         public GeometryVision GeoVision { get; set; }
 
-        public GeometryVisionHead Head { get; set; }
+        public GeometryVisionRunner Runner { get; set; }
 
         void Reset()
         {
@@ -73,8 +73,8 @@ namespace Plugins.GeometricVision.Interfaces.Implementations
         /// </summary>
         public void UpdateVisibility()
         {
-            seenTransforms = UpdateTransformVisibility(Head.GetProcessor<GeometryVisionProcessor>().GetAllObjects(), seenTransforms);
-            SeenGeoInfos = UpdateRenderedMeshVisibility(GeoVision.Planes, Head.GeoMemory.GeoInfos);
+            seenTransforms = UpdateTransformVisibility(Runner.GetProcessor<GeometryVisionProcessor>().GetAllObjects(), seenTransforms);
+            SeenGeoInfos = UpdateRenderedMeshVisibility(GeoVision.Planes, Runner.GeoMemory.GeoInfos);
         }
 
 

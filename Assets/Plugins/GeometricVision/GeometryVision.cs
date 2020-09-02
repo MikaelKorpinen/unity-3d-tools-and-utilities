@@ -30,32 +30,26 @@ namespace Plugins.GeometricVision
     [DisallowMultipleComponent]
     public class GeometryVision : MonoBehaviour
     {
-        [SerializeField] private bool debugMode;
+        public string Id { get; set; }
+        [SerializeField,Tooltip("Enables editor drawings for seeing targeting data")] private bool debugMode;
 
         //[SerializeField] private bool hideEdgesOutsideFieldOfView = true;
         [SerializeField] private float fieldOfView = 25f;
         [SerializeField] private float farDistanceOfView = 25f;
-
-
-        //[SerializeField, Tooltip("Use the mesh from collider")]
-        // private bool targetColliderMeshes;
-
-        [SerializeField] private List<TargetingInstruction> targetingInstructions;
-
+        [SerializeField, Tooltip("User given parameters as set of targeting instructions")] private List<TargetingInstruction> targetingInstructions;
+        
+        [SerializeField, Tooltip("Will enable the system to use GameObjects")]
+        private BoolReactiveProperty gameObjectProcessing = new BoolReactiveProperty();
         [SerializeField, Tooltip("Include entities")]
         private BoolReactiveProperty entityBasedProcessing = new BoolReactiveProperty();
 
         [SerializeField, Tooltip("Entity component to use in filtering queries. If none uses all entities.")]
         private UnityEngine.Object entityFilterComponent;
-
-        [SerializeField, Tooltip("Will enable the system to use GameObjects")]
-        private BoolReactiveProperty gameObjectProcessing = new BoolReactiveProperty();
-
         private IDisposable gameObjectProcessingObservable = null;
         private IDisposable entityToggleObservable = null;
-        public GeometryVisionHead Head { get; set; }
+        public GeometryVisionRunner Runner { get; set; }
         private HashSet<IGeoEye> eyes = new HashSet<IGeoEye>();
-        private new Camera camera;
+        private Camera hiddenUnityCamera;
         private Plane[] planes = new Plane[6];
         private Vector3 forwardWorldCoordinate = Vector3.zero;
         private Transform cachedTransform;
@@ -69,7 +63,7 @@ namespace Plugins.GeometricVision
         void Reset()
         {
             targetingInstructions = new List<TargetingInstruction>();
-            InitializeSystems();
+            InitializeGeometricVision();
             if (targetingInstructions.Count == 0)
             {
                 targetingInstructions.Add(
@@ -83,13 +77,13 @@ namespace Plugins.GeometricVision
         void Awake()
         {
             targetingInstructions = new List<TargetingInstruction>();
-            InitializeSystems();
+            InitializeGeometricVision();
         }
 
         // Start is called before the first frame update
         void Start()
         {
-            InitializeSystems();
+            InitializeGeometricVision();
         }
 
         // On validate is called when there is a change in the UI
@@ -104,11 +98,12 @@ namespace Plugins.GeometricVision
         /// <summary>
         /// Should be run in case making changes to GUI values from code and want the changes to happen before next frame(instantly).
         /// </summary>
-        public void InitializeSystems()
+        public void InitializeGeometricVision()
         {
             cachedTransform = transform;
             closestEntityTargets = new List<GeometryDataModels.Target>();
-            InitUnityCamera();
+            InitUnityCamera(false);
+            planes = RegenerateVisionArea(FieldOfView, planes);
             InitializeTargeting(TargetingInstructions);
 
             GeometryDataModels.FactorySettings factorySettings = new GeometryDataModels.FactorySettings
@@ -120,7 +115,7 @@ namespace Plugins.GeometricVision
                 defaultTag = ""
             };
 
-            GeometryVisionUtilities.SetupGeometryVision(Head, this, targetingInstructions, factorySettings);
+            GeometryVisionUtilities.SetupGeometryVision(Runner, this, targetingInstructions, factorySettings);
             InitEntitySwitch();
             InitGameObjectSwitch();
             UpdateTargetingSystemsContainer();
@@ -172,20 +167,22 @@ namespace Plugins.GeometricVision
         }
 
         /// <summary>
-        /// Inits unity camera which provides some needed features for geometric vision like Gizmos and matrices.
-        /// The camera is disable dot prevent rendering and frustum culling.
+        /// Inits unity camera which provides some needed features for geometric vision like Gizmos, planes and matrices.
+        /// 
         /// </summary>
-        public void InitUnityCamera()
+        public void InitUnityCamera(bool forceInit)
         {
-            Camera1 = gameObject.GetComponent<Camera>();
-            if (Camera1 == null)
+            HiddenUnityCamera = gameObject.GetComponent<Camera>();
+            if(forceInit && HiddenUnityCamera != null)
+            {
+                Destroy(HiddenUnityCamera);
+                gameObject.AddComponent<Camera>();
+            }else if (HiddenUnityCamera == null && forceInit == false)
             {
                 gameObject.AddComponent<Camera>();
-                Camera1 = gameObject.GetComponent<Camera>();
             }
 
-            planes = RegenerateVisionArea(FieldOfView, planes);
-            Camera1.enabled = false;
+            HiddenUnityCamera.enabled = false;
         }
 
         /// <summary>
@@ -220,19 +217,19 @@ namespace Plugins.GeometricVision
                 }
                 else if (gameObjectBasedProcessing == false)
                 {
-                    Head.RemoveProcessor<GeometryVisionProcessor>();
+                    Runner.RemoveProcessor<GeometryVisionProcessor>();
                     RemoveEye<GeometryVisionEye>();
                 }
             }
 
             void InitGeometryProcessorForGameObjects()
             {
-                if (Head.gameObject.GetComponent<GeometryVisionProcessor>() == null)
+                if (Runner.gameObject.GetComponent<GeometryVisionProcessor>() == null)
                 {
-                    Head.gameObject.AddComponent<GeometryVisionProcessor>();
+                    Runner.gameObject.AddComponent<GeometryVisionProcessor>();
                 }
 
-                Head.AddProcessor(Head.gameObject.GetComponent<GeometryVisionProcessor>());
+                Runner.AddProcessor(Runner.gameObject.GetComponent<GeometryVisionProcessor>());
             }
         }
 
@@ -372,10 +369,10 @@ namespace Plugins.GeometricVision
 
         private void RemoveEntityProcessors()
         {
-            var processor = Head.GetProcessor<GeometryVisionEntityProcessor>();
+            var processor = Runner.GetProcessor<GeometryVisionEntityProcessor>();
             if (processor != null)
             {
-                Head.RemoveProcessor<GeometryVisionEntityProcessor>();
+                Runner.RemoveProcessor<GeometryVisionEntityProcessor>();
                 if (entityWorld.GetExistingSystem<GeometryVisionEntityProcessor>() != null)
                 {
                     entityWorld.DestroySystem(processor);
@@ -426,14 +423,14 @@ namespace Plugins.GeometricVision
 
         public GeometryDataModels.GeoInfo GetGeoInfoBasedOnHashCode(int geoInfoHashCode)
         {
-            var geoInfo = Head.GeoMemory.GeoInfos.FirstOrDefault(geoInfoElement =>
+            var geoInfo = Runner.GeoMemory.GeoInfos.FirstOrDefault(geoInfoElement =>
                 geoInfoElement.GetHashCode() == geoInfoHashCode);
             return geoInfo;
         }
 
         public Transform GetTransformBasedOnGeoHashCode(int geoInfoHashCode)
         {
-            var geoInfo = Head.GeoMemory.GeoInfos.FirstOrDefault(geoInfoElement =>
+            var geoInfo = Runner.GeoMemory.GeoInfos.FirstOrDefault(geoInfoElement =>
                 geoInfoElement.GetHashCode() == geoInfoHashCode);
             return geoInfo.transform;
         }
@@ -484,8 +481,8 @@ namespace Plugins.GeometricVision
             RemoveEntityProcessors();
             world.CreateSystem<GeometryVisionEntityProcessor>();
             IGeoProcessor eProcessor = world.GetExistingSystem<GeometryVisionEntityProcessor>();
-            Head.AddProcessor(eProcessor);
-            var addedProcessor = Head.GetProcessor<GeometryVisionEntityProcessor>();
+            Runner.AddProcessor(eProcessor);
+            var addedProcessor = Runner.GetProcessor<GeometryVisionEntityProcessor>();
             addedProcessor.GeoVision = this;
             addedProcessor.CheckSceneChanges(this);
             addedProcessor.Update();
@@ -657,9 +654,9 @@ namespace Plugins.GeometricVision
         private Plane[] RegenerateVisionArea(float fieldOfView, Plane[] planes)
         {
             this.fieldOfView = fieldOfView;
-            this.camera.fieldOfView = fieldOfView;
-            this.camera.farClipPlane = farDistanceOfView;
-            GeometryUtility.CalculateFrustumPlanes(this.camera.projectionMatrix * this.camera.worldToCameraMatrix,
+            this.hiddenUnityCamera.fieldOfView = fieldOfView;
+            this.hiddenUnityCamera.farClipPlane = farDistanceOfView;
+            GeometryUtility.CalculateFrustumPlanes(this.hiddenUnityCamera.projectionMatrix * this.hiddenUnityCamera.worldToCameraMatrix,
                 planes);
 
             return planes;
@@ -674,9 +671,9 @@ namespace Plugins.GeometricVision
         /// <remarks>Faster way to get the current situation for planes might be to store planes into an object and move them with the eye</remarks>
         public void RegenerateVisionArea(float fieldOfView)
         {
-            Camera1.fieldOfView = fieldOfView;
-            Camera1.farClipPlane = farDistanceOfView;
-            GeometryUtility.CalculateFrustumPlanes(this.camera.projectionMatrix * this.camera.worldToCameraMatrix,
+            hiddenUnityCamera.fieldOfView = fieldOfView;
+            hiddenUnityCamera.farClipPlane = farDistanceOfView;
+            GeometryUtility.CalculateFrustumPlanes(this.hiddenUnityCamera.projectionMatrix * this.hiddenUnityCamera.worldToCameraMatrix,
                 planes);
         }
 
@@ -747,7 +744,7 @@ namespace Plugins.GeometricVision
                 {
                     gameObject.AddComponent(typeof(T));
                     var addedEye = (IGeoEye) gameObject.GetComponent(typeof(T));
-                    addedEye.Head = Head;
+                    addedEye.Runner = Runner;
                     addedEye.Id = new Hash128().ToString();
                     addedEye.GeoVision = this;
                     eye = (Component) addedEye;
@@ -832,6 +829,17 @@ namespace Plugins.GeometricVision
         }
         
         /// <summary>
+        /// Updates components internal targets list for both entities and GameObject. Then sorts them.
+        /// </summary>
+        public void TriggerTargetingActions()
+        {
+            foreach (var targetingInstruction in targetingInstructions)
+            {
+                GameObject.Instantiate(targetingInstruction.targetingActions.StartActionObject);
+                GameObject.Instantiate(targetingInstruction.targetingActions.StartActionObject);
+            }
+        }
+        /// <summary>
         /// Use to get list of targets containing data from entities and gameObjects. 
         /// </summary>
         /// <returns>List of target objects that can be used to find out closest target.</returns>
@@ -895,7 +903,7 @@ namespace Plugins.GeometricVision
             }
         }
         
-        public string Id { get; set; }
+
         public void ApplyDefaultTagToTargetingInstructions()
         {
             foreach (var targetingInstruction in TargetingInstructions)
@@ -937,10 +945,10 @@ namespace Plugins.GeometricVision
             set { planes = value; }
         }
 
-        public Camera Camera1
+        public Camera HiddenUnityCamera
         {
-            get { return camera; }
-            set { camera = value; }
+            get { return hiddenUnityCamera; }
+            set { hiddenUnityCamera = value; }
         }
 
         public bool DebugMode
@@ -980,16 +988,17 @@ namespace Plugins.GeometricVision
         /// </summary>
         private void OnDrawGizmos()
         {
-            if (Camera1)
+            if (HiddenUnityCamera)
             {
-                Camera1.fieldOfView = this.fieldOfView;
+                HiddenUnityCamera.fieldOfView = this.fieldOfView;
             }
-
+            InitUnityCamera(false);
+            RegenerateVisionArea(fieldOfView);
             if (!debugMode)
             {
                 return;
             }
-
+            
             UnityEngine.Debug.DrawLine(transform.position, ForwardWorldCoordinate, Color.blue, 1);
 
             DrawTargets(closestTargets);

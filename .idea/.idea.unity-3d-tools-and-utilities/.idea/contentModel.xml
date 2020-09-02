@@ -27,8 +27,8 @@
             <e p="GeometryTargetingSystemsContainer.cs" t="Include" />
             <e p="GeometryVision.cs" t="Include" />
             <e p="GeometryVisionFactory.cs" t="Include" />
-            <e p="GeometryVisionHead.cs" t="Include" />
             <e p="GeometryVisionMemory.cs" t="Include" />
+            <e p="GeometryVisionRunner.cs" t="Include" />
             <e p="GeometryVisionSettings.cs" t="Include" />
             <e p="ImplementationsEntities" t="Include">
               <e p="GeometryEntitiesLineTargeting.cs" t="Include" />

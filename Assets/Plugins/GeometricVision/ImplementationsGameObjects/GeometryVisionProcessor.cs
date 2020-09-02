@@ -56,7 +56,7 @@ namespace Plugins.GeometricVision.ImplementationsGameObjects
             {
                 lastCount = currentObjectCount;
                 UpdateSceneObjects(RootObjects, AllTransforms, "");
-                ExtractGeometry(AllTransforms, geoVision.Head.GeoMemory.GeoInfos, geoVision.TargetingInstructions,
+                ExtractGeometry(AllTransforms, geoVision.Runner.GeoMemory.GeoInfos, geoVision.TargetingInstructions,
                     false);
             }
         }
@@ -198,7 +198,11 @@ namespace Plugins.GeometricVision.ImplementationsGameObjects
             geoInfo.transform = seenObject;
             geoInfo.edges = new GeometryDataModels.Edge[0];
             geoInfo.renderer = renderer;
-            geoInfo.mesh = seenObject.GetComponent<MeshFilter>().mesh;
+            if (seenObject.GetComponent<MeshFilter>())
+            {
+                geoInfo.mesh = seenObject.GetComponent<MeshFilter>().mesh;
+            }
+
             return geoInfo;
         }
 

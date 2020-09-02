@@ -226,7 +226,7 @@ namespace Tests
             geoVision.transform.position = position;
             var geoVis = geoVision.GetComponent<GeometryVision>();
             geoVis.RegenerateVisionArea(25);
-            geoVis.Head.GetProcessor<GeometryVisionProcessor>().CheckSceneChanges(geoVision.GetComponent<GeometryVision>());
+            geoVis.Runner.GetProcessor<GeometryVisionProcessor>().CheckSceneChanges(geoVision.GetComponent<GeometryVision>());
             Measure.Method(() => { MeshUtilities.UpdateEdgesVisibility(geoVision.GetComponent<GeometryVision>().Planes, geoEye.SeenGeoInfos); }).Run();
             var visibleEdgeCount = 0;
 

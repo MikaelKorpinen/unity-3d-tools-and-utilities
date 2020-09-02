@@ -167,14 +167,14 @@ namespace Tests
             geoVision.transform.position = position;
             var geoVisionComponent = geoVision.GetComponent<GeometryVision>();
             geoVisionComponent.RegenerateVisionArea(25);
-            geoVisionComponent.Head.GetProcessor<GeometryVisionProcessor>().CheckSceneChanges(geoEye.GeoVision);
+            geoVisionComponent.Runner.GetProcessor<GeometryVisionProcessor>().CheckSceneChanges(geoEye.GeoVision);
             MeshUtilities.UpdateEdgesVisibility(geoVision.GetComponent<GeometryVision>().Planes, geoEye.SeenGeoInfos);
             var visibleEdgeCount = 0;
             Measure.Method(() =>
             {
-                geoVisionComponent.Head.EyeDebugger.Debug(geoEye);
-                visibleEdgeCount = geoVisionComponent.Head.EyeDebugger.AmountOfSeenEdges;
-                geoVisionComponent.Head.EyeDebugger.AmountOfSeenEdges = 0;
+                geoVisionComponent.Runner.EyeDebugger.Debug(geoEye);
+                visibleEdgeCount = geoVisionComponent.Runner.EyeDebugger.AmountOfSeenEdges;
+                geoVisionComponent.Runner.EyeDebugger.AmountOfSeenEdges = 0;
             }).Run();
 
 
@@ -196,9 +196,9 @@ namespace Tests
             
             Measure.Method(() =>
             {
-                geoVis.Head.EyeDebugger.Debug(geoEye);
-                visibleEdgeCount = geoVis.Head.EyeDebugger.AmountOfSeenEdges;
-                geoVis.Head.EyeDebugger.AmountOfSeenEdges = 0;
+                geoVis.Runner.EyeDebugger.Debug(geoEye);
+                visibleEdgeCount = geoVis.Runner.EyeDebugger.AmountOfSeenEdges;
+                geoVis.Runner.EyeDebugger.AmountOfSeenEdges = 0;
             }).Run();
 
             return visibleEdgeCount;

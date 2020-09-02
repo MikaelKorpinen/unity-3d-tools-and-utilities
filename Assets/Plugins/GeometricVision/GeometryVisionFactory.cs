@@ -28,7 +28,8 @@ namespace Plugins.GeometricVision
             CreateHead(geoVisionManagerGO, geoVisionComponent);
             CreateGeometryProcessor(geoVisionManagerGO);
             CreateEye(geoVisionManagerGO, geoVisionComponent);
-            geoVisionComponent.InitUnityCamera();
+            geoVisionComponent.InitUnityCamera(false);
+            
             geoVisionManagerGO.transform.position = startingPosition;
             geoVisionManagerGO.transform.rotation = rotation;
             return geoVisionComponent.gameObject;
@@ -57,7 +58,7 @@ namespace Plugins.GeometricVision
             var geoVisionComponent = CreateGeoVisionComponent(new GameObject(), debugModeEnabled);
             CreateHead(geoVisionManagerGO, geoVisionComponent);
             CreateGeometryProcessor(geoVisionManagerGO);
-            geoVisionComponent.InitUnityCamera();
+            geoVisionComponent.InitUnityCamera(false);
 
             CreateEye(geoVisionManagerGO, geoVisionComponent);
             
@@ -163,24 +164,24 @@ namespace Plugins.GeometricVision
             geoVisionComponent.EntityBasedProcessing.Value = factorySettings.processEntities;
             geoVisionComponent.GameObjectBasedProcessing.Value = factorySettings.processGameObjects;
             geoVisionComponent.DefaultTag = settings.defaultTag;
-            geoVisionComponent.InitializeSystems();
+            geoVisionComponent.InitializeGeometricVision();
         }
 
-        private GeometryVisionHead CreateHead(GameObject geoVisionHead, GeometryVision geoVisionComponent)
+        private GeometryVisionRunner CreateHead(GameObject geoVisionHead, GeometryVision geoVisionComponent)
         {
-            if (geoVisionHead.GetComponent<GeometryVisionHead>() == null)
+            if (geoVisionHead.GetComponent<GeometryVisionRunner>() == null)
             {
-                geoVisionHead.AddComponent<GeometryVisionHead>();
+                geoVisionHead.AddComponent<GeometryVisionRunner>();
             }
 
-            var head = geoVisionHead.GetComponent<GeometryVisionHead>();
+            var head = geoVisionHead.GetComponent<GeometryVisionRunner>();
             if (head.GeoVisions == null)
             {
                 head.GeoVisions = new HashSet<GeometryVision>();  
             }
             head.GeoVisions.Add(geoVisionComponent);
-            geoVisionComponent.Head = head;
-            return geoVisionHead.GetComponent<GeometryVisionHead>();
+            geoVisionComponent.Runner = head;
+            return geoVisionHead.GetComponent<GeometryVisionRunner>();
         }
 
         internal void CreateEye(GameObject geoVisionManager,  GeometryVision geoVisionComponent)
@@ -199,7 +200,7 @@ namespace Plugins.GeometricVision
 
                         geoVisionComponent.Eyes.Add(geoVisionComponent.gameObject.GetComponent<GeometryVisionEye>());
                         eye = geoVisionComponent.GetEye<GeometryVisionEye>();
-                        eye.Head = geoVisionManager.GetComponent<GeometryVisionHead>();
+                        eye.Runner = geoVisionManager.GetComponent<GeometryVisionRunner>();
                         eye.Id = new Hash128().ToString();
                         eye.GeoVision = geoVisionComponent;
                     }
@@ -212,7 +213,7 @@ namespace Plugins.GeometricVision
                 {
                     geoVisionComponent.AddEye<GeometryVisionEntityEye>();
                     eye = geoVisionComponent.GetEye<GeometryVisionEntityEye>();
-                    eye.Head = geoVisionManager.GetComponent<GeometryVisionHead>();
+                    eye.Runner = geoVisionManager.GetComponent<GeometryVisionRunner>();
                     eye.Id = new Hash128().ToString();
                     eye.GeoVision = geoVisionComponent;
                 }
@@ -221,7 +222,7 @@ namespace Plugins.GeometricVision
 
         private void CreateGeometryProcessor(GameObject geoVisionManager)
         {
-            var head = geoVisionManager.GetComponent<GeometryVisionHead>();
+            var head = geoVisionManager.GetComponent<GeometryVisionRunner>();
             if (settings.processGameObjects)
             {
                 if (head.GetProcessor<GeometryVisionProcessor>()== null)

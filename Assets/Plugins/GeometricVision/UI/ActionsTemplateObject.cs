@@ -10,33 +10,44 @@ namespace Plugins.GeometricVision.UI
     public class ActionsTemplateDrawer : UnityEditor.Editor
     {
         private Texture headerTexture;
-        private bool runOnce = true;
+        private float textureBottomSpaceExtension = 50f;
+        private float ratioMultiplier;
+        
         public override void OnInspectorGUI()
         {
-            if (headerTexture == null && runOnce)
+            if (headerTexture == null)
             {
                 headerTexture = LoadPNG(Application.dataPath+"/Plugins/GeometricVision/UI/Images/GeoVisionTargeting.png");
 
                 Texture2D LoadPNG(string filePath) {
  
-                    Texture2D tex = null;
+                    Texture2D texture2D = null;
                     byte[] fileData;
  
                     if (File.Exists(filePath))     {
                         fileData = File.ReadAllBytes(filePath);
-                        tex = new Texture2D(2, 2);
-                        tex.LoadImage(fileData); //..this will auto-resize the texture dimensions.
-                    }
-                    return tex;
-                }
+                        texture2D = new Texture2D(2, 2);
 
-               // runOnce = false;
+                        texture2D.LoadImage(fileData); 
+
+
+                    }
+                    return texture2D;
+                }
             }
-            GUILayout.Label ("Geometric vision action template");
-            //  GUILayout.Box(tex);
-            EditorGUI.DrawPreviewTexture(new Rect(25, 60, EditorGUIUtility.currentViewWidth, 100), headerTexture);
-            //GUILayout.Box(headerTexture);
+            
+            DrawTexture();
             DrawDefaultInspector ();
+
+            void DrawTexture()
+            {
+                GUILayout.Label("Geometric vision actions template");
+                ratioMultiplier = (float) headerTexture.height / (float) headerTexture.width;
+                EditorGUI.DrawPreviewTexture(
+                    new Rect(25, 60, EditorGUIUtility.currentViewWidth, EditorGUIUtility.currentViewWidth * ratioMultiplier),
+                    headerTexture);
+                GUILayout.Space(EditorGUIUtility.currentViewWidth * ratioMultiplier + textureBottomSpaceExtension);
+            }
         }
     }
     
@@ -138,5 +149,4 @@ namespace Plugins.GeometricVision.UI
             set { endActionObject = value; }
         }
     }
-
 }

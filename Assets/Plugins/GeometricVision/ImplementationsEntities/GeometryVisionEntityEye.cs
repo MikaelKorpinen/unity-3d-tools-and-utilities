@@ -18,7 +18,7 @@ namespace Plugins.GeometricVision.ImplementationsEntities
     public class GeometryVisionEntityEye : SystemBase, IGeoEye
     {
         public string Id { get; set; }
-        public GeometryVisionHead Head { get; set; }
+        public GeometryVisionRunner Runner { get; set; }
 
 
         [SerializeField] private bool hideEdgesOutsideFieldOfView = true;

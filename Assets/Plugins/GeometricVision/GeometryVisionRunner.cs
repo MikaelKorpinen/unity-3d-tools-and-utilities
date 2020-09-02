@@ -16,8 +16,9 @@ namespace Plugins.GeometricVision
     /// Class has custom accessors for the processors. Intention is to make sure that there is only one element of each
     /// processor implementation.
     /// </remarks>
+    /// TODO: Convert or create implementation using entity system base. That way the manager would not need a gameObject
     [DisallowMultipleComponent]
-    public class GeometryVisionHead : MonoBehaviour
+    public class GeometryVisionRunner : MonoBehaviour
     {
         private HashSet<GeometryVision> geoVisions;
         private HashSet<IGeoProcessor> processors = new HashSet<IGeoProcessor>();
