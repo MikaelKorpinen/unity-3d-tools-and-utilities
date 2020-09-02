@@ -998,8 +998,8 @@ namespace Plugins.GeometricVision
             {
                 return;
             }
-            
-            UnityEngine.Debug.DrawLine(transform.position, ForwardWorldCoordinate, Color.blue, 1);
+            Gizmos.color = Color.blue;
+            Gizmos.DrawLine(transform.position, ForwardWorldCoordinate);
 
             DrawTargets(closestTargets);
 
@@ -1016,17 +1016,17 @@ namespace Plugins.GeometricVision
                     }
 
                     Vector3 resetToVector = Vector3.zero;
-                    var position = DrawVisualIndicator(closestTarget.position, transform.position,
+                    var position = DrawTargetingVisualIndicators(closestTarget.position, transform.position,
                         closestTarget.distanceToCastOrigin, Color.blue);
-                    DrawVisualIndicator(closestTarget.projectedTargetPosition, closestTarget.position,
+                    DrawTargetingVisualIndicators(closestTarget.projectedTargetPosition, closestTarget.position,
                         closestTarget.distanceToRay,
                         Color.green);
-                    DrawVisualIndicator(position, closestTarget.projectedTargetPosition,
+                    DrawTargetingVisualIndicators(position, closestTarget.projectedTargetPosition,
                         closestTarget.distanceToCastOrigin, Color.red);
 
-                    DrawInfo(closestTarget.position, Vector3.down, i);
+                    DrawTargetingInfo(closestTarget.position, Vector3.down, i);
 
-                    Vector3 DrawVisualIndicator(Vector3 spherePosition, Vector3 lineStartPosition, float distance,
+                    Vector3 DrawTargetingVisualIndicators(Vector3 spherePosition, Vector3 lineStartPosition, float distance,
                         Color color)
                     {
                         Gizmos.color = color;
@@ -1037,7 +1037,7 @@ namespace Plugins.GeometricVision
                         return lineStartPosition;
                     }
 
-                    void DrawInfo(Vector3 textLocation, Vector3 offset, int order)
+                    void DrawTargetingInfo(Vector3 textLocation, Vector3 offset, int order)
                     {
                         Gizmos.DrawSphere(textLocation, 0.3f);
                         resetToVector = closestTarget.projectedTargetPosition - offset;
