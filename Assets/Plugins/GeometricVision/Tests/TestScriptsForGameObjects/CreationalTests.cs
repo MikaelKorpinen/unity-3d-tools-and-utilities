@@ -1,9 +1,6 @@
-﻿using System.Collections;
-using UnityEngine;
-using System;
-using GeometricVision;
+﻿using System;
+using System.Collections;
 using NUnit.Framework;
-using Plugins.GeometricVision;
 using Plugins.GeometricVision.ImplementationsEntities;
 using Plugins.GeometricVision.ImplementationsGameObjects;
 using Plugins.GeometricVision.Interfaces;
@@ -11,10 +8,11 @@ using Plugins.GeometricVision.Interfaces.Implementations;
 using Plugins.GeometricVision.Interfaces.ImplementationsEntities;
 using Unity.PerformanceTesting;
 using UnityEditor;
+using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.TestTools;
 
-namespace Tests
+namespace Plugins.GeometricVision.Tests.TestScriptsForGameObjects
 {
     public class CreationalTests : MonoBehaviour
     {

@@ -22,7 +22,7 @@ namespace Plugins.GeometricVision
     {
         private HashSet<GeometryVision> geoVisions;
         private HashSet<IGeoProcessor> processors = new HashSet<IGeoProcessor>();
-        public GeometryVisionMemory GeoMemory { get; } = new GeometryVisionMemory();
+        internal GeometryVisionMemory GeoMemory { get; } = new GeometryVisionMemory();
         public EyeDebugger EyeDebugger { get; } = new EyeDebugger();
 
         private void Awake()

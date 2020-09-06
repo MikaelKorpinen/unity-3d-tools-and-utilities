@@ -5,10 +5,9 @@
          */
         public static class GeometryVisionSettings
         {
-
-                public static bool debugMode;
-                public static bool PointVision;
-                public static bool EdgeVision;
-
+            //These are ignored when processing transforms
+            public static string NameOfMainEffect { get; } = "GVTMainActionEffect";
+            public static string NameOfEndEffect { get; } = "GVTEndActionEffect";
+            public static string NameOfStartingEffect { get; } = "GVTStartActionEffect";
         }
 }

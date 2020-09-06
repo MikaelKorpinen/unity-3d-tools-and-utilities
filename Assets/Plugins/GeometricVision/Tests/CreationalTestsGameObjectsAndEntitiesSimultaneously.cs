@@ -1,7 +1,5 @@
-﻿using System.Collections;
-using UnityEngine;
-using System;
-using GeometricVision;
+﻿using System;
+using System.Collections;
 using NUnit.Framework;
 using Plugins.GeometricVision;
 using Plugins.GeometricVision.ImplementationsEntities;
@@ -11,15 +9,16 @@ using Plugins.GeometricVision.Interfaces.Implementations;
 using Plugins.GeometricVision.Interfaces.ImplementationsEntities;
 using Unity.PerformanceTesting;
 using UnityEditor;
+using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.TestTools;
 
-namespace Tests
+namespace Plugins.GeometricVision.Tests
 {
     public class CreationalTestsGameObjectsAndEntitiesSimultaneously : MonoBehaviour
     {
         private const string version = TestSettings.Version;
-        private Tuple<GeometryVisionFactory, EditorBuildSettingsScene[]> factoryAndOriginalScenes;
+        private Tuple<GeometricVision.GeometryVisionFactory, EditorBuildSettingsScene[]> factoryAndOriginalScenes;
 
         private readonly GeometryDataModels.FactorySettings factorySettings = new GeometryDataModels.FactorySettings
         {

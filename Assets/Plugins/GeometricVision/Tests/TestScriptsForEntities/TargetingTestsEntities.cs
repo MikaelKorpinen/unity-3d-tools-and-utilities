@@ -1,16 +1,14 @@
 ﻿using System;
 using System.Collections;
-using GeometricVision;
 using NUnit.Framework;
-using Plugins.GeometricVision;
 using Plugins.GeometricVision.ImplementationsEntities;
-using Plugins.GeometricVision.Interfaces.ImplementationsEntities;
+using Plugins.GeometricVision.Tests.TestScriptsForEntities.FromUnity;
 using Unity.PerformanceTesting;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.TestTools;
 
-namespace Tests.TestScriptsForEntities
+namespace Plugins.GeometricVision.Tests.TestScriptsForEntities
 {
     public class TargetingTestsEntities : MonoBehaviour
     {

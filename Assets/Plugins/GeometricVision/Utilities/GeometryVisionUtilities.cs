@@ -9,7 +9,7 @@ namespace Plugins.GeometricVision.Utilities
     public static class GeometryVisionUtilities
     {
         // Start is called before the first frame update
-        public static void SetupGeometryVision(GeometryVisionRunner runner, GeometryVision geoVision, List<TargetingInstruction> targetTypes, GeometryDataModels.FactorySettings settings)
+        internal static void SetupGeometryVision(GeometryVisionRunner runner, GeometryVision geoVision, List<TargetingInstruction> targetTypes, GeometryDataModels.FactorySettings settings)
         {
             var factory = new GeometryVisionFactory(settings);
             var geoTypesToTarget = new List<GeometryType>();

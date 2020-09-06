@@ -1,5 +1,4 @@
-﻿using Unity.Burst;
-using Unity.Entities;
+﻿using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;
 using UnityEngine;
@@ -10,7 +9,7 @@ using Random = Unity.Mathematics.Random;
 // The system uses an EntityCommandBuffer to defer tasks that can't be done inside the Job.
 
 // ReSharper disable once InconsistentNaming
-namespace Plugins.GeometricVision.EntityScripts
+namespace Plugins.GeometricVision.Tests.TestScriptsForEntities.FromUnity
 {
     [UpdateInGroup(typeof(SimulationSystemGroup))]
     public class SpawnerSystem_SpawnAndRemove : SystemBase

@@ -148,26 +148,33 @@ namespace Plugins.GeometricVision.ImplementationsGameObjects
         /// <summary>
         /// Extracts geometry from Unity Mesh to geometry object
         /// </summary>
-        /// <param name="seenObjects"></param>
+        /// <param name="allTransforms"></param>
         /// <param name="geoInfos"></param>
         /// <param name="targetedGeometries"></param>
-        private void ExtractGeometry(HashSet<Transform> seenObjects, List<GeometryDataModels.GeoInfo> geoInfos,
+        private void ExtractGeometry(HashSet<Transform> allTransforms, List<GeometryDataModels.GeoInfo> geoInfos,
             List<TargetingInstruction> targetedGeometries, bool collidersTargeted)
         {
-            foreach (var seenObject in seenObjects)
+            var aTrans = new HashSet<Transform>(allTransforms);
+            foreach (var seenTransform in allTransforms)
             {
-                var renderer = seenObject.GetComponent<Renderer>();
+                if (!seenTransform)
+                {
+                    aTrans.Remove(seenTransform);
+                    continue;
+                }
+              
+                var renderer = seenTransform.GetComponent<Renderer>();
                 if (renderer)
                 {
-                    var geoInfo = CreateGeoInfoObject(seenObject, renderer);
-                    geoInfo = GetGeoInfoGeometryData(targetedGeometries, geoInfo, seenObject);
+                    var geoInfo = CreateGeoInfoObject(seenTransform, renderer);
+                    geoInfo = GetGeoInfoGeometryData(targetedGeometries, geoInfo, seenTransform);
 
                     geoInfos.Add(geoInfo);
                 }
             }
 
-            GeometryDataModels.GeoInfo GetGeoInfoGeometryData(List<TargetingInstruction> targetedGeometries2,
-                GeometryDataModels.GeoInfo geoInfo, Transform seenObject)
+            allTransforms = aTrans;
+            GeometryDataModels.GeoInfo GetGeoInfoGeometryData(List<TargetingInstruction> targetedGeometries2, GeometryDataModels.GeoInfo geoInfo, Transform seenObject)
             {
                 if (GeometryIsTargeted(targetedGeometries2))
                 {

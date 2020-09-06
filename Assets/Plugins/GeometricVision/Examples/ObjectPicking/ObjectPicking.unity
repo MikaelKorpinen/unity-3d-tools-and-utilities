@@ -123,30 +123,6 @@ NavMeshSettings:
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
---- !u!114 &282442480
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 081b3fa28a8673940bd37ffae429dc67, type: 3}
-  m_Name: _0
-  m_EditorClassIdentifier: 
-  startActionEnabled: 0
-  startDelay: 0
-  startDuration: 0
-  startActionObject: {fileID: 0}
-  actionEnabled: 1
-  delay: 0
-  duration: 0
-  actionObject: {fileID: 0}
-  endActionEnabled: 1
-  endDelay: 0
-  endDuration: 0
-  endActionObject: {fileID: 0}
 --- !u!1 &289907715
 GameObject:
   m_ObjectHideFlags: 0
@@ -1402,11 +1378,12 @@ MonoBehaviour:
       value: 1
     isTargetActionsTemplateSlotVisible: 1
     targetTag: Untagged
-    targetingActions: {fileID: 282442480}
-  entityBasedProcessing:
-    value: 1
+    targetingActions: {fileID: 11400000, guid: bcbe4418c743f6d49a19754143a9b1a8, type: 2}
   gameObjectProcessing:
     value: 1
+  entityBasedProcessing:
+    value: 1
+  entityFilterComponent: {fileID: 0}
 --- !u!4 &1789909964
 Transform:
   m_ObjectHideFlags: 0
@@ -1415,7 +1392,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1789909960}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -0.8, y: 2.05, z: -51.5}
+  m_LocalPosition: {x: -0.8, y: 2.05, z: -32.23}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}

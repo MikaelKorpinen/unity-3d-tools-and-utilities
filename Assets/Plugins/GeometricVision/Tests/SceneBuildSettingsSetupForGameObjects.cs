@@ -1,14 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net.Mime;
-using Plugins.GeometricVision;
+﻿using System.Collections.Generic;
 using UnityEditor;
-using UnityEngine;
-using UnityEngine.SceneManagement;
 using UnityEngine.TestTools;
 
-namespace Tests
+namespace Plugins.GeometricVision.Tests
 {
     #if UNITY_EDITOR
     public class SceneBuildSettingsSetupForGameObjects : IPrebuildSetup

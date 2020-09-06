@@ -1677,12 +1677,12 @@ MonoBehaviour:
       value: 1
     isTargetActionsTemplateSlotVisible: 1
     targetTag: 
-    targetingActions: {fileID: 1259136778}
-  entityBasedProcessing:
-    value: 0
-  entityFilterComponent: {fileID: 0}
+    targetingActions: {fileID: 11400000, guid: bcbe4418c743f6d49a19754143a9b1a8, type: 2}
   gameObjectProcessing:
     value: 0
+  entityBasedProcessing:
+    value: 1
+  entityFilterComponent: {fileID: 0}
 --- !u!4 &1141365568
 Transform:
   m_ObjectHideFlags: 0
@@ -1877,30 +1877,6 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 14
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1259136778
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 081b3fa28a8673940bd37ffae429dc67, type: 3}
-  m_Name: _0
-  m_EditorClassIdentifier: 
-  startActionEnabled: 0
-  startDelay: 0
-  startDuration: 0
-  startActionObject: {fileID: 0}
-  actionEnabled: 1
-  delay: 0
-  duration: 0
-  actionObject: {fileID: 0}
-  endActionEnabled: 1
-  endDelay: 0
-  endDuration: 0
-  endActionObject: {fileID: 0}
 --- !u!1 &1458267819
 GameObject:
   m_ObjectHideFlags: 0

@@ -42,6 +42,7 @@
               <e p="GeometryVertexTargeting .cs" t="Include" />
               <e p="GeometryVisionEye.cs" t="Include" />
               <e p="GeometryVisionProcessor.cs" t="Include" />
+              <e p="TimedSpawnDespawn.cs" t="Include" />
             </e>
             <e p="Info.cs" t="Include" />
             <e p="Interfaces" t="Include">
@@ -53,6 +54,35 @@
               <e p="EdgeJobs.cs" t="Include" />
             </e>
             <e p="TargetingInstruction.cs" t="Include" />
+            <e p="Tests" t="Include">
+              <e p="CreationalTestsGameObjectsAndEntitiesSimultaneously.cs" t="Include" />
+              <e p="GeoUtilitiesTests.cs" t="Include" />
+              <e p="SceneBuildSettingsSetupForGameObjects.cs" t="Include" />
+              <e p="Tests.asmdef" t="Include" />
+              <e p="TestScriptsForEntities" t="Include">
+                <e p="CreationalTestsEntities.cs" t="Include" />
+                <e p="EntityTestingUtilities.cs" t="Include" />
+                <e p="FromUnity" t="Include">
+                  <e p="RotationSpeed_SpawnAndRemove.cs" t="Include" />
+                  <e p="SpawnerAuthoring_SpawnAndRemove.cs" t="Include" />
+                  <e p="SpawnerData_SpawnAndRemove.cs" t="Include" />
+                  <e p="SpawnerSystem_SpawnAndRemove.cs" t="Include" />
+                </e>
+                <e p="FrustumTestsEntities.cs" t="Include" />
+                <e p="RotationSpeed_Authoring.cs" t="Include" />
+                <e p="TargetingTestsEntities.cs" t="Include" />
+              </e>
+              <e p="TestScriptsForGameObjects" t="Include">
+                <e p="CreationalTests.cs" t="Include" />
+                <e p="EyeDebuggerTests.cs" t="Include" />
+                <e p="FrustumTestsGeometry.cs" t="Include" />
+                <e p="FrustumTestsObjects.cs" t="Include" />
+                <e p="ProcessingTestsObjects.cs" t="Include" />
+                <e p="TargetingTests.cs" t="Include" />
+              </e>
+              <e p="TestSettings.cs" t="Include" />
+              <e p="TestUtilities.cs" t="Include" />
+            </e>
             <e p="UI" t="Include">
               <e p="ActionsTemplateObject.cs" t="Include" />
               <e p="Editor" t="Include">
@@ -348,36 +378,12 @@
           </e>
         </e>
         <e p="Tests" t="Include">
-          <e p="CreationalTestsGameObjectsAndEntitiesSimultaneously.cs" t="Include" />
-          <e p="GeoUtilitiesTests.cs" t="Include" />
-          <e p="SceneBuildSettingsSetupForGameObjects.cs" t="Include" />
-          <e p="Tests.asmdef" t="Include" />
-          <e p="TestScriptsForEntities" t="Include">
-            <e p="CreationalTestsEntities.cs" t="Include" />
-            <e p="EntityTestingUtilities.cs" t="Include" />
-            <e p="FromUnity" t="Include">
-              <e p="RotationSpeed_SpawnAndRemove.cs" t="Include" />
-              <e p="SpawnerAuthoring_SpawnAndRemove.cs" t="Include" />
-              <e p="SpawnerData_SpawnAndRemove.cs" t="Include" />
-              <e p="SpawnerSystem_SpawnAndRemove.cs" t="Include" />
-            </e>
-            <e p="FrustumTestsEntities.cs" t="Include" />
-            <e p="RotationSpeed_Authoring.cs" t="Include" />
-            <e p="TargetingTestsEntities.cs" t="Include" />
-          </e>
-          <e p="TestScriptsForGameObjects" t="Include">
-            <e p="CreationalTests.cs" t="Include" />
-            <e p="EyeDebuggerTests.cs" t="Include" />
-            <e p="FrustumTestsGeometry.cs" t="Include" />
-            <e p="FrustumTestsObjects.cs" t="Include" />
-            <e p="ProcessingTestsObjects.cs" t="Include" />
-            <e p="TargetingTests.cs" t="Include" />
-          </e>
-          <e p="TestSettings.cs" t="Include" />
-          <e p="TestUtilities.cs" t="Include" />
+          <e p="NewAssembly.asmdef" t="Include" />
+          <e p="NewBehaviourScript.cs" t="Include" />
         </e>
       </e>
       <e p="GeometricVision.csproj" t="IncludeRecursive" />
+      <e p="NewAssembly.csproj" t="IncludeRecursive" />
       <e p="obj" t="ExcludeRecursive" />
       <e p="Packages" t="ExcludeRecursive" />
       <e p="Temp\bin" t="ExcludeRecursive" />

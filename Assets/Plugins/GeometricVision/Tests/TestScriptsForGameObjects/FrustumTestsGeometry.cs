@@ -1,18 +1,11 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
-using GeometricVision;
+﻿using System.Collections;
 using NUnit.Framework;
-using Plugins.GeometricVision;
 using Plugins.GeometricVision.Interfaces.Implementations;
 using Unity.PerformanceTesting;
-using UnityEditor;
 using UnityEngine;
-using UnityEngine.SceneManagement;
 using UnityEngine.TestTools;
 
-namespace Tests
+namespace Plugins.GeometricVision.Tests.TestScriptsForGameObjects
 {
     [TestFixture]
     public class FrustumTestsGeometry

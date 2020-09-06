@@ -2,6 +2,8 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
+using GeometricVision;
 using Plugins.GeometricVision.EntityScripts;
 using Plugins.GeometricVision.ImplementationsEntities;
 using Plugins.GeometricVision.ImplementationsGameObjects;
@@ -31,23 +33,35 @@ namespace Plugins.GeometricVision
     public class GeometryVision : MonoBehaviour
     {
         public string Id { get; set; }
-        [SerializeField,Tooltip("Enables editor drawings for seeing targeting data")] private bool debugMode;
+
+        [SerializeField, Tooltip("Enables editor drawings for seeing targeting data")]
+        private bool debugMode;
 
         //[SerializeField] private bool hideEdgesOutsideFieldOfView = true;
         [SerializeField] private float fieldOfView = 25f;
         [SerializeField] private float farDistanceOfView = 25f;
-        [SerializeField, Tooltip("User given parameters as set of targeting instructions")] private List<TargetingInstruction> targetingInstructions;
-        
+
+        [SerializeField, Tooltip("User given parameters as set of targeting instructions")]
+        private List<TargetingInstruction> targetingInstructions;
+
         [SerializeField, Tooltip("Will enable the system to use GameObjects")]
         private BoolReactiveProperty gameObjectProcessing = new BoolReactiveProperty();
+
         [SerializeField, Tooltip("Include entities")]
         private BoolReactiveProperty entityBasedProcessing = new BoolReactiveProperty();
 
         [SerializeField, Tooltip("Entity component to use in filtering queries. If none uses all entities.")]
         private UnityEngine.Object entityFilterComponent;
+
         private IDisposable gameObjectProcessingObservable = null;
         private IDisposable entityToggleObservable = null;
-        public GeometryVisionRunner Runner { get; set; }
+
+        public GeometryVisionRunner Runner
+        {
+            get { return runner; }
+            set { runner = value; }
+        }
+
         private HashSet<IGeoEye> eyes = new HashSet<IGeoEye>();
         private Camera hiddenUnityCamera;
         private Plane[] planes = new Plane[6];
@@ -59,7 +73,9 @@ namespace Plugins.GeometricVision
         private EndSimulationEntityCommandBufferSystem commandBufferSystem;
         private GeometryDataModels.Target closestTarget;
         private TransformEntitySystem transformEntitySystem;
-        private string defaultTag ="";
+        private string defaultTag = "";
+        private GeometryVisionRunner runner;
+
         void Reset()
         {
             targetingInstructions = new List<TargetingInstruction>();
@@ -76,7 +92,6 @@ namespace Plugins.GeometricVision
         //Call initialize on Awake to init systems in case Component is created on the factory method.
         void Awake()
         {
-            targetingInstructions = new List<TargetingInstruction>();
             InitializeGeometricVision();
         }
 
@@ -120,7 +135,7 @@ namespace Plugins.GeometricVision
             InitGameObjectSwitch();
             UpdateTargetingSystemsContainer();
         }
-        
+
         // Handles target initialization. Adds needed components and subscribes changing variables to logic that updates the targeting system.
         private void InitializeTargeting(List<TargetingInstruction> targetingInstructions)
         {
@@ -173,13 +188,14 @@ namespace Plugins.GeometricVision
         public void InitUnityCamera(bool forceInit)
         {
             HiddenUnityCamera = gameObject.GetComponent<Camera>();
-            if(forceInit && HiddenUnityCamera != null)
+            if (forceInit && HiddenUnityCamera != null)
             {
                 Destroy(HiddenUnityCamera);
-                gameObject.AddComponent<Camera>();
-            }else if (HiddenUnityCamera == null && forceInit == false)
+                HiddenUnityCamera = gameObject.AddComponent<Camera>();
+            }
+            else if (HiddenUnityCamera == null && forceInit == false)
             {
-                gameObject.AddComponent<Camera>();
+                HiddenUnityCamera = gameObject.AddComponent<Camera>();
             }
 
             HiddenUnityCamera.enabled = false;
@@ -382,16 +398,24 @@ namespace Plugins.GeometricVision
 
         public GeometryDataModels.Target GetClosestTarget(bool favorDistanceToCameraInsteadDistanceToRay)
         {
-            if (favorDistanceToCameraInsteadDistanceToRay == false)
+            if (closestTargets.Count == 0)
             {
-                closestTarget = closestTargets[0];
-            }
-            else
-            {
-                throw new NotImplementedException();
+                UpdateClosestTargets();
             }
 
-            return closestTarget;
+            if (closestTargets.Count > 0)
+            {
+                if (favorDistanceToCameraInsteadDistanceToRay == false)
+                {
+                    return closestTargets[0];
+                }
+                else
+                {
+                    throw new NotImplementedException();
+                }
+            }
+
+            return new GeometryDataModels.Target();
         }
 
         /// <summary>
@@ -454,6 +478,32 @@ namespace Plugins.GeometricVision
             }
         }
 
+        /// <summary>
+        /// Trigger assets and parameters from actions template object on each targeting instruction
+        /// </summary>
+        public void TriggerTargetingActions()
+        {
+            Debug.Log("Triggering");
+            foreach (var targetingInstruction in targetingInstructions)
+            {
+                var actions = targetingInstruction.targetingActions;
+                float startTimeForMiddleAction = Mathf.Clamp(
+                    actions.StartDelay + actions.StartDuration + actions.MainActionDelay, 0,
+                    actions.StartDelay + actions.StartDuration + actions.MainActionDelay);
+                float startTimeForEndAction =
+                    Mathf.Clamp(
+                        startTimeForMiddleAction + actions.MainActionDuration + actions.EndDelay, 0,
+                        startTimeForMiddleAction + actions.MainActionDuration + actions.EndDelay);
+
+                StartCoroutine(TimedSpawnDespawn.TimedSpawnDeSpawnService(actions.StartActionObject, actions.StartDelay,
+                    actions.StartDuration, cachedTransform, GeometryVisionSettings.NameOfStartingEffect));
+                StartCoroutine(TimedSpawnDespawn.TimedSpawnDeSpawnService(actions.MainActionObject,
+                    startTimeForMiddleAction, actions.MainActionDuration, null, GeometryVisionSettings.NameOfMainEffect));
+                StartCoroutine(TimedSpawnDespawn.TimedSpawnDeSpawnService(actions.EndActionObject,
+                    startTimeForEndAction, actions.EndDuration, cachedTransform, GeometryVisionSettings.NameOfEndEffect));
+            }
+        }
+
         private IEnumerator moveEntityTarget(TransformEntitySystem transformEntitySystem, Vector3 newPosition,
             float speedMultiplier, GeometryDataModels.Target target)
         {
@@ -504,7 +554,8 @@ namespace Plugins.GeometricVision
         /// </summary>
         /// <param name="targetingInstructions"></param>
         /// <returns></returns>
-        bool isGeometryTypeTargetingInstructionAdded(List<TargetingInstruction> targetingInstructions, GeometryType geoType)
+        bool isGeometryTypeTargetingInstructionAdded(List<TargetingInstruction> targetingInstructions,
+            GeometryType geoType)
         {
             bool targetingTypeFound = false;
             foreach (var targetingInstruction in targetingInstructions)
@@ -656,7 +707,8 @@ namespace Plugins.GeometricVision
             this.fieldOfView = fieldOfView;
             this.hiddenUnityCamera.fieldOfView = fieldOfView;
             this.hiddenUnityCamera.farClipPlane = farDistanceOfView;
-            GeometryUtility.CalculateFrustumPlanes(this.hiddenUnityCamera.projectionMatrix * this.hiddenUnityCamera.worldToCameraMatrix,
+            GeometryUtility.CalculateFrustumPlanes(
+                this.hiddenUnityCamera.projectionMatrix * this.hiddenUnityCamera.worldToCameraMatrix,
                 planes);
 
             return planes;
@@ -673,7 +725,8 @@ namespace Plugins.GeometricVision
         {
             hiddenUnityCamera.fieldOfView = fieldOfView;
             hiddenUnityCamera.farClipPlane = farDistanceOfView;
-            GeometryUtility.CalculateFrustumPlanes(this.hiddenUnityCamera.projectionMatrix * this.hiddenUnityCamera.worldToCameraMatrix,
+            GeometryUtility.CalculateFrustumPlanes(
+                this.hiddenUnityCamera.projectionMatrix * this.hiddenUnityCamera.worldToCameraMatrix,
                 planes);
         }
 
@@ -739,40 +792,53 @@ namespace Plugins.GeometricVision
 
             if (typeof(T).IsSubclassOf(typeof(MonoBehaviour)))
             {
-                var eye = gameObject.GetComponent(typeof(T));
-                if (eye == null)
+                HandleGameObjectEyeAddition();
+
+                void HandleGameObjectEyeAddition()
                 {
-                    gameObject.AddComponent(typeof(T));
-                    var addedEye = (IGeoEye) gameObject.GetComponent(typeof(T));
-                    addedEye.Runner = Runner;
-                    addedEye.Id = new Hash128().ToString();
-                    addedEye.GeoVision = this;
-                    eye = (Component) addedEye;
+                    var eye = gameObject.GetComponent(typeof(T));
+                    if (eye == null)
+                    {
+                        gameObject.AddComponent(typeof(T));
+                        var addedEye = (IGeoEye) gameObject.GetComponent(typeof(T));
+                        addedEye.Runner = Runner;
+                        addedEye.Id = new Hash128().ToString();
+                        addedEye.GeoVision = this;
+                        eye = (Component) addedEye;
+                    }
+
+                    if (InterfaceUtilities.ListContainsInterfaceImplementationOfType(typeof(T), eyes) == false)
+                    {
+                        var defaultEyeFromTypeT = (IGeoEye) default(T);
+                        //Check that the implementation is not the default one
+                        if (Object.Equals(eye, defaultEyeFromTypeT) == false)
+                        {
+                            eyes.Add((IGeoEye) eye);
+                        }
+                    }
+                }
+            }
+            else
+            {
+                if (GetEye<T>() == null)
+                {
+                    HandleEntityEyeAddition();
                 }
 
-                if (InterfaceUtilities.ListContainsInterfaceImplementationOfType(typeof(T), eyes) == false)
+                void HandleEntityEyeAddition()
                 {
+                    if (entityWorld == null)
+                    {
+                        entityWorld = World.DefaultGameObjectInjectionWorld;
+                    }
+
+                    var eye = entityWorld.CreateSystem<GeometryVisionEntityEye>();
                     var defaultEyeFromTypeT = (IGeoEye) default(T);
                     //Check that the implementation is not the default one
                     if (Object.Equals(eye, defaultEyeFromTypeT) == false)
                     {
                         eyes.Add((IGeoEye) eye);
                     }
-                }
-            }
-            else if (GetEye<T>() == null)
-            {
-                if (entityWorld == null)
-                {
-                    entityWorld = World.DefaultGameObjectInjectionWorld;
-                }
-
-                var eye = entityWorld.CreateSystem<GeometryVisionEntityEye>();
-                var defaultEyeFromTypeT = (IGeoEye) default(T);
-                //Check that the implementation is not the default one
-                if (Object.Equals(eye, defaultEyeFromTypeT) == false)
-                {
-                    eyes.Add((IGeoEye) eye);
                 }
             }
         }
@@ -810,10 +876,10 @@ namespace Plugins.GeometricVision
             {
                 closestTargets = newClosestTargets.OrderBy(target => target.distanceToRay).ToList();
             }
-
-            return newClosestTargets;
+            
+            return closestTargets;
         }
-        
+
         /// <summary>
         /// Updates components internal targets list for both entities and GameObject. Then sorts them.
         /// </summary>
@@ -821,24 +887,17 @@ namespace Plugins.GeometricVision
         {
             List<GeometryDataModels.Target> newClosestTargets =
                 new List<GeometryDataModels.Target>(GetTargetsForGameObjectsAndEntities());
-
             if (newClosestTargets.Count > 0)
             {
                 closestTargets = newClosestTargets.OrderBy(target => target.distanceToRay).ToList();
             }
-        }
-        
-        /// <summary>
-        /// Updates components internal targets list for both entities and GameObject. Then sorts them.
-        /// </summary>
-        public void TriggerTargetingActions()
-        {
-            foreach (var targetingInstruction in targetingInstructions)
+            else
             {
-                GameObject.Instantiate(targetingInstruction.targetingActions.StartActionObject);
-                GameObject.Instantiate(targetingInstruction.targetingActions.StartActionObject);
+                closestTargets.Clear(); 
             }
         }
+
+
         /// <summary>
         /// Use to get list of targets containing data from entities and gameObjects. 
         /// </summary>
@@ -861,7 +920,7 @@ namespace Plugins.GeometricVision
             newClosestTargets = CombineEntityAndGameObjectTargets(newClosestTargets, closestEntityTargets);
 
             return newClosestTargets;
-            
+
             //Runs the gameObject implementation of the IGeoTargeting interface 
             List<GeometryDataModels.Target> GetGameObjectTargets(TargetingInstruction targetingInstruction)
             {
@@ -873,7 +932,7 @@ namespace Plugins.GeometricVision
 
                 return newClosestTargets;
             }
-            
+
             //Runs the entity implementation of the IGeoTargeting interface 
             List<GeometryDataModels.Target> GetEntityTargets(TargetingInstruction targetingInstruction)
             {
@@ -890,19 +949,21 @@ namespace Plugins.GeometricVision
 
                 return new List<GeometryDataModels.Target>();
             }
-            
+
             //Combines 2 lists of targets and return both list as one.
-            List<GeometryDataModels.Target> CombineEntityAndGameObjectTargets(List<GeometryDataModels.Target> gameObjectTargets,
+            List<GeometryDataModels.Target> CombineEntityAndGameObjectTargets(
+                List<GeometryDataModels.Target> gameObjectTargets,
                 List<GeometryDataModels.Target> entityTargets)
             {
                 if (entityTargets.Count > 0)
                 {
                     gameObjectTargets.AddRange(entityTargets); //add range but arrays(closestEntityTargets);
                 }
+
                 return gameObjectTargets;
             }
         }
-        
+
 
         public void ApplyDefaultTagToTargetingInstructions()
         {
@@ -911,6 +972,7 @@ namespace Plugins.GeometricVision
                 targetingInstruction.TargetTag = defaultTag;
             }
         }
+
         public Vector3 ForwardWorldCoordinate
         {
             get
@@ -992,12 +1054,14 @@ namespace Plugins.GeometricVision
             {
                 HiddenUnityCamera.fieldOfView = this.fieldOfView;
             }
+
             InitUnityCamera(false);
             RegenerateVisionArea(fieldOfView);
             if (!debugMode)
             {
                 return;
             }
+
             Gizmos.color = Color.blue;
             Gizmos.DrawLine(transform.position, ForwardWorldCoordinate);
 
@@ -1026,7 +1090,8 @@ namespace Plugins.GeometricVision
 
                     DrawTargetingInfo(closestTarget.position, Vector3.down, i);
 
-                    Vector3 DrawTargetingVisualIndicators(Vector3 spherePosition, Vector3 lineStartPosition, float distance,
+                    Vector3 DrawTargetingVisualIndicators(Vector3 spherePosition, Vector3 lineStartPosition,
+                        float distance,
                         Color color)
                     {
                         Gizmos.color = color;

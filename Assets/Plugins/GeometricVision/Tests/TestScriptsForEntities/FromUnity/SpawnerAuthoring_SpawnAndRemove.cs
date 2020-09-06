@@ -4,7 +4,7 @@ using UnityEngine;
 
 
 // ReSharper disable once InconsistentNaming
-namespace Tests.TestScenesEntities
+namespace Plugins.GeometricVision.Tests.TestScriptsForEntities.FromUnity
 {
     [RequiresEntityConversion]
     [ConverterVersion("Mikael", 1)]

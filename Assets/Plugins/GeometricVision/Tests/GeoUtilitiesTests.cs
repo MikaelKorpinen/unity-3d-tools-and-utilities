@@ -1,21 +1,16 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections;
 using System.Linq;
-using GeometricVision;
 using NUnit.Framework;
-using Plugins.GeometricVision;
 using Plugins.GeometricVision.ImplementationsGameObjects;
 using Plugins.GeometricVision.Interfaces.Implementations;
 using Plugins.GeometricVision.Utilities;
 using Unity.PerformanceTesting;
-using UnityEditor;
 using UnityEngine;
 using UnityEngine.TestTools;
 using static Plugins.GeometricVision.GeometryDataModels.Boolean;
 using Object = UnityEngine.Object;
 
-namespace Tests
+namespace Plugins.GeometricVision.Tests
 {
     [TestFixture]
     public class GeoUtilitiesTests

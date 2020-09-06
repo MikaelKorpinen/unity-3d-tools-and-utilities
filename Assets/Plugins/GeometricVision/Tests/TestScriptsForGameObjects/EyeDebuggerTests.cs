@@ -1,19 +1,15 @@
 ﻿using System.Collections;
-using UnityEngine;
-using System;
 using System.Linq;
-using GeometricVision;
 using NUnit.Framework;
-using Plugins.GeometricVision;
 using Plugins.GeometricVision.ImplementationsGameObjects;
 using Plugins.GeometricVision.Interfaces.Implementations;
 using Plugins.GeometricVision.Utilities;
 using Unity.PerformanceTesting;
-using UnityEditor;
+using UnityEngine;
 using UnityEngine.TestTools;
 using Object = UnityEngine.Object;
 
-namespace Tests
+namespace Plugins.GeometricVision.Tests.TestScriptsForGameObjects
 {
     /// <summary>
     /// Class tests debugger that is used for showing edges and else.
@@ -55,7 +51,7 @@ namespace Tests
             var testCubes = Object.FindObjectsOfType<GameObject>();
             yield return null;
             var testCubeCount = testCubes.Where(tc => tc.name.Contains("Cube")).ToList().Count;
-            var expectedEdgeCount = testCubeCount * 5;
+            var expectedEdgeCount = testCubeCount * (12 + 6);
             var cube = GameObject.Find("Cube");
             yield return null;
             cube.transform.position = Vector3.zero;
@@ -65,7 +61,7 @@ namespace Tests
             var geoVisionComponent = geoVision.GetComponent<GeometryVision>();
             var geoEye = geoVisionComponent.GetEye<GeometryVisionEye>();
             /////Put camera at position where it can only see text cube 3d model partially
-            var position = new Vector3(-2.33f, 0.352f, -6f);
+            var position = new Vector3(-0.06f, 0.352f, -12.0f);
             //Need to wait till update loop finishes for frustum to update. On windows machines not happen as fast as on Linux for some reason.
             yield return null;
 

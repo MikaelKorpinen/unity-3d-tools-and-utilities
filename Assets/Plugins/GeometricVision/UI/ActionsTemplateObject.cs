@@ -7,7 +7,7 @@ namespace Plugins.GeometricVision.UI
 {
     
     [CustomEditor(typeof(ActionsTemplateObject))]
-    public class ActionsTemplateDrawer : UnityEditor.Editor
+    internal class ActionsTemplateDrawer : UnityEditor.Editor
     {
         private Texture headerTexture;
         private float textureBottomSpaceExtension = 50f;
@@ -56,24 +56,21 @@ namespace Plugins.GeometricVision.UI
     {
         [Header("Hand effect Settings")] [SerializeField]
         private bool startActionEnabled;
-
-        [SerializeField] private float startDelay = 0;
-        [SerializeField] private float startDuration = 0;
-        [SerializeField] private GameObject startActionObject;
+        [SerializeField, Tooltip("Start delay for instantiation of startActionGameObject")] private float startDelay = 0;
+        [SerializeField, Tooltip("Duration/lifeTime for instantiated startActionGameObject")] private float startDuration = 0;
+        [SerializeField, Tooltip("Prefab containing animation or visualisation for start effect")] private GameObject startActionObject;
 
         [Header("Between target and hand effect Settings")] [SerializeField]
         private bool actionEnabled = true;
-
-        [SerializeField] private float delay = 0;
-        [SerializeField] private float duration = 0;
-        [SerializeField] private GameObject actionObject;
+        [SerializeField, Tooltip("Start delay for instantiation of mainActionGameObject")] private float mainActionDelay = 0;
+        [SerializeField, Tooltip("Duration/lifeTime for instantiated mainActionGameObject")] private float mainActionDuration = 0;
+        [SerializeField, Tooltip("Prefab containing animation or visualisation for main effect")] private GameObject mainActionObject;
 
         [Header("Target effect Settings")] [SerializeField]
         private bool endActionEnabled = true;
-
-        [SerializeField] private float endDelay = 0;
-        [SerializeField] private float endDuration = 0;
-        [SerializeField] private GameObject endActionObject;
+        [SerializeField, Tooltip("Start delay for instantiation of endActionGameObject")] private float endDelay = 0;
+        [SerializeField, Tooltip("Duration/lifeTime for instantiated endActionGameObject")] private float endDuration = 0;
+        [SerializeField, Tooltip("Prefab containing animation or visualisation for end effect")] private GameObject endActionObject;
 
 
 
@@ -113,22 +110,22 @@ namespace Plugins.GeometricVision.UI
             set { endActionEnabled = value; }
         }
 
-        public float Delay
+        public float MainActionDelay
         {
-            get { return delay; }
-            set { delay = value; }
+            get { return mainActionDelay; }
+            set { mainActionDelay = value; }
         }
 
-        public float Duration
+        public float MainActionDuration
         {
-            get { return duration; }
-            set { duration = value; }
+            get { return mainActionDuration; }
+            set { mainActionDuration = value; }
         }
 
-        public GameObject ActionObject
+        public GameObject MainActionObject
         {
-            get { return actionObject; }
-            set { actionObject = value; }
+            get { return mainActionObject; }
+            set { mainActionObject = value; }
         }
 
         public float EndDelay

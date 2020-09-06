@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using GeometricVision;
 using Plugins.GeometricVision.ImplementationsGameObjects;
 using Plugins.GeometricVision.Utilities;
 using Unity.Collections;
@@ -33,7 +34,7 @@ namespace Plugins.GeometricVision.Interfaces.Implementations
         public GeometryVision GeoVision { get; set; }
 
         public GeometryVisionRunner Runner { get; set; }
-
+        
         void Reset()
         {
             Initialize();
@@ -73,7 +74,8 @@ namespace Plugins.GeometricVision.Interfaces.Implementations
         /// </summary>
         public void UpdateVisibility()
         {
-            seenTransforms = UpdateTransformVisibility(Runner.GetProcessor<GeometryVisionProcessor>().GetAllObjects(), seenTransforms);
+            seenTransforms = UpdateTransformVisibility(Runner.GetProcessor<GeometryVisionProcessor>().GetAllObjects(),
+                seenTransforms);
             SeenGeoInfos = UpdateRenderedMeshVisibility(GeoVision.Planes, Runner.GeoMemory.GeoInfos);
         }
 
@@ -81,12 +83,12 @@ namespace Plugins.GeometricVision.Interfaces.Implementations
         /// <summary>
         /// Update GameObject/transform visibility. Object that does not have Mesh or renderer in it
         /// </summary>
-        private HashSet<Transform> UpdateTransformVisibility(List<Transform> listToCheck,
+        private HashSet<Transform> UpdateTransformVisibility(List<Transform> transformsToCheck,
             HashSet<Transform> seenTransforms)
         {
             seenTransforms = new HashSet<Transform>();
 
-            seenTransforms = GetTransformsInsideFrustum(seenTransforms, listToCheck);
+            seenTransforms = GetTransformsInsideFrustum(seenTransforms, transformsToCheck);
 
 
             return seenTransforms;
@@ -103,9 +105,9 @@ namespace Plugins.GeometricVision.Interfaces.Implementations
         {
             int geoCount = allGeoInfos.Count;
             var newSeenGeometriesList = new List<GeometryDataModels.GeoInfo>();
-
+            var infos = new List<GeometryDataModels.GeoInfo>(allGeoInfos);
             UpdateSeenGeometryObjects();
-            
+
             // Updates object collection containing geometry and data related to seen object. Usage is to internally update seen geometry objects by checking objects renderer bounds
             // against eyes/cameras frustum
             void UpdateSeenGeometryObjects()
@@ -113,14 +115,28 @@ namespace Plugins.GeometricVision.Interfaces.Implementations
                 for (var i = 0; i < geoCount; i++)
                 {
                     var geInfo = allGeoInfos[i];
-
-                    if (GeometryUtility.TestPlanesAABB(GeoVision.Planes, allGeoInfos[i].renderer.bounds) &&
-                        hideEdgesOutsideFieldOfView)
+                    if (!geInfo.renderer)
                     {
+                        infos.Remove(geInfo);
+                    }
+                    else if (GeometryUtility.TestPlanesAABB(GeoVision.Planes, geInfo.renderer.bounds) &&
+                             hideEdgesOutsideFieldOfView)
+                    {
+                        var nameOfTransform = geInfo.transform.name;
+                        if (nameOfTransform.Contains(GeometryVisionSettings.NameOfStartingEffect) ||
+                            nameOfTransform.Contains(GeometryVisionSettings.NameOfMainEffect) ||
+                            nameOfTransform.Contains(GeometryVisionSettings.NameOfEndEffect))
+                        {
+                            continue;
+                        }
                         newSeenGeometriesList.Add(geInfo);
+                        
                     }
                 }
+
+                allGeoInfos = infos;
             }
+
             foreach (var geometryType in GeoVision.TargetingInstructions)
             {
                 if (geometryType.GeometryType == GeometryType.Lines && geometryType.Enabled)
@@ -136,15 +152,31 @@ namespace Plugins.GeometricVision.Interfaces.Implementations
         private HashSet<Transform> GetTransformsInsideFrustum(HashSet<Transform> seenTransforms,
             List<Transform> allTransforms)
         {
-            foreach (var transform in allTransforms)
+            List<Transform> allTempTransforms = new List<Transform>(allTransforms);
+            foreach (var transformInProcess in allTransforms)
             {
-                if (MeshUtilities.IsInsideFrustum(transform.position, GeoVision.Planes))
+                if (transformInProcess)
                 {
-                    seenTransforms.Add(transform);
-                    lastCount = seenTransforms.Count;
+                    var nameOfTransform = transformInProcess.name;
+                    if (nameOfTransform.Contains(GeometryVisionSettings.NameOfStartingEffect) &&
+                        nameOfTransform.Contains(GeometryVisionSettings.NameOfMainEffect) &&
+                        nameOfTransform.Contains(GeometryVisionSettings.NameOfEndEffect))
+                    {
+                        continue;
+                    }
+                    if (MeshUtilities.IsInsideFrustum(transformInProcess.position, GeoVision.Planes))
+                    {
+                        seenTransforms.Add(transformInProcess);
+                            lastCount = seenTransforms.Count;
+                    }
+                }
+                else
+                {
+                    allTempTransforms.Remove(transformInProcess);
                 }
             }
 
+            allTransforms = allTempTransforms;
             return seenTransforms;
         }
 

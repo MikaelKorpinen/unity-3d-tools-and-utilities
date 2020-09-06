@@ -50,11 +50,17 @@ namespace Plugins.GeometricVision.Examples.ObjectPicking
 
         void Pick()
         {
-            if (Vector3.Distance(this.transform.position, geoVision.GetClosestTarget(false).position) < maxDistance)
+            geoVision.TriggerTargetingActions();
+            var target = geoVision.GetClosestTarget(false);
+            // if distances are zeroed it means there was no targets inside vision area and the system return default
+            // target, because target struct cannot be null
+            if (target.distanceToCastOrigin > 0)
             {
-                geoVision.MoveClosestTarget(transform.position, 1.5f);
+                if (Vector3.Distance(this.transform.position, target.position) < maxDistance)
+                {
+                    geoVision.MoveClosestTarget(transform.position, 1.5f);
+                }
             }
         }
-
     }
 }
