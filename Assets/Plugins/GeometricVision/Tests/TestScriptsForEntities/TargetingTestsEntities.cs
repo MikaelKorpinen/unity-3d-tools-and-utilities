@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections;
 using NUnit.Framework;
+using Plugins.GeometricVision.EntityScripts.FromUnity;
 using Plugins.GeometricVision.ImplementationsEntities;
-using Plugins.GeometricVision.Tests.TestScriptsForEntities.FromUnity;
 using Unity.PerformanceTesting;
 using UnityEditor;
 using UnityEngine;
@@ -20,7 +20,7 @@ namespace Plugins.GeometricVision.Tests.TestScriptsForEntities
             processEntities = true,
             defaultTargeting = true,
         };
-
+        private string[] testObjectNames = {"GameObject", "Quad", "Plane", "Cylinder", "Sphere", "Cube"};
         [TearDown]
         public void TearDown()
         {
@@ -76,7 +76,33 @@ namespace Plugins.GeometricVision.Tests.TestScriptsForEntities
             Assert.True(target.isEntity == true);
             Assert.True(target.distanceToCastOrigin > 0);
         }
+        
+        [UnityTest, Performance, Version(TestSettings.Version)]
+        [Timeout(TestSettings.DefaultPerformanceTests)]
+        [PrebuildSetup(typeof(SceneBuildSettingsSetupForEntitiesTargeting))]
+        public IEnumerator ClosestTargetListIsEmptyIfNothingIsSeen(
+            [ValueSource(typeof(TestUtilities), nameof(TestUtilities.GetTargetingTestScenePathsForEntities))]
+            string scenePath)
+        {
+            TestUtilities.SetupScene(scenePath);
+            for (int i = 0; i < 50; i++)
+            {
+                yield return null;
+            }
 
+            var geoVision =
+                TestUtilities.SetupGeoVision(new Vector3(0f, 0f, -6f), new GeometryVisionFactory(factorySettings));
+            yield return null;
+            yield return null;
+
+
+            Assert.True(geoVision.GetComponent<GeometryVision>().GetClosestTargets().Count > 0);
+            //Move camera away so there is nothing to be seen
+            geoVision.transform.position = new Vector3(34343f, 343434f, 3434343f);
+            yield return null;
+            Assert.True(geoVision.GetComponent<GeometryVision>().GetClosestTargets().Count == 0);
+        }
+        
         [UnityTest, Performance, Version(TestSettings.Version)]
         [Timeout(TestSettings.DefaultPerformanceTests)]
         [PrebuildSetup(typeof(SceneBuildSettingsSetupForEntitiesTargeting))]
@@ -94,9 +120,7 @@ namespace Plugins.GeometricVision.Tests.TestScriptsForEntities
                 TestUtilities.SetupGeoVision(new Vector3(0f, 0f, -6f), new GeometryVisionFactory(factorySettings));
             yield return null;
             yield return null;
-            string[] testObjectNames = {"GameObject", "Quad", "Plane", "Cylinder", "Sphere", "Cube"};
-            float
-                offset = 0.1f; //TODO: Add a way to test boundaries of the geoVision view area. After that is implemented for entities
+            float offset = 0.1f;
             GeometryDataModels.Target target = new GeometryDataModels.Target();
 
             for (var index = 0; index < testObjectNames.Length; index++)
@@ -126,14 +150,13 @@ namespace Plugins.GeometricVision.Tests.TestScriptsForEntities
                 yield return null;
             }
 
-            factorySettings.entityComponentQueryFilter = typeof(RotationSpeed_SpawnAndRemove);
+            string pathToEntityFilterScript = "Assets/Plugins/GeometricVision/EntityScripts/FromUnity/RotationSpeed_SpawnAndRemove.cs";
+            UnityEngine.Object entityFilterScript = AssetDatabase.LoadAssetAtPath(pathToEntityFilterScript, typeof(UnityEngine.Object));
+            factorySettings.entityComponentQueryFilter = entityFilterScript;
             var geoVision =
                 TestUtilities.SetupGeoVision(new Vector3(0f, 0f, -6f), new GeometryVisionFactory(factorySettings));
             yield return null;
-            yield return null;
-            string[] testObjectNames = {"GameObject", "Quad", "Plane", "Cylinder", "Sphere", "Cube"};
-            float
-                offset = 0.1f; //TODO: Add a way to test boundaries of the geoVision view area. After that is implemented for entities
+            float offset = 0.1f;
             GeometryDataModels.Target target = new GeometryDataModels.Target();
             int amountOfItemsFound = 0;
             int amountOfExpectedItemsToBeFound = 1;
@@ -151,10 +174,8 @@ namespace Plugins.GeometricVision.Tests.TestScriptsForEntities
                     Assert.True(target.distanceToCastOrigin > 0);
                 }
             }
+            
             Assert.True(amountOfItemsFound == amountOfExpectedItemsToBeFound);
-            Debug.Log("found targeting system: " + target);
-
-
-        }
+   }
     }
 }

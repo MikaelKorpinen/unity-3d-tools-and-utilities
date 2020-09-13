@@ -12,18 +12,18 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 081b3fa28a8673940bd37ffae429dc67, type: 3}
   m_Name: ActionsTemplateForTargeting
   m_EditorClassIdentifier: 
-  startActionEnabled: 0
-  startDelay: 1
+  startActionEnabled: 1
+  startDelay: 0
   startDuration: 1
-  startActionObject: {fileID: 717148399008406391, guid: 7bed2d3400cde4e42a8eb5afe288634e,
+  startActionObject: {fileID: 5130388188468374746, guid: e9b7c0efa8665e642b052008c31a8082,
     type: 3}
   actionEnabled: 1
   mainActionDelay: 0
-  mainActionDuration: 0
-  mainActionObject: {fileID: 717148399008406391, guid: 7bed2d3400cde4e42a8eb5afe288634e,
+  mainActionDuration: 1
+  mainActionObject: {fileID: 4490824798590118549, guid: 520439e23b459d647aeb85ff7684221d,
     type: 3}
   endActionEnabled: 1
   endDelay: 0
-  endDuration: 0
-  endActionObject: {fileID: 717148399008406391, guid: 7bed2d3400cde4e42a8eb5afe288634e,
+  endDuration: 1
+  endActionObject: {fileID: 6254577495183571575, guid: 5f4bbea2d66d5e14f927440316360351,
     type: 3}

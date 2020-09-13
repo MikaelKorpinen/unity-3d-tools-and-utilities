@@ -23,20 +23,20 @@ namespace Plugins.GeometricVision.ImplementationsEntities
         Vector3 rayDirectionWS = Vector3.zero;
         NativeArray<GeometryDataModels.Target> targets;
         private Type entityFilterComponent;
+
         protected override void OnUpdate()
         {
-           
             if (entityFilterComponent != null)
             {
-                entityQuery = GetEntityQuery(entityFilterComponent, typeof(Translation), typeof(GeometryDataModels.Target));
+                entityQuery = GetEntityQuery(entityFilterComponent, typeof(Translation),
+                    typeof(GeometryDataModels.Target));
             }
-            else if (geoVision.EntityFilterComponent != null)
+            else if (entityFilterComponent != null)
             {
                 //For now there is only support for global filtering on entities. Requires some UI rework
-                var mS = (MonoScript) geoVision.EntityFilterComponent;
-                Type type = mS.GetClass().UnderlyingSystemType;
-       
-                entityQuery = GetEntityQuery(type, typeof(Translation), typeof(GeometryDataModels.Target));
+
+                entityQuery = GetEntityQuery(entityFilterComponent, typeof(Translation),
+                    typeof(GeometryDataModels.Target));
             }
             else
             {
@@ -46,26 +46,26 @@ namespace Plugins.GeometricVision.ImplementationsEntities
             if (entityQuery.IsEmptyIgnoreFilter == false)
             {
                 var job2 = new GetTargetsInParallel()
-            
+
                 {
                     targets = entityQuery.ToComponentDataArray<GeometryDataModels.Target>(Allocator.TempJob),
                     rayDirWS = this.rayDirectionWS,
                     rayLocWS = rayLocation,
                 };
-            
+
                 this.Dependency = job2.Schedule(job2.targets.Length, 100);
                 this.Dependency.Complete();
-            
+
                 var job3 = new CollectSeenTargets()
                 {
                     targets = job2.targets,
-                    seenTargets = new NativeList<GeometryDataModels.Target>( Allocator.TempJob),
+                    seenTargets = new NativeList<GeometryDataModels.Target>(Allocator.TempJob),
                 };
-            
-                this.Dependency = job3.Schedule(job2.targets.Length,  this.Dependency);
+
+                this.Dependency = job3.Schedule(job2.targets.Length, this.Dependency);
                 this.Dependency.Complete();
                 this.targets = new NativeArray<GeometryDataModels.Target>(job3.seenTargets, Allocator.Temp);
-            
+
                 job3.targets.Dispose();
                 job3.seenTargets.Dispose();
             }
@@ -73,7 +73,6 @@ namespace Plugins.GeometricVision.ImplementationsEntities
             {
                 this.targets = new NativeArray<GeometryDataModels.Target>(0, Allocator.Temp);
             }
-
         }
 
         [BurstCompile]
@@ -129,8 +128,10 @@ namespace Plugins.GeometricVision.ImplementationsEntities
         public struct CollectSeenTargets : IJobFor
         {
             [System.ComponentModel.ReadOnly(true)] public NativeArray<GeometryDataModels.Target> targets;
-            [WriteOnly][NativeDisableParallelForRestriction] public NativeList<GeometryDataModels.Target> seenTargets;
-            
+
+            [WriteOnly] [NativeDisableParallelForRestriction]
+            public NativeList<GeometryDataModels.Target> seenTargets;
+
             public void Execute(int index)
             {
                 if (targets[index].isSeen)
@@ -139,8 +140,9 @@ namespace Plugins.GeometricVision.ImplementationsEntities
                 }
             }
         }
-        
-        public NativeArray<GeometryDataModels.Target> GetTargetsAsNativeArray(Vector3 rayLocation, Vector3 rayDirection, List<GeometryDataModels.GeoInfo> targets)
+
+        public NativeArray<GeometryDataModels.Target> GetTargetsAsNativeArray(Vector3 rayLocation, Vector3 rayDirection,
+            List<GeometryDataModels.GeoInfo> targets)
         {
             this.rayLocation = rayLocation;
             this.rayDirectionWS = rayDirection;
@@ -150,17 +152,24 @@ namespace Plugins.GeometricVision.ImplementationsEntities
         }
 
         List<GeometryDataModels.Target> IGeoTargeting.GetTargets(Vector3 rayLocation, Vector3 rayDirection,
-            GeometryVision geometryVision, TargetingInstruction tagetingInstruction)
+            GeometryVision geometryVision, TargetingInstruction targetingInstruction)
         {
             geoVision = geometryVision;
             this.rayLocation = rayLocation;
             this.rayDirectionWS = rayDirection;
-            this.entityFilterComponent = tagetingInstruction.EntityQueryFilter;
+            var mS = (MonoScript) targetingInstruction.EntityQueryFilter;
+            if (targetingInstruction.EntityQueryFilter)
+            {
+                var nameSpace = GetNameSpace(targetingInstruction.EntityQueryFilter.ToString());
+                Type entityFilterType = Type.GetType(string.Concat(nameSpace, ".", mS.name));
+                this.entityFilterComponent = entityFilterType;
+            }
+            
             Update();
 
             return this.targets.ToList();
         }
-        
+
         //Usage: this.targets.Sort<GeometryDataModels.Target, DistanceComparer>(new DistanceComparer());
         public class DistanceComparer : IComparer<GeometryDataModels.Target>
         {
@@ -178,6 +187,21 @@ namespace Plugins.GeometricVision.ImplementationsEntities
         public bool IsForEntities()
         {
             return true;
+        }
+
+        private string GetNameSpace(string text)
+        {
+            string[] lines = text.Replace("\r", "").Split('\n');
+            string toReturn = "";
+            foreach (var line in lines)
+            {
+                if (line.Contains("namespace"))
+                {
+                    toReturn = line.Split(' ')[1].Trim();
+                }
+            }
+
+            return toReturn;
         }
     }
 }

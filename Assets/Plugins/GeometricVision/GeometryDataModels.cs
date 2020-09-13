@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using Plugins.GeometricVision.UI;
 using Unity.Entities;
 using Unity.Mathematics;
 using UnityEditor;
 using UnityEngine;
+using Object = UnityEngine.Object;
 
 namespace Plugins.GeometricVision
 {
@@ -70,12 +72,12 @@ namespace Plugins.GeometricVision
             public bool processGameObjects;
             public bool processEntities;
             public bool processGameObjectsEdges;
-            public List<TargetingInstruction> targetInstructions;
             public float fielOfView;
             public bool edgesTargeted;
             public bool defaultTargeting;
             public string defaultTag;
-            public Type entityComponentQueryFilter;
+            public Object entityComponentQueryFilter;
+            public ActionsTemplateObject actionsTemplateObject;
         }
         
         /// <summary>

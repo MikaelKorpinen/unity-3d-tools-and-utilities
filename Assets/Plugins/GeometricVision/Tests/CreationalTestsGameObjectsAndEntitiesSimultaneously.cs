@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections;
 using NUnit.Framework;
-using Plugins.GeometricVision;
 using Plugins.GeometricVision.ImplementationsEntities;
 using Plugins.GeometricVision.ImplementationsGameObjects;
 using Plugins.GeometricVision.Interfaces;
@@ -46,9 +45,9 @@ namespace Plugins.GeometricVision.Tests
             {
                 yield return null;
             }
-
-            var geoVision = TestUtilities.SetupGeoVision2(new Vector3(0f, 0f, -6f),
-                new GeometryVisionFactory(factorySettings), false);
+           
+            var geoVision = TestUtilities.SetupGeoVision(new Vector3(0f, 0f, -6f),
+                new GeometryVisionFactory(factorySettings));
             yield return null;
 
             Debug.Log("Scenepath: " + scenePath);

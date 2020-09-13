@@ -1,5 +1,6 @@
 ﻿using System.IO;
 using System.Security.Permissions;
+using GeometricVision;
 using UnityEditor;
 using UnityEngine;
 
@@ -17,7 +18,7 @@ namespace Plugins.GeometricVision.UI
         {
             if (headerTexture == null)
             {
-                headerTexture = LoadPNG(Application.dataPath+"/Plugins/GeometricVision/UI/Images/GeoVisionTargeting.png");
+                headerTexture = LoadPNG(Application.dataPath+ GeometryVisionSettings.HeaderImagePath);
 
                 Texture2D LoadPNG(string filePath) {
  
@@ -72,8 +73,15 @@ namespace Plugins.GeometricVision.UI
         [SerializeField, Tooltip("Duration/lifeTime for instantiated endActionGameObject")] private float endDuration = 0;
         [SerializeField, Tooltip("Prefab containing animation or visualisation for end effect")] private GameObject endActionObject;
 
-
-
+        void OnValidate()
+        {
+            startDelay = Mathf.Clamp(startDelay, 0, float.MaxValue); 
+            mainActionDelay = Mathf.Clamp(mainActionDelay, 0, float.MaxValue); 
+            endDelay = Mathf.Clamp(endDelay, 0, float.MaxValue); 
+            startDuration = Mathf.Clamp(startDuration, 0, float.MaxValue); 
+            mainActionDuration = Mathf.Clamp(mainActionDuration, 0, float.MaxValue); 
+            endDuration = Mathf.Clamp(endDuration, 0, float.MaxValue); 
+        }
         public float StartDelay
         {
             get { return startDelay; }
@@ -144,6 +152,16 @@ namespace Plugins.GeometricVision.UI
         {
             get { return endActionObject; }
             set { endActionObject = value; }
+        }
+
+        public void OnBeforeSerialize()
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public void OnAfterDeserialize()
+        {
+            throw new System.NotImplementedException();
         }
     }
 }

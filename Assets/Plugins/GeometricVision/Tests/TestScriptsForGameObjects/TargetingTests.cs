@@ -71,7 +71,28 @@ namespace Plugins.GeometricVision.Tests.TestScriptsForGameObjects
             Assert.True(target.isEntity == false);
             Assert.True(target.distanceToCastOrigin > 0);
         }
-        
+        [UnityTest, Performance, Version(TestSettings.Version)]
+        [Timeout(TestSettings.DefaultPerformanceTests)]
+        [PrebuildSetup(typeof(SceneBuildSettingsSetupForGameObjects))]
+        public IEnumerator ClosestTargetListIsEmptyIfNothingIsSeen(
+            [ValueSource(typeof(TestUtilities), nameof(TestUtilities.GetSimpleTestScenePathsForGameObjects))]
+            string scenePath)
+        {
+            TestUtilities.SetupScene(scenePath);
+            for (int i = 0; i < 50; i++)
+            {
+                yield return null;
+            }
+
+            var geoVision =
+                TestUtilities.SetupGeoVision(new Vector3(0f, 0f, -6f), new GeometryVisionFactory(factorySettings));
+            yield return null;
+            Assert.True(geoVision.GetComponent<GeometryVision>().GetClosestTargets().Count > 0);
+            //Move camera away so there is nothing to be seen
+            geoVision.transform.position = new Vector3(34343f, 343434f, 3434343f);
+            yield return null;
+            Assert.True(geoVision.GetComponent<GeometryVision>().GetClosestTargets().Count == 0);
+        }
         [UnityTest, Performance, Version(TestSettings.Version)]
         [Timeout(TestSettings.DefaultPerformanceTests)]
         [PrebuildSetup(typeof(SceneBuildSettingsSetupForGameObjectsTargeting))]

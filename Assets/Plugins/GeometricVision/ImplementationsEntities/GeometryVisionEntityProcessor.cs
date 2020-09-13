@@ -144,15 +144,10 @@ namespace Plugins.GeometricVision.Interfaces.ImplementationsEntities
 
             Update();
             this.GeoVision = geoVision;
-            if (currentObjectCount != lastCount && geoVision.TargetsAreStatic)
+            if (currentObjectCount != lastCount)
             {
                 lastCount = currentObjectCount;
                 //extractGeometry = true;
-            }
-
-            if (geoVision.TargetsAreStatic == false)
-            {
-               // extractGeometry = true;
             }
         }
 

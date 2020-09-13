@@ -72,8 +72,8 @@ namespace Plugins.GeometricVision.Tests.TestScriptsForEntities
                 yield return null;
             }
 
-            var geoVision = TestUtilities.SetupGeoVision2(new Vector3(0f, 0f, -6f),
-                new GeometryVisionFactory(factorySettings), false);
+            var geoVision = TestUtilities.SetupGeoVision(new Vector3(0f, 0f, -6f),
+                new GeometryVisionFactory(factorySettings));
             yield return null;
 
             Debug.Log("Scenepath: " + scenePath);

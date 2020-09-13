@@ -82,8 +82,8 @@ namespace Plugins.GeometricVision
         private void AddAdditionalTargets(GeometryVision geoVision, List<GeometryType> geoTypes)
         {
             geoVision.TargetingInstructions.Clear();
-            var systems = MakeTargetingSystems();
-            AssignTargetingSystems();
+            var targetingSystems = MakeTargetingSystems();
+            AssignTargetingInstructions();
             geoVision.ValidateTargetingSystems(geoVision.TargetingInstructions);
 
             (IGeoTargeting, IGeoTargeting, IGeoTargeting) MakeTargetingSystems()
@@ -116,29 +116,23 @@ namespace Plugins.GeometricVision
                 }
             }
 
-            void AssignTargetingSystems()
+            void AssignTargetingInstructions()
             {
                 foreach (var geoType in geoTypes)
                 {
                     if (geoType == GeometryType.Objects)
                     {
-                        geoVision.TargetingInstructions.Add(new TargetingInstruction(GeometryType.Objects,
-                            settings.defaultTag,
-                            systems.Item1, settings.defaultTargeting, settings.entityComponentQueryFilter));
+                        geoVision.TargetingInstructions.Add(new TargetingInstruction(GeometryType.Objects, targetingSystems.Item1, settings));
                     }
 
                     if (geoType == GeometryType.Lines)
                     {
-                        geoVision.TargetingInstructions.Add(new TargetingInstruction(GeometryType.Lines,
-                            settings.defaultTag, systems.Item2,
-                            settings.defaultTargeting, settings.entityComponentQueryFilter));
+                        geoVision.TargetingInstructions.Add(new TargetingInstruction(GeometryType.Objects, targetingSystems.Item1, settings));
                     }
 
                     if (geoType == GeometryType.Vertices)
                     {
-                        geoVision.TargetingInstructions.Add(new TargetingInstruction(GeometryType.Vertices,
-                            settings.defaultTag,
-                            systems.Item3, settings.defaultTargeting, settings.entityComponentQueryFilter));
+                        geoVision.TargetingInstructions.Add(new TargetingInstruction(GeometryType.Objects, targetingSystems.Item1, settings));
                     }
                 }
             }
@@ -146,10 +140,10 @@ namespace Plugins.GeometricVision
 
         private static GameObject CreateGeometryVisionManagerGameObject()
         {
-            GameObject geoVision = GameObject.Find("geoVision");
+            GameObject geoVision = GameObject.Find(GeometryVisionSettings.ManagerName);
             if (geoVision == null)
             {
-                geoVision = new GameObject("geoVision");
+                geoVision = new GameObject(GeometryVisionSettings.ManagerName);
             }
 
             return geoVision;

@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using Plugins.GeometricVision.UI;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
@@ -140,19 +141,7 @@ namespace Plugins.GeometricVision.Tests
             List<string> scenePaths = GetSceneFilePaths(sceneFolderPath, relativeFolder).ToList();
             return scenePaths;
         }
-
-        public static GameObject SetupGeoVision2(Vector3 position, GeometryVisionFactory factory, bool edgesTargeted)
-        {
-            var geoTypesToTarget = new List<GeometryType>();
-            if (edgesTargeted)
-            {
-                geoTypesToTarget.Add(GeometryType.Lines);
-            }
-
-            GameObject geoVision = factory.CreateGeometryVision(position, Quaternion.identity,  geoTypesToTarget,  true);
-            return geoVision;
-        }
-
+        
         public static GameObject SetupGeoVision(Vector3 position, GeometryVisionFactory factory)
         {
             var geoTypesToTarget = new List<GeometryType>();
@@ -198,7 +187,15 @@ namespace Plugins.GeometricVision.Tests
             SceneManager.LoadScene(scenePath, LoadSceneMode.Single);
         
         }
-
+        
+        public static void SetupScene(string scenePath, float timeScale)
+        {
+            Time.timeScale = timeScale;
+            Debug.Log("Loading: " + scenePath);
+            //Load first scene
+            SceneManager.LoadScene(scenePath, LoadSceneMode.Single);
+        
+        }
         private static EditorBuildSettingsScene[] AddSceneToBuildSettings(string scenePath)
         {
             EditorBuildSettingsScene[] originalScenes = EditorBuildSettings.scenes;
@@ -218,9 +215,7 @@ namespace Plugins.GeometricVision.Tests
             {
                 Debug.Log(editorBuildSettingsScene.path);
             }
-            Debug.Log("----EditorBuildSettings.scenes " +EditorBuildSettings.scenes[0].path); 
-            Debug.Log("----amount of scenes loaded: EditorBuildSettings.scenes.Length" + EditorBuildSettings.scenes.Length);
-            Debug.Log("----amount of scenes loaded SceneManager.sceneCount: " + EditorSceneManager.sceneCount);
+
             return originalScenes;
         }
 
