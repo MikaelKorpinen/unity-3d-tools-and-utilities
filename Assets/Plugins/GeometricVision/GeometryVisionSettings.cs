@@ -1,4 +1,4 @@
-﻿namespace GeometricVision
+﻿namespace Plugins.GeometricVision
 {
         /*
          * Global settings for all the components

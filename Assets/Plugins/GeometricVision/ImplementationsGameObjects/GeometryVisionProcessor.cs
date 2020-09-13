@@ -146,36 +146,35 @@ namespace Plugins.GeometricVision.ImplementationsGameObjects
         }
 
         /// <summary>
-        /// Creates GeoInfo objects and optionally handles copying geometry from Unity Mesh to geoInfo object
+        /// Creates GeoInfo objects and optionally handles copying geometry from Unity Mesh to geoInfo object.
         /// </summary>
-        /// <param name="allTransforms"></param>
+        /// <param name="allTransformsIn"></param>
         /// <param name="geoInfos"></param>
         /// <param name="targetedGeometries"></param>
         /// <param name="collidersTargeted"></param>
         /// <param name="requireRenderer"></param>
-        private void CreateGeoInfoObjects(HashSet<Transform> allTransforms, List<GeometryDataModels.GeoInfo> geoInfos,
+        private void CreateGeoInfoObjects(HashSet<Transform> allTransformsIn, List<GeometryDataModels.GeoInfo> geoInfos,
             List<TargetingInstruction> targetedGeometries, bool collidersTargeted, bool requireRenderer)
         {
-            var aTrans = new HashSet<Transform>(allTransforms);
-            foreach (var seenTransform in allTransforms)
+            var aTrans = new HashSet<Transform>(allTransformsIn);
+            foreach (var seenTransform in allTransformsIn)
             {
                 if (!seenTransform)
                 {
-                    aTrans.Remove(seenTransform);
                     continue;
                 }
 
                 var geoInfo = CreateGeoInfoObject(seenTransform);
+                
                 if (requireRenderer)
                 {
                     geoInfo = GetGeoInfoGeometryData(targetedGeometries, geoInfo, seenTransform);
-
-                    
                 }
+                
                 geoInfos.Add(geoInfo);
             }
 
-            allTransforms = aTrans;
+            allTransformsIn = aTrans;
 
             GeometryDataModels.GeoInfo CreateGeoInfoObject(Transform seenObject)
             {
@@ -196,20 +195,14 @@ namespace Plugins.GeometricVision.ImplementationsGameObjects
                     {
                         geoInfo.edges = new GeometryDataModels.Edge[0];
                         geoInfo.renderer = seenRenderer;
-                        if (seenTransform.GetComponent<MeshFilter>())
+                        var meshFilter = seenTransform.GetComponent<MeshFilter>();
+                        if (meshFilter)
                         {
-                            geoInfo.mesh = seenTransform.GetComponent<MeshFilter>().mesh;
+                            geoInfo.mesh = meshFilter.mesh;
                         }
 
-                        if (!collidersTargeted)
-                        {
-                            geoInfo.edges = MeshUtilities.GetEdgesFromMesh(geoInfo.renderer, geoInfo.mesh);
-                        }
-                        else
-                        {
-                            geoInfo.colliderMesh = seenTransform.GetComponent<MeshCollider>().sharedMesh;
-                            geoInfo.edges = MeshUtilities.GetEdgesFromMesh(geoInfo.renderer, geoInfo.mesh);
-                        }
+                        geoInfo.edges = MeshUtilities.GetEdgesFromMesh(geoInfo.renderer, geoInfo.mesh, collidersTargeted, geoInfo);
+
                     }
                 }
                 else

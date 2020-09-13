@@ -15,20 +15,34 @@ namespace Plugins.GeometricVision.Utilities
     {
         private static UnityEngine.Plane plane = new UnityEngine.Plane();
 
-        public static GeometryDataModels.Edge[] GetEdgesFromMesh(Renderer renderer, Mesh mesh)
+        public static GeometryDataModels.Edge[] GetEdgesFromMesh(Renderer renderer, Mesh mesh, bool colliderTargeted, GeometryDataModels.GeoInfo geoInfo)
         {
-            if (!renderer)
+            if (!colliderTargeted)
             {
-                return new GeometryDataModels.Edge[0];
+                return EdgesFromMesh(renderer, mesh);
+            }
+            else
+            {
+                geoInfo.colliderMesh = renderer.transform.GetComponent<MeshCollider>().sharedMesh;
+                return EdgesFromMesh(renderer, geoInfo.colliderMesh );
+                
             }
 
-            var localToWorldMatrix = renderer.transform.localToWorldMatrix;
-            var vertices = mesh.vertices;
-            var indices = mesh.triangles;
+            GeometryDataModels.Edge[] EdgesFromMesh(Renderer renderer1, Mesh mesh1)
+            {
+                if (!renderer1)
+                {
+                    return new GeometryDataModels.Edge[0];
+                }
 
-            List<GeometryDataModels.Edge> edges = BuildEdges(indices, vertices, localToWorldMatrix);
+                var localToWorldMatrix = renderer1.transform.localToWorldMatrix;
+                var vertices = mesh1.vertices;
+                var indices = mesh1.triangles;
 
-            return edges.ToArray();
+                List<GeometryDataModels.Edge> edges = BuildEdges(indices, vertices, localToWorldMatrix);
+
+                return edges.ToArray();
+            }
         }
 
         static NativeArray<GeometryDataModels.Edge> BuildEdgesFromNativeArrays(Matrix4x4 localToWorldMatrix,
