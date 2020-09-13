@@ -185,7 +185,7 @@ namespace Plugins.GeometricVision.Interfaces.ImplementationsEntities
         {
         }
 
-        public List<Transform> GetAllObjects()
+        public List<Transform> GetAllTransforms()
         {
             throw new System.NotImplementedException();
         }

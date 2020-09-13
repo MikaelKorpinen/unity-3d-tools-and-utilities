@@ -14,7 +14,7 @@ namespace Plugins.GeometricVision.ImplementationsGameObjects
         [SerializeField] private int lastCount = 0;
 
 
-        public HashSet<Transform> AllTransforms { get; set; }
+        private HashSet<Transform> allTransforms { get; set; }
         public List<GameObject> RootObjects { get; set; }
 
         public HashSet<Transform> GetTransforms(List<GameObject> objs)
@@ -24,16 +24,16 @@ namespace Plugins.GeometricVision.ImplementationsGameObjects
             return result;
         }
 
-        public List<Transform> GetAllObjects()
+        public List<Transform> GetAllTransforms()
         {
-            return AllTransforms.ToList();
+            return this.allTransforms.ToList();
         }
 
 
         // Start is called before the first frame update
         void Awake()
         {
-            AllTransforms = new HashSet<Transform>();
+            allTransforms = new HashSet<Transform>();
             RootObjects = new List<GameObject>();
         }
 
@@ -51,13 +51,13 @@ namespace Plugins.GeometricVision.ImplementationsGameObjects
         {
             SceneManager.GetActiveScene().GetRootGameObjects(RootObjects);
             var currentObjectCount = CountObjectsInHierarchy(RootObjects);
-            
+
             if (currentObjectCount != lastCount)
             {
                 lastCount = currentObjectCount;
-                UpdateSceneObjects(RootObjects, AllTransforms, "");
-                ExtractGeometry(AllTransforms, geoVision.Runner.GeoMemory.GeoInfos, geoVision.TargetingInstructions,
-                    false);
+                UpdateSceneTransforms(RootObjects, allTransforms, "");
+                CreateGeoInfoObjects(allTransforms, geoVision.Runner.GeoMemory.GeoInfos,
+                    geoVision.TargetingInstructions, false, false);
             }
         }
 
@@ -146,13 +146,15 @@ namespace Plugins.GeometricVision.ImplementationsGameObjects
         }
 
         /// <summary>
-        /// Extracts geometry from Unity Mesh to geometry object
+        /// Creates GeoInfo objects and optionally handles copying geometry from Unity Mesh to geoInfo object
         /// </summary>
         /// <param name="allTransforms"></param>
         /// <param name="geoInfos"></param>
         /// <param name="targetedGeometries"></param>
-        private void ExtractGeometry(HashSet<Transform> allTransforms, List<GeometryDataModels.GeoInfo> geoInfos,
-            List<TargetingInstruction> targetedGeometries, bool collidersTargeted)
+        /// <param name="collidersTargeted"></param>
+        /// <param name="requireRenderer"></param>
+        private void CreateGeoInfoObjects(HashSet<Transform> allTransforms, List<GeometryDataModels.GeoInfo> geoInfos,
+            List<TargetingInstruction> targetedGeometries, bool collidersTargeted, bool requireRenderer)
         {
             var aTrans = new HashSet<Transform>(allTransforms);
             foreach (var seenTransform in allTransforms)
@@ -162,30 +164,52 @@ namespace Plugins.GeometricVision.ImplementationsGameObjects
                     aTrans.Remove(seenTransform);
                     continue;
                 }
-              
-                var renderer = seenTransform.GetComponent<Renderer>();
-                if (renderer)
+
+                var geoInfo = CreateGeoInfoObject(seenTransform);
+                if (requireRenderer)
                 {
-                    var geoInfo = CreateGeoInfoObject(seenTransform, renderer);
                     geoInfo = GetGeoInfoGeometryData(targetedGeometries, geoInfo, seenTransform);
 
-                    geoInfos.Add(geoInfo);
+                    
                 }
+                geoInfos.Add(geoInfo);
             }
 
             allTransforms = aTrans;
-            GeometryDataModels.GeoInfo GetGeoInfoGeometryData(List<TargetingInstruction> targetedGeometries2, GeometryDataModels.GeoInfo geoInfo, Transform seenObject)
+
+            GeometryDataModels.GeoInfo CreateGeoInfoObject(Transform seenObject)
+            {
+                GeometryDataModels.GeoInfo geoInfo = new GeometryDataModels.GeoInfo();
+                geoInfo.gameObject = seenObject.gameObject;
+                geoInfo.transform = seenObject;
+
+                return geoInfo;
+            }
+
+            GeometryDataModels.GeoInfo GetGeoInfoGeometryData(List<TargetingInstruction> targetedGeometries2,
+                GeometryDataModels.GeoInfo geoInfo, Transform seenTransform)
             {
                 if (GeometryIsTargeted(targetedGeometries2))
                 {
-                    if (!collidersTargeted)
+                    var seenRenderer = seenTransform.GetComponent<Renderer>();
+                    if (seenRenderer)
                     {
-                        geoInfo.edges = MeshUtilities.GetEdgesFromMesh(geoInfo.renderer, geoInfo.mesh);
-                    }
-                    else
-                    {
-                        geoInfo.colliderMesh = seenObject.GetComponent<MeshCollider>().sharedMesh;
-                        geoInfo.edges = MeshUtilities.GetEdgesFromMesh(geoInfo.renderer, geoInfo.mesh);
+                        geoInfo.edges = new GeometryDataModels.Edge[0];
+                        geoInfo.renderer = seenRenderer;
+                        if (seenTransform.GetComponent<MeshFilter>())
+                        {
+                            geoInfo.mesh = seenTransform.GetComponent<MeshFilter>().mesh;
+                        }
+
+                        if (!collidersTargeted)
+                        {
+                            geoInfo.edges = MeshUtilities.GetEdgesFromMesh(geoInfo.renderer, geoInfo.mesh);
+                        }
+                        else
+                        {
+                            geoInfo.colliderMesh = seenTransform.GetComponent<MeshCollider>().sharedMesh;
+                            geoInfo.edges = MeshUtilities.GetEdgesFromMesh(geoInfo.renderer, geoInfo.mesh);
+                        }
                     }
                 }
                 else
@@ -197,21 +221,6 @@ namespace Plugins.GeometricVision.ImplementationsGameObjects
             }
         }
 
-
-        private static GeometryDataModels.GeoInfo CreateGeoInfoObject(Transform seenObject, Renderer renderer)
-        {
-            GeometryDataModels.GeoInfo geoInfo = new GeometryDataModels.GeoInfo();
-            geoInfo.gameObject = seenObject.gameObject;
-            geoInfo.transform = seenObject;
-            geoInfo.edges = new GeometryDataModels.Edge[0];
-            geoInfo.renderer = renderer;
-            if (seenObject.GetComponent<MeshFilter>())
-            {
-                geoInfo.mesh = seenObject.GetComponent<MeshFilter>().mesh;
-            }
-
-            return geoInfo;
-        }
 
         /// <summary>
         /// Check if user has selected mesh geometry as target for the operation
@@ -238,7 +247,7 @@ namespace Plugins.GeometricVision.ImplementationsGameObjects
         /// </summary>
         /// <param name="rootObjects"></param>
         /// <param name="allObjects"></param>
-        private void UpdateSceneObjects(List<GameObject> rootObjects, HashSet<Transform> allObjects, string tagName)
+        private void UpdateSceneTransforms(List<GameObject> rootObjects, HashSet<Transform> allObjects, string tagName)
         {
             if (tagName.Length > 0)
             {

@@ -158,12 +158,12 @@ PrefabInstance:
     - target: {fileID: 5317410545062135627, guid: edff23fed4ebcc1499a594c2ab565cf4,
         type: 3}
       propertyPath: m_LocalPosition.y
-      value: 17.11
+      value: 17.06
       objectReference: {fileID: 0}
     - target: {fileID: 5317410545062135627, guid: edff23fed4ebcc1499a594c2ab565cf4,
         type: 3}
       propertyPath: m_LocalPosition.z
-      value: -4.04
+      value: -3.67
       objectReference: {fileID: 0}
     - target: {fileID: 5317410545062135627, guid: edff23fed4ebcc1499a594c2ab565cf4,
         type: 3}
@@ -1105,10 +1105,9 @@ PrefabInstance:
       propertyPath: m_Text
       value: "Readme:\n\nTo start:\nHit play and Click the GeovisionCamera \ngameObject
         and move around it in scene view.\nClicking the game window will trigger
-        a pick.\n\nThis example shows how you can make a custom \nscript that uses
-        targeting system for better object \npicking. It also uses actions template
-        object template\nto spawn effect for the object picking.\n\nWhich object
-        are picked are chosen based on the\ntag or entity query filter object. \n"
+        a pick.\n\nThis example shows how you can make a custom \nscript that implements
+        a targeting indicator feature.\nThis custom script uses targeting system
+        to get\nthe closest target to apply targeting indicartor on top\nof it.\n"
       objectReference: {fileID: 0}
     - target: {fileID: 5566268938835973781, guid: 98335d4af6198504381c27eff9cc8f24,
         type: 3}
@@ -1511,6 +1510,7 @@ GameObject:
   - component: {fileID: 1789909963}
   - component: {fileID: 1789909962}
   - component: {fileID: 1789909961}
+  - component: {fileID: 1789909966}
   m_Layer: 0
   m_Name: GeovisionCamera
   m_TagString: Untagged
@@ -1630,8 +1630,24 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   maxDistance: 53.98
-  radius: 1.71
+  radius: 4
   pickingSpeed: 1.38
+--- !u!114 &1789909966
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1789909960}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6a05205137194b843bb6228d5931df98, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  targetingIndicator: {fileID: 7778599722054069298, guid: 5895b1075b4cbf2449b9daf9ce355613,
+    type: 3}
+  maxDistance: 53.98
+  radius: 4
 --- !u!1 &1825873233
 GameObject:
   m_ObjectHideFlags: 0
@@ -1722,8 +1738,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1825873233}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 5.6532, y: 5.6532, z: 5.6532}
+  m_LocalPosition: {x: -4.9, y: 0, z: 0}
+  m_LocalScale: {x: 7.2666235, y: 5.6532, z: 7.6046844}
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 4

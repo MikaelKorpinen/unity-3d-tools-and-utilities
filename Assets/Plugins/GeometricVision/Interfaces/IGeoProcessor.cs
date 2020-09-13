@@ -22,7 +22,7 @@ namespace Plugins.GeometricVision.Interfaces
         /// <returns></returns>
         HashSet<Transform> GetTransforms(List<GameObject> objs);
     
-        List<Transform> GetAllObjects();
+        List<Transform> GetAllTransforms();
 
         /// <summary>
         /// Ask the manager brain to update it knowledge about targeted geometries

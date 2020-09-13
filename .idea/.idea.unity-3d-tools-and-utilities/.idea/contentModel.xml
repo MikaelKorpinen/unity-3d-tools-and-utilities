@@ -21,6 +21,12 @@
               <e p="TransformEntitySystem.cs" t="Include" />
             </e>
             <e p="Examples" t="Include">
+              <e p="CustomScriptTargetIndicators" t="Include">
+                <e p="Prefabs" t="Include">
+                  <e p="TargetingCursorSurfaceShader.shader" t="Include" />
+                </e>
+                <e p="TargetingIndicator.cs" t="Include" />
+              </e>
               <e p="ObjectPicking" t="Include">
                 <e p="PickingEndingEffect.cs" t="Include" />
                 <e p="PickingMiddleEffect.cs" t="Include" />
@@ -95,6 +101,12 @@
                 <e p="TagSelectorPropertyDrawer.cs" t="Include" />
                 <e p="TargetingInstructionsTypeDrawer.cs" t="Include" />
               </e>
+            </e>
+            <e p="UtilitiesAndPlugins" t="Include">
+              <e p="GeometryVisionUtilities.cs" t="Include" />
+              <e p="InterfaceUtilities.cs" t="Include" />
+              <e p="JobUtilities.cs" t="Include" />
+              <e p="MeshUtilities.cs" t="Include" />
               <e p="UniRx" t="Include">
                 <e p="Examples" t="Include">
                   <e p="Sample01_ObservableWWW.cs" t="Include" />
@@ -374,12 +386,6 @@
                   </e>
                 </e>
               </e>
-            </e>
-            <e p="Utilities" t="Include">
-              <e p="GeometryVisionUtilities.cs" t="Include" />
-              <e p="InterfaceUtilities.cs" t="Include" />
-              <e p="JobUtilities.cs" t="Include" />
-              <e p="MeshUtilities.cs" t="Include" />
             </e>
           </e>
         </e>
