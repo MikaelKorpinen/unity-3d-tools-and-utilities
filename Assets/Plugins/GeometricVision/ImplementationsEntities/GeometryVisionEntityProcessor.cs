@@ -21,7 +21,7 @@ namespace Plugins.GeometricVision.Interfaces.ImplementationsEntities
         private int lastCount = 0;
         private bool collidersTargeted;
 
-        private bool extractGeometry;
+        //private bool extractGeometry;
         private BeginInitializationEntityCommandBufferSystem entityCommandBufferSystem;
         [System.ComponentModel.ReadOnly(true)] public EntityCommandBuffer.Concurrent ConcurrentCommands;
         private int currentObjectCount;
@@ -112,7 +112,7 @@ namespace Plugins.GeometricVision.Interfaces.ImplementationsEntities
         /// <param name="commandBuffer"></param>
         /// <param name="geoInfos"></param>
         private void ExtractGeometry(EntityCommandBuffer.Concurrent commandBuffer,
-            List<VisionTarget> targetedGeometries)
+            List<TargetingInstruction> targetedGeometries)
         {
             // var tG = targetedGeometries;
             if (geometryIsTargeted(targetedGeometries, GeometryType.Lines))
@@ -144,15 +144,10 @@ namespace Plugins.GeometricVision.Interfaces.ImplementationsEntities
 
             Update();
             this.GeoVision = geoVision;
-            if (currentObjectCount != lastCount && geoVision.TargetsAreStatic)
+            if (currentObjectCount != lastCount)
             {
                 lastCount = currentObjectCount;
-                extractGeometry = true;
-            }
-
-            if (geoVision.TargetsAreStatic == false)
-            {
-                extractGeometry = true;
+                //extractGeometry = true;
             }
         }
 
@@ -162,7 +157,7 @@ namespace Plugins.GeometricVision.Interfaces.ImplementationsEntities
         /// <param name="targetedGeometries"></param>
         /// <param name="lines"></param>
         /// <returns></returns>
-        private bool geometryIsTargeted(List<VisionTarget> targetedGeometries, GeometryType type)
+        private bool geometryIsTargeted(List<TargetingInstruction> targetedGeometries, GeometryType type)
         {
             bool found = false;
             foreach (var visionTarget in targetedGeometries)
@@ -190,7 +185,7 @@ namespace Plugins.GeometricVision.Interfaces.ImplementationsEntities
         {
         }
 
-        public List<Transform> GetAllObjects()
+        public List<Transform> GetAllTransforms()
         {
             throw new System.NotImplementedException();
         }

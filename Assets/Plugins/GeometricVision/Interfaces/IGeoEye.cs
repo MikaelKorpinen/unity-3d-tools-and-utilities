@@ -16,7 +16,7 @@ namespace Plugins.GeometricVision.Interfaces
     public interface IGeoEye
     {
         string Id { get; set; }
-        GeometryVisionHead Head { get; set; }
+        GeometryVisionRunner Runner { get; set; }
         GeometryVision GeoVision { get; set; }
         void UpdateVisibility();
         NativeArray<GeometryDataModels.Edge> GetSeenEdges();

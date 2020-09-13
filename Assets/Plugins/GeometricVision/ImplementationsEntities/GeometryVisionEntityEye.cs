@@ -18,7 +18,7 @@ namespace Plugins.GeometricVision.ImplementationsEntities
     public class GeometryVisionEntityEye : SystemBase, IGeoEye
     {
         public string Id { get; set; }
-        public GeometryVisionHead Head { get; set; }
+        public GeometryVisionRunner Runner { get; set; }
 
 
         [SerializeField] private bool hideEdgesOutsideFieldOfView = true;
@@ -30,7 +30,7 @@ namespace Plugins.GeometricVision.ImplementationsEntities
         [SerializeField, Tooltip(" Geometry is extracted from collider instead of renderers mesh")]
         private bool targetColliderMeshes;
 
-        private List<VisionTarget> targetingInstructions = new List<VisionTarget>();
+        private List<TargetingInstruction> targetingInstructions = new List<TargetingInstruction>();
         private int lastCount;
         [System.ComponentModel.ReadOnly(true)] private EntityManager entityManager;
         private BeginInitializationEntityCommandBufferSystem entityCommandBuffer;
@@ -48,7 +48,7 @@ namespace Plugins.GeometricVision.ImplementationsEntities
         /// </summary>
         /// <param name="targetedGeometries"></param>
         /// <returns></returns>
-        bool isObjectsTargeted(List<VisionTarget> targetedGeometries)
+        bool isObjectsTargeted(List<TargetingInstruction> targetedGeometries)
         {
             bool objectsTargetingTypeFound = false;
             foreach (var geometryType in targetedGeometries)
@@ -286,7 +286,7 @@ namespace Plugins.GeometricVision.ImplementationsEntities
             return seenTransforms;
         }
 
-        public List<VisionTarget> TargetingInstructions
+        public List<TargetingInstruction> TargetingInstructions
         {
             get { return targetingInstructions; }
             set { targetingInstructions = value; }

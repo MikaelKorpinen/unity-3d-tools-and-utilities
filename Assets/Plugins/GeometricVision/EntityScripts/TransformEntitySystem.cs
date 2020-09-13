@@ -20,10 +20,19 @@ namespace Plugins.GeometricVision.EntityScripts
         private NativeArray<GeometryDataModels.Target> target;
         private float speedMultiplier;
         private NativeArray<bool> moveEntityDone;
-        
 
+        private EntityCommandBuffer ecb;
+        EndSimulationEntityCommandBufferSystem endSimulationEcbSystem;
+        protected override void OnCreate()
+        {
+            base.OnCreate();
+            // Find the ECB system once and store it for later usage
+            endSimulationEcbSystem = World.GetOrCreateSystem<EndSimulationEntityCommandBufferSystem>();
+        }
+        
         protected override void OnUpdate()
         {
+            
             translationComponent = new NativeArray<Translation>(1, Allocator.TempJob);
             float speed = speedMultiplier;
             moveEntityDone = new NativeArray<bool>(1, Allocator.TempJob);
@@ -72,7 +81,7 @@ namespace Plugins.GeometricVision.EntityScripts
             public void Execute()
             {
                  targ = target[0];
-                targ.position = Vector3.MoveTowards(targ.position, newPosition, moveSpeed * 0.1f);
+                targ.position = Vector3.MoveTowards(targ.position, newPosition, moveSpeed);
                 target[0] = targ;
                 var trans = translation[0];
                 trans.Value = targ.position;
@@ -80,7 +89,7 @@ namespace Plugins.GeometricVision.EntityScripts
             }
         }
 
-        public Vector3 MoveEntityToPosition( Vector3 newPosition, ref GeometryDataModels.Target closestTarget, float speedMultiplier)
+        public Vector3 MoveEntityToPosition( Vector3 newPosition, GeometryDataModels.Target closestTarget, float speedMultiplier)
         {
             this.speedMultiplier = speedMultiplier;
             this.newPosition = newPosition;
@@ -95,6 +104,20 @@ namespace Plugins.GeometricVision.EntityScripts
             target.Dispose();
             entityToMove.Dispose();
             return toReturn;
+        }
+
+        public void DestroyTargetEntity(GeometryDataModels.Target target1)
+        {
+            ecb   = endSimulationEcbSystem.CreateCommandBuffer();
+            if (World.EntityManager.Exists(target1.entity))
+            {
+                DynamicBuffer<Child> childs = World.EntityManager.GetBuffer<Child>(target1.entity);
+                foreach (var child in childs)
+                {
+                    ecb.DestroyEntity(child.Value);
+                }
+                ecb.DestroyEntity(target1.entity);
+            }
         }
     }
 }
