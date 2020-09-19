@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using Plugins.GeometricVision.UI;
-using Unity.Entities;
-using Unity.Mathematics;
-using UnityEditor;
+﻿using Unity.Entities;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
@@ -53,8 +47,6 @@ namespace Plugins.GeometricVision
             public int GeoInfoHashCode;
             public Entity entity;
             public bool isSeen;
-
-
         }
         
         public enum Plane : ushort

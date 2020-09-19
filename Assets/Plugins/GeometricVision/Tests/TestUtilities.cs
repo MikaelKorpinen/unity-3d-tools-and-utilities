@@ -3,7 +3,6 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Plugins.GeometricVision.UI;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
@@ -182,8 +181,6 @@ namespace Plugins.GeometricVision.Tests
         public static void SetupScene(string scenePath)
         {
             Time.timeScale = 100f;
-            Debug.Log("Loading: " + scenePath);
-            //Load first scene
             SceneManager.LoadScene(scenePath, LoadSceneMode.Single);
         
         }
@@ -191,10 +188,7 @@ namespace Plugins.GeometricVision.Tests
         public static void SetupScene(string scenePath, float timeScale)
         {
             Time.timeScale = timeScale;
-            Debug.Log("Loading: " + scenePath);
-            //Load first scene
             SceneManager.LoadScene(scenePath, LoadSceneMode.Single);
-        
         }
         private static EditorBuildSettingsScene[] AddSceneToBuildSettings(string scenePath)
         {
@@ -204,8 +198,7 @@ namespace Plugins.GeometricVision.Tests
             {
                 testScenes.Add(editorBuildSettingsScene);
             }
-
-            Debug.Log("scene path to add to build settings: " + scenePath);
+            
             var scene = new EditorBuildSettingsScene(scenePath, true);
 
             testScenes.Add(scene);
@@ -227,20 +220,9 @@ namespace Plugins.GeometricVision.Tests
         
             foreach (var scenePath in getScenesFromPathList)
             {
-                Debug.Log("scene path to add to build settings: " + scenePath);
                 var scene = new EditorBuildSettingsScene(scenePath, true);
                 testScenes.Add(scene);
             }
-        
-
-
-            if (originalScenes.Length > 0)
-            {
-                Debug.Log("----original: " + originalScenes[0].path);
-            }
-
-            Debug.Log("----" + testScenes[0].path); 
-        
 
             EditorBuildSettings.scenes = testScenes.ToArray();
             if ( EditorBuildSettings.scenes.Length !=0)
@@ -251,10 +233,7 @@ namespace Plugins.GeometricVision.Tests
                 }
 
             }        
-
-            Debug.Log("----EditorBuildSettings.scenes " +EditorBuildSettings.scenes[0].path); 
-            Debug.Log("----amount of scenes loaded: EditorBuildSettings.scenes.Length: " + EditorBuildSettings.scenes.Length);
-            Debug.Log("----amount of scenes loaded SceneManager.sceneCount: " + EditorSceneManager.sceneCount);
+            
             var returnValues =originalScenes;
 
             return returnValues;
@@ -262,15 +241,9 @@ namespace Plugins.GeometricVision.Tests
     
         public static void PostCleanUpBuildSettings(EditorBuildSettingsScene[] originalScenes)
         {
+            Time.timeScale = 1.0f;
             EditorSceneManager.LoadScene(0, LoadSceneMode.Single);
             EditorBuildSettings.scenes = originalScenes;
-        
-            foreach (var editorBuildSettingsScene in EditorBuildSettings.scenes)
-            {
-                Debug.Log(editorBuildSettingsScene.path);
-            }
-            Debug.Log("----amount of scenes loaded: EditorBuildSettings.scenes.Length" + EditorBuildSettings.scenes.Length);
-            Debug.Log("----amount of scenes loaded SceneManager.sceneCount: " + EditorSceneManager.sceneCount);
         }
 
         public static bool CheckThatImplementationIsOnTheList<T>(HashSet<T> listToCheck, Type type)

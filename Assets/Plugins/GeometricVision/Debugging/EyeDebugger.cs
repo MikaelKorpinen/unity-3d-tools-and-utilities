@@ -7,7 +7,6 @@ using Plugins.GeometricVision;
 using Plugins.GeometricVision.Interfaces;
 using Plugins.GeometricVision.Interfaces.Implementations;
 using Unity.Collections;
-using UnityEditor.Graphs;
 using UnityEngine;
 using static Plugins.GeometricVision.GeometryDataModels.Boolean;
 using Plane = Plugins.GeometricVision.GeometryDataModels.Plane;
@@ -143,7 +142,7 @@ public class EyeDebugger
         
         if (eye != null)
         {
-            DrawEdges(iGeoEye.GetSeenEdges());
+          //  DrawEdges(iGeoEye.GetSeenEdges());
         }
     }
     

@@ -64,7 +64,7 @@ namespace Plugins.GeometricVision.Tests.TestScriptsForGameObjects
             yield return null;
    
             GeometryDataModels.Target target = new GeometryDataModels.Target();
-            Measure.Method(() => { target = geoVision.GetComponent<GeometryVision>().GetClosestTarget(false); }).Run();
+            Measure.Method(() => { target = geoVision.GetComponent<GeometryVision>().GetClosestTarget(); }).Run();
 
             Debug.Log("found targeting system: " + target);
                         

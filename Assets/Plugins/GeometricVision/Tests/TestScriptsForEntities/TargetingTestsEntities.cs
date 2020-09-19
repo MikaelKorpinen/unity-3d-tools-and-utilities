@@ -69,7 +69,7 @@ namespace Plugins.GeometricVision.Tests.TestScriptsForEntities
             yield return null;
 
             GeometryDataModels.Target target = new GeometryDataModels.Target();
-            Measure.Method(() => { target = geoVision.GetComponent<GeometryVision>().GetClosestTarget(false); }).Run();
+            Measure.Method(() => { target = geoVision.GetComponent<GeometryVision>().GetClosestTarget(); }).Run();
 
             Debug.Log("found targeting system: " + target);
 
@@ -128,7 +128,7 @@ namespace Plugins.GeometricVision.Tests.TestScriptsForEntities
                 var testObjectName = testObjectNames[index];
                 geoVision.transform.position = new Vector3(index * -2f + offset, 0f, -6f);
                 yield return null;
-                Measure.Method(() => { target = geoVision.GetComponent<GeometryVision>().GetClosestTarget(false); })
+                Measure.Method(() => { target = geoVision.GetComponent<GeometryVision>().GetClosestTarget(); })
                     .Run();
                 Assert.True(Vector3.Distance(target.position, new Vector3(index * -2f, 0f, 10f)) < 0.1f+ offset);
             }
@@ -165,7 +165,7 @@ namespace Plugins.GeometricVision.Tests.TestScriptsForEntities
                 var testObjectName = testObjectNames[index];
                 geoVision.transform.position = new Vector3(index * -2f + offset, 0f, -6f);
                 yield return null;
-                Measure.Method(() => { target = geoVision.GetComponent<GeometryVision>().GetClosestTarget(false); })
+                Measure.Method(() => { target = geoVision.GetComponent<GeometryVision>().GetClosestTarget(); })
                     .Run();
                 if (Vector3.Distance(target.position, new Vector3(index * -2f, 0f, 10f)) < 0.1f+ offset)
                 {

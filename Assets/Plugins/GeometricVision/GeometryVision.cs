@@ -2,15 +2,12 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
-using GeometricVision;
 using Plugins.GeometricVision.EntityScripts;
 using Plugins.GeometricVision.ImplementationsEntities;
 using Plugins.GeometricVision.ImplementationsGameObjects;
 using Plugins.GeometricVision.Interfaces;
 using Plugins.GeometricVision.Interfaces.Implementations;
 using Plugins.GeometricVision.Interfaces.ImplementationsEntities;
-using Plugins.GeometricVision.UI;
 using Plugins.GeometricVision.UniRx.Scripts.UnityEngineBridge;
 using Plugins.GeometricVision.Utilities;
 using UniRx;
@@ -49,20 +46,9 @@ namespace Plugins.GeometricVision
 
         [SerializeField, Tooltip("Include entities")]
         private BoolReactiveProperty entityBasedProcessing = new BoolReactiveProperty();
-
-       // [SerializeField, Tooltip("Entity component to use in filtering queries. If none uses all entities.")]
-       // private UnityEngine.Object entityFilterComponent;
-     
         private string defaultTag = "";
         private IDisposable gameObjectProcessingObservable = null;
         private IDisposable entityToggleObservable = null;
-
-        public GeometryVisionRunner Runner
-        {
-            get { return runner; }
-            set { runner = value; }
-        }
-
         private HashSet<IGeoEye> eyes = new HashSet<IGeoEye>();
         private Camera hiddenUnityCamera;
         private Plane[] planes = new Plane[6];
@@ -73,7 +59,8 @@ namespace Plugins.GeometricVision
         private World entityWorld;
         private TransformEntitySystem transformEntitySystem;
         private GeometryVisionRunner runner;
-
+        private bool favorDistanceToCameraInsteadDistanceToPointer = false;
+        [SerializeField]private TextMesh debugTex;
         void Reset()
         {
             targetingInstructions = new List<TargetingInstruction>();
@@ -81,7 +68,8 @@ namespace Plugins.GeometricVision
             if (targetingInstructions.Count == 0)
             {
                 targetingInstructions.Add(
-                    new TargetingInstruction(GeometryType.Objects, DefaultTag, new GeometryObjectTargeting(), true, null));
+                    new TargetingInstruction(GeometryType.Objects, DefaultTag, new GeometryObjectTargeting(), true,
+                        null));
             }
         }
 
@@ -96,16 +84,48 @@ namespace Plugins.GeometricVision
         void Start()
         {
             InitializeGeometricVision();
+            debugTex.text += targetingInstructions[0];
+            debugTex.text += "\n";            
+            debugTex.text += targetingInstructions[0].EntityFilterComponent;
+            debugTex.text += "\n";
+            debugTex.text += "\n";
+            debugTex.text += "\n";
+            debugTex.text += "\n";
+            
+            debugTex.text += targetingInstructions[0].EntityQueryFilterName;
+            debugTex.text += "\n";
+            debugTex.text += targetingInstructions[0].EntityQueryFilterNameSpace;
+            debugTex.text += "\n";
+         //   debugTex.text += targetingInstructions[0].EntityFilterComponent;
+            debugTex.text += "\n";
+          //  debugTex.text += targetingInstructions[0].EntityQueryFilter;
         }
-
+#if UNITY_EDITOR
         // On validate is called when there is a change in the UI
         void OnValidate()
         {
             cachedTransform = transform;
             InitializeTargeting(TargetingInstructions);
             ValidateTargetingSystems(targetingInstructions);
+  
+            PushEditorChanges(targetingInstructions);
+     
         }
 
+        /// <summary>
+        /// Pushes changes made to entity filter type
+        /// </summary>
+        /// <remarks>Needs some operations only possible in the editor. Changes needs to be reflected to internal type variable.
+        /// Unless there is a way to read the type from the object with out converting it to MonoScript</remarks>
+        /// <param name="instructions"></param>
+        private void PushEditorChanges(List<TargetingInstruction> instructions)
+        {
+            foreach (var targetingInstruction in instructions)
+            {
+                targetingInstruction.SetCurrentEntityFilterType(targetingInstruction.EntityQueryFilter);
+            }
+        }
+#endif
 
         /// <summary>
         /// Should be run in case making changes to GUI values from code and want the changes to happen before next frame(instantly).
@@ -192,6 +212,7 @@ namespace Plugins.GeometricVision
         public void InitUnityCamera(bool forceInit)
         {
             HiddenUnityCamera = gameObject.GetComponent<Camera>();
+            HiddenUnityCamera.stereoTargetEye = StereoTargetEyeMask.None;
             if (forceInit && HiddenUnityCamera != null)
             {
                 Destroy(HiddenUnityCamera);
@@ -202,6 +223,9 @@ namespace Plugins.GeometricVision
                 HiddenUnityCamera = gameObject.AddComponent<Camera>();
             }
 
+            HiddenUnityCamera.cameraType = CameraType.Game;
+            HiddenUnityCamera.clearFlags = CameraClearFlags.Nothing;
+            HiddenUnityCamera.usePhysicalProperties = true;
             HiddenUnityCamera.enabled = false;
         }
 
@@ -354,11 +378,10 @@ namespace Plugins.GeometricVision
                 }
             }
         }
-
-
+        
         /// <summary>
         /// Remove entity cameras eye so the Head won't be iterating through them.
-        /// Also destroy system just in case
+        /// Also destroy entity system.
         /// </summary>
         private void DisableEntityCameras()
         {
@@ -387,7 +410,7 @@ namespace Plugins.GeometricVision
             }
         }
 
-        public GeometryDataModels.Target GetClosestTarget(bool favorDistanceToCameraInsteadDistanceToRay)
+        public GeometryDataModels.Target GetClosestTarget()
         {
             if (closestTargets.Count == 0)
             {
@@ -396,14 +419,7 @@ namespace Plugins.GeometricVision
 
             if (closestTargets.Count > 0)
             {
-                if (favorDistanceToCameraInsteadDistanceToRay == false)
-                {
-                    return closestTargets[0];
-                }
-                else
-                {
-                    throw new NotImplementedException();
-                }
+                return closestTargets[0];
             }
 
             return new GeometryDataModels.Target();
@@ -445,26 +461,6 @@ namespace Plugins.GeometricVision
             eye.GeoVision = this;
             eye.TargetingInstructions = targetingInstructions;
             eye.Update();
-        }
-
-        /// <summary>
-        /// Checks if geometrytype is targeted.
-        /// </summary>
-        /// <param name="targetingInstructions"></param>
-        /// <returns></returns>
-        bool isGeometryTypeTargetingInstructionAdded(List<TargetingInstruction> targetingInstructions,
-            GeometryType geoType)
-        {
-            bool targetingTypeFound = false;
-            foreach (var targetingInstruction in targetingInstructions)
-            {
-                if (targetingInstruction.GeometryType == geoType)
-                {
-                    targetingTypeFound = true;
-                }
-            }
-
-            return targetingTypeFound;
         }
 
         /// <summary>
@@ -551,9 +547,10 @@ namespace Plugins.GeometricVision
         {
             foreach (var targetingInstruction in targetingInstructions)
             {
+                
                 if (gameObjectProcessing.Value == true)
                 {
-                    targetingInstruction.TargetingSystemGameObjects = AssignNewTargetIngSystem(targetingInstruction,
+                    targetingInstruction.TargetingSystemGameObjects = AssignNewTargetingSystem(targetingInstruction,
                         new GeometryObjectTargeting(), new GeometryLineTargeting());
                 }
 
@@ -568,11 +565,11 @@ namespace Plugins.GeometricVision
                     var newLineTargetng = entityWorld.CreateSystem<GeometryEntitiesLineTargeting>();
 
                     targetingInstruction.TargetingSystemEntities =
-                        AssignNewTargetIngSystem(targetingInstruction, newObjectTargetng, newLineTargetng);
+                        AssignNewTargetingSystem(targetingInstruction, newObjectTargetng, newLineTargetng);
                 }
             }
 
-            IGeoTargeting AssignNewTargetIngSystem(TargetingInstruction visionTarget1, IGeoTargeting newObjectTargeting,
+            IGeoTargeting AssignNewTargetingSystem(TargetingInstruction visionTarget1, IGeoTargeting newObjectTargeting,
                 IGeoTargeting newLineTargeting)
             {
                 IGeoTargeting targetingToReturn = null;
@@ -626,7 +623,12 @@ namespace Plugins.GeometricVision
                 this.hiddenUnityCamera.projectionMatrix * this.hiddenUnityCamera.worldToCameraMatrix,
                 planes);
         }
-
+        
+        /// <summary>
+        /// Use this to remove eye game object or entity implementation.
+        /// Also handles removing the MonoBehaviour component if the implementation is one 
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
         public void RemoveEye<T>()
         {
             InterfaceUtilities.RemoveInterfaceImplementationsOfTypeFromList(typeof(T), ref eyes);
@@ -645,7 +647,11 @@ namespace Plugins.GeometricVision
                 }
             }
         }
-
+        /// <summary>
+        /// Used to get the eye implementation for either game object or entities from hash set.
+        /// </summary>
+        /// <typeparam name="T">Implementation to get. If none exists return default T</typeparam>
+        /// <returns></returns>
         public T GetEye<T>()
         {
             return (T) InterfaceUtilities.GetInterfaceImplementationOfTypeFromList(typeof(T), eyes);
@@ -690,39 +696,22 @@ namespace Plugins.GeometricVision
             if (typeof(T).IsSubclassOf(typeof(MonoBehaviour)))
             {
                 HandleGameObjectEyeAddition();
-
-                void HandleGameObjectEyeAddition()
-                {
-                    var eye = gameObject.GetComponent(typeof(T));
-                    if (eye == null)
-                    {
-                        gameObject.AddComponent(typeof(T));
-                        var addedEye = (IGeoEye) gameObject.GetComponent(typeof(T));
-                        addedEye.Runner = Runner;
-                        addedEye.Id = new Hash128().ToString();
-                        addedEye.GeoVision = this;
-                        eye = (Component) addedEye;
-                    }
-
-                    if (InterfaceUtilities.ListContainsInterfaceImplementationOfType(typeof(T), eyes) == false)
-                    {
-                        var defaultEyeFromTypeT = (IGeoEye) default(T);
-                        //Check that the implementation is not the default one
-                        if (Object.Equals(eye, defaultEyeFromTypeT) == false)
-                        {
-                            eyes.Add((IGeoEye) eye);
-                        }
-                    }
-                }
+                
             }
             else
             {
+                HandleEntityEyeAddition();
+            }
+            
+            void HandleGameObjectEyeAddition()
+            {
+                var eye = IfNoEyeComponentAddAndInit();
+                AddEyeToCollectionOfInterfaceImplementations(eye);
+            }
+            
+            void HandleEntityEyeAddition()
+            {
                 if (GetEye<T>() == null)
-                {
-                    HandleEntityEyeAddition();
-                }
-
-                void HandleEntityEyeAddition()
                 {
                     if (entityWorld == null)
                     {
@@ -730,6 +719,35 @@ namespace Plugins.GeometricVision
                     }
 
                     var eye = entityWorld.CreateSystem<GeometryVisionEntityEye>();
+                    var defaultEyeFromTypeT = (IGeoEye) default(T);
+                    //Check that the implementation is not the default one
+                    if (Object.Equals(eye, defaultEyeFromTypeT) == false)
+                    {
+                        eyes.Add((IGeoEye) eye);
+                    }
+                }
+            }
+            //Creates the eye
+            Component IfNoEyeComponentAddAndInit()
+            {
+                var eye = gameObject.GetComponent(typeof(T));
+                if (eye == null)
+                {
+                    gameObject.AddComponent(typeof(T));
+                    var addedEye = (IGeoEye) gameObject.GetComponent(typeof(T));
+                    addedEye.Runner = Runner;
+                    addedEye.Id = new Hash128().ToString();
+                    addedEye.GeoVision = this;
+                    eye = (Component) addedEye;
+                }
+
+                return eye;
+            }
+            //Checks that the eye is valid and add it to hashset for faster access avoiding get component calls
+            void AddEyeToCollectionOfInterfaceImplementations(Component eye)
+            {
+                if (InterfaceUtilities.ListContainsInterfaceImplementationOfType(typeof(T), eyes) == false)
+                {
                     var defaultEyeFromTypeT = (IGeoEye) default(T);
                     //Check that the implementation is not the default one
                     if (Object.Equals(eye, defaultEyeFromTypeT) == false)
@@ -779,6 +797,7 @@ namespace Plugins.GeometricVision
 
         /// <summary>
         /// Updates components internal targets list for both entities and GameObject. Then sorts them.
+        /// It has currently hidden feature to allow target sorting on based how close the targets are to the camera.
         /// </summary>
         public void UpdateClosestTargets()
         {
@@ -786,7 +805,17 @@ namespace Plugins.GeometricVision
                 new List<GeometryDataModels.Target>(GetTargetsForGameObjectsAndEntities());
             if (newClosestTargets.Count > 0)
             {
-                closestTargets = newClosestTargets.OrderBy(target => target.distanceToRay).ToList();
+                if (favorDistanceToCameraInsteadDistanceToPointer == false)
+                {
+                    //TODO: Native list and burst compile in job this
+                    closestTargets = newClosestTargets.OrderBy(target => target.distanceToRay).ToList();
+                }
+                else
+                {
+                    //TODO: Native list and burst ompile in job this
+                    //TODO:After 1.0 Find a good use case where this can be used and improve it.
+                    closestTargets = newClosestTargets.OrderBy(target => target.distanceToCastOrigin).ToList();
+                }
             }
             else
             {
@@ -799,21 +828,23 @@ namespace Plugins.GeometricVision
         /// </summary>
         /// <param name="newPosition"></param>
         /// <param name="speedMultiplier"></param>
-        public void MoveClosestTarget(Vector3 newPosition, float speedMultiplier)
+        /// <param name="distanceToStop"></param>
+        public void MoveClosestTargetToPosition(Vector3 newPosition, float speedMultiplier, float distanceToStop)
         {
-            float speedHoldUp = 0.05f; //Needs to offset speed otherwise its too fast
-            var closestTarget = GetClosestTarget(false);
-            float movementSpeed = closestTarget.distanceToCastOrigin * Time.deltaTime * speedHoldUp * speedMultiplier;
-            
+            var closestTarget = GetClosestTarget();
+            float movementSpeed = closestTarget.distanceToCastOrigin * Time.deltaTime * speedMultiplier;
+
             if (closestTarget.isEntity)
             {
-                StartCoroutine(MoveEntityTarget(newPosition, movementSpeed, closestTarget));
+                MainThreadDispatcher.StartUpdateMicroCoroutine(MoveEntityTarget(newPosition, movementSpeed,
+                    closestTarget, distanceToStop));
             }
             else
             {
                 //Since target component is multi threading friendly it cannot store transform, so this just uses the geoInfoObject that is made for the game objects
                 var geoInfo = GetGeoInfoBasedOnHashCode(closestTarget.GeoInfoHashCode);
-                StartCoroutine(GeometryVisionUtilities.MoveTarget(geoInfo.transform, newPosition, movementSpeed));
+                MainThreadDispatcher.StartUpdateMicroCoroutine(
+                    GeometryVisionUtilities.MoveTarget(geoInfo.transform, newPosition, movementSpeed, distanceToStop));
             }
         }
 
@@ -830,7 +861,7 @@ namespace Plugins.GeometricVision
             }
             else
             {
-                var geoInfo = GetGeoInfoBasedOnHashCode(GetClosestTarget(false).GeoInfoHashCode);
+                var geoInfo = GetGeoInfoBasedOnHashCode(target.GeoInfoHashCode);
                 Destroy(geoInfo.gameObject);
             }
         }
@@ -843,32 +874,19 @@ namespace Plugins.GeometricVision
                 yield break;
             }
 
-            float timeOut = 2f;
+            float timeOut = 1f;
             while (targetToBeDestroyed.distanceToCastOrigin > distanceToDestroyAt)
             {
-                if (this.closestTargets.Count != 0)
-                {
-                    targetToBeDestroyed = this.closestTargets.Select(targ =>
-                    {
-                        if (targetToBeDestroyed.entity.Index == targ.entity.Index &&
-                            targetToBeDestroyed.entity.Version == targ.entity.Version)
-                        {
-                            targetToBeDestroyed = targ;
-                        }
-
-                        return targetToBeDestroyed;
-                    }).First();
-                }
-                
                 if (timeOut < 0.1f)
                 {
                     DestroyTarget(targetToBeDestroyed);
+                    break;
                 }
 
-                timeOut -= 0.1f;
+                timeOut -= Time.deltaTime;
                 yield return null;
             }
-            
+
             DestroyTarget(targetToBeDestroyed);
         }
 
@@ -880,27 +898,40 @@ namespace Plugins.GeometricVision
             foreach (var targetingInstruction in targetingInstructions)
             {
                 var actions = targetingInstruction.TargetingActions;
-                StartCoroutine(TimedSpawnDespawn.TimedSpawnDeSpawnService(actions.StartActionObject, actions.StartDelay,
-                    actions.StartDuration, cachedTransform, GeometryVisionSettings.NameOfStartingEffect));
+                if (actions.StartActionEnabled)
+                {
+                    MainThreadDispatcher.StartUpdateMicroCoroutine(TimedSpawnDespawn.TimedSpawnDeSpawnService(actions.StartActionObject, actions.StartDelay,
+                        actions.StartDuration, cachedTransform, GeometryVisionSettings.NameOfStartingEffect));  
+                }
 
-                StartCoroutine(TimedSpawnDespawn.TimedSpawnDeSpawnService(actions.MainActionObject,
-                    actions.MainActionDelay, actions.MainActionDuration, cachedTransform,
-                    GeometryVisionSettings.NameOfMainEffect));
+                if (actions.MainActionEnabled)
+                {
+                    MainThreadDispatcher.StartUpdateMicroCoroutine(TimedSpawnDespawn.TimedSpawnDeSpawnService(
+                        actions.MainActionObject,
+                        actions.MainActionDelay, actions.MainActionDuration, cachedTransform,
+                        GeometryVisionSettings.NameOfMainEffect));
+                }
 
-                StartCoroutine(TimedSpawnDespawn.TimedSpawnDeSpawnService(actions.EndActionObject,
-                    actions.EndDelay, actions.EndDuration, cachedTransform, GeometryVisionSettings.NameOfEndEffect));
+                if (actions.EndActionEnabled)
+                {
+                    MainThreadDispatcher.StartUpdateMicroCoroutine(TimedSpawnDespawn.TimedSpawnDeSpawnService(
+                        actions.EndActionObject,
+                        actions.EndDelay, actions.EndDuration, cachedTransform,
+                        GeometryVisionSettings.NameOfEndEffect));
+                }
             }
         }
 
         private IEnumerator MoveEntityTarget(Vector3 newPosition,
-            float speedMultiplier, GeometryDataModels.Target target)
+            float speedMultiplier, GeometryDataModels.Target target, float distanceToStop)
         {
             if (transformEntitySystem == null)
             {
                 transformEntitySystem = entityWorld.CreateSystem<TransformEntitySystem>();
             }
-            float timeOut = 20f;
-            while (Vector3.Distance(target.position, newPosition) > 0.05f)
+
+            float timeOut = 2f;
+            while (Vector3.Distance(target.position, newPosition) > distanceToStop)
             {
                 var animatedPoint =
                     transformEntitySystem.MoveEntityToPosition(newPosition, target, speedMultiplier);
@@ -916,9 +947,9 @@ namespace Plugins.GeometricVision
                     break;
                 }
 
-                timeOut -= 0.1f;
+                timeOut -= Time.deltaTime;
 
-                yield return new WaitForSeconds(Time.deltaTime * 0.1f);
+                yield return null;
             }
         }
 
@@ -1060,7 +1091,18 @@ namespace Plugins.GeometricVision
             get { return defaultTag; }
             set { defaultTag = value; }
         }
-
+        
+        public GeometryVisionRunner Runner
+        {
+            get { return runner; }
+            set { runner = value; }
+        }
+        
+        public int GetClosestTargetCount()
+        {
+            return closestTargets.Count;
+        }
+        
 #if UNITY_EDITOR
 
         /// <summary>

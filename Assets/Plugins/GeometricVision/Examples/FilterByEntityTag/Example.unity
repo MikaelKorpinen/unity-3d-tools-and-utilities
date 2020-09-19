@@ -1260,13 +1260,13 @@ MonoBehaviour:
       value: 1
     isTargetActionsTemplateSlotVisible: 1
     targetTag: Finish
+    entityQueryFilter: {fileID: 11500000, guid: a1949d2deba66734786115c52849092f,
+      type: 3}
     targetingActions: {fileID: 185121438}
   gameObjectProcessing:
     value: 1
   entityBasedProcessing:
     value: 1
-  entityFilterComponent: {fileID: 11500000, guid: a1949d2deba66734786115c52849092f,
-    type: 3}
 --- !u!4 &1789909964
 Transform:
   m_ObjectHideFlags: 0

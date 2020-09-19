@@ -6,11 +6,11 @@ namespace Plugins.GeometricVision.Examples.ObjectPicking
     {
         private GeometryVision geoVision;
 
-        private ParticleSystem particleSystem;
+        private new ParticleSystem particleSystem;
         private GeometryDataModels.Target closestTarget;
 
         [SerializeField, Tooltip("Locks the effect to be spawned to the GeometryVision components transforms position")]
-        private bool lockPositionToParent;
+        private bool lockPositionToParent = false;
 
         private Transform cachedTransform;
 
@@ -30,7 +30,7 @@ namespace Plugins.GeometricVision.Examples.ObjectPicking
         // Update is called once per frame
         void Update()
         {
-            closestTarget = geoVision.GetClosestTarget(false);
+            closestTarget = geoVision.GetClosestTarget();
             if (closestTarget.distanceToCastOrigin < 0.56f)
             {
                 Destroy(this);

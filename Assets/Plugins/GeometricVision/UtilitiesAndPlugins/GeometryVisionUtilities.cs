@@ -29,32 +29,49 @@ namespace Plugins.GeometricVision.Utilities
             factory.CreateGeometryVision(new Vector3(0f, 0f, 0f), Quaternion.identity, 25, geoVision,
                 geoTypesToTarget, 0);
         }
-        
+
         /// <summary>
         /// Moves transform. GameObject version of the move target
         /// </summary>
-        /// <param name="target"></param>
+        /// <param name="targetTransform"></param>
         /// <param name="newPosition"></param>
-        /// <param name="speedMultiplier"></param>
-        /// <returns></returns>
-        public static IEnumerator MoveTarget(Transform target, Vector3 newPosition, float speedMultiplier)
+        /// <param name="movementSpeed"></param>
+        /// <param name="distanceToStop"></param>
+        public static IEnumerator MoveTarget(Transform targetTransform, Vector3 newPosition, float movementSpeed,
+            float distanceToStop)
         {
             float timeOut = 10f;
-            float stopMovingTreshold = 0.05f;
-            while (Vector3.Distance(target.position, newPosition) > stopMovingTreshold)
+
+            while (targetTransform && Vector3.Distance(targetTransform.position, newPosition) > distanceToStop)
             {
-                var animatedPoint = Vector3.MoveTowards(target.position, newPosition, speedMultiplier);
-                target.position = animatedPoint;
-                if (timeOut < 0.1f)
+                var animatedPoint = Vector3.MoveTowards(targetTransform.position, newPosition, movementSpeed);
+                targetTransform.position = animatedPoint;
+                if (timeOut < 0.05f)
                 {
                     break;
                 }
 
-                timeOut -= 0.1f;
+                timeOut -= Time.deltaTime;
 
-                yield return new WaitForSeconds(Time.deltaTime * 0.1f);
+                yield return null;
             }
         }
+
+        public static bool TargetHasNotChanged(GeometryDataModels.Target newTarget, GeometryDataModels.Target currentTarget)
+        {
+            
+            return newTarget.GeoInfoHashCode == currentTarget.GeoInfoHashCode
+                   && newTarget.entity.Index == currentTarget.entity.Index
+                   && newTarget.entity.Version == currentTarget.entity.Version;
+        }
         
+        //Usage: this.targets.Sort<GeometryDataModels.Target, DistanceComparer>(new DistanceComparer());
+        public class DistanceComparer : IComparer<GeometryDataModels.Target>
+        {
+            public int Compare(GeometryDataModels.Target x, GeometryDataModels.Target y)
+            {
+                return Comparer<float>.Default.Compare(y.distanceToRay, x.distanceToRay);
+            }
+        }
     }
 }

@@ -2,8 +2,6 @@
 using System.Collections.Generic;
 using Plugins.GeometricVision.Interfaces;
 using Plugins.GeometricVision.Interfaces.Implementations;
-using Plugins.GeometricVision.Interfaces.ImplementationsEntities;
-using Unity.EditorCoroutines.Editor;
 using UnityEngine;
 
 namespace Plugins.GeometricVision

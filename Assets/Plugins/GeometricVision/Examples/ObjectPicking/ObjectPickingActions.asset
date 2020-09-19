@@ -1,0 +1,29 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 961e34bf52d717a4ca8ccf51c3284a82, type: 3}
+  m_Name: ObjectPickingActions
+  m_EditorClassIdentifier: 
+  startActionEnabled: 1
+  startDelay: 0
+  startDuration: 1
+  startActionObject: {fileID: 5130388188468374746, guid: e9b7c0efa8665e642b052008c31a8082,
+    type: 3}
+  actionEnabled: 1
+  mainActionDelay: 0
+  mainActionDuration: 1
+  mainActionObject: {fileID: 4490824798590118549, guid: 520439e23b459d647aeb85ff7684221d,
+    type: 3}
+  endActionEnabled: 1
+  endDelay: 0
+  endDuration: 1
+  endActionObject: {fileID: 6254577495183571575, guid: 5f4bbea2d66d5e14f927440316360351,
+    type: 3}

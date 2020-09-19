@@ -4,7 +4,7 @@ using Unity.Entities;
 // ReSharper disable once InconsistentNaming
 namespace Plugins.GeometricVision.EntityScripts.FromUnity
 {
-    [Serializable]
+    [System.Serializable]
     public struct RotationSpeed_SpawnAndRemove : IComponentData
     {
         public float RadiansPerSecond;

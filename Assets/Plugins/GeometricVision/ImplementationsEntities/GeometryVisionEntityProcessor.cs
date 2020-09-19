@@ -12,7 +12,8 @@ using UnityEngine;
 
 namespace Plugins.GeometricVision.Interfaces.ImplementationsEntities
 {
-    /// <inheritdoc />
+    /// <inheritdoc cref="Plugins.GeometricVision.Interfaces.IGeoProcessor" />
+    /// 
     [DisableAutoCreation]
     [AlwaysUpdateSystem]
     [UpdateAfter(typeof(GeometryVisionEntityEye))]
@@ -23,7 +24,7 @@ namespace Plugins.GeometricVision.Interfaces.ImplementationsEntities
 
         //private bool extractGeometry;
         private BeginInitializationEntityCommandBufferSystem entityCommandBufferSystem;
-        [System.ComponentModel.ReadOnly(true)] public EntityCommandBuffer.Concurrent ConcurrentCommands;
+        [System.ComponentModel.ReadOnly(true)] public EntityCommandBuffer.ParallelWriter ConcurrentCommands;
         private int currentObjectCount;
         private GeometryVision geoVision;
         private EntityQuery entityQuery = new EntityQuery();
@@ -40,7 +41,7 @@ namespace Plugins.GeometricVision.Interfaces.ImplementationsEntities
         protected override void OnUpdate()
         {
 
-            entityCommandBufferSystem.CreateCommandBuffer().ToConcurrent();
+            entityCommandBufferSystem.CreateCommandBuffer().AsParallelWriter();
 
             EntityQuery entitiesWithoutTargetComponent = GetEntityQuery(
                 new EntityQueryDesc()
@@ -105,13 +106,13 @@ namespace Plugins.GeometricVision.Interfaces.ImplementationsEntities
                 targets[index] = target;
             }
         }
-        
+   /*     
         /// <summary>
         /// Extracts geometry from Unity Mesh to geometry object
         /// </summary>
         /// <param name="commandBuffer"></param>
         /// <param name="geoInfos"></param>
-        private void ExtractGeometry(EntityCommandBuffer.Concurrent commandBuffer,
+        private void ExtractGeometry(EntityCommandBuffer.ParallelWriter commandBuffer,
             List<TargetingInstruction> targetedGeometries)
         {
             // var tG = targetedGeometries;
@@ -135,7 +136,7 @@ namespace Plugins.GeometricVision.Interfaces.ImplementationsEntities
             {
             }
         }
-
+*/
         /// <summary>
         /// Used to check, if things inside scene has changed. Like if new object has been removed or moved.
         /// </summary>

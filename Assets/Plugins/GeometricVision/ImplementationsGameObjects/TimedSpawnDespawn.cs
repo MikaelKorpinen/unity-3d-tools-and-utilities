@@ -1,130 +1,99 @@
 ﻿using System;
 using System.Collections;
-using System.Collections.Generic;
-using ICSharpCode.NRefactory.Ast;
 using UniRx;
 using UnityEngine;
+using Object = UnityEngine.Object;
 
-public static class TimedSpawnDespawn
+namespace Plugins.GeometricVision.ImplementationsGameObjects
 {
-    public static IEnumerator TimedInstantiateService(GameObject asset, float startDelay, Transform parent)
+    public static class TimedSpawnDespawn
     {
-        //Handle game paused and prevent division by zero problem by preventing the routine from proceeding if timescale is zero
-        while (Time.timeScale == 0)
+        
+        /// <summary>
+        /// Coroutine that can spawn and destroys spawned asset based on delay and duration.
+        /// </summary>
+        /// <param name="asset"></param>
+        /// <param name="startDelay">how long to wait until spawn</param>
+        /// <param name="duration">How long the asset stays alive</param>
+        /// <param name="parent">if not null parent spawned asset to this</param>
+        /// <param name="name">name for spawned object</param>
+        /// <returns></returns>
+        internal static IEnumerator TimedSpawnDeSpawnService(GameObject asset, float startDelay, float duration,
+            Transform parent, string name)
         {
+            GameObject spawnedObject;
+
+            Spawn(asset, startDelay).Subscribe(instantiatedAsset =>
+            {
+                spawnedObject = instantiatedAsset;
+                spawnedObject.name = name;
+                if (parent)
+                {
+                    spawnedObject.transform.parent = parent;
+                }
+
+                Observable.FromCoroutine(x => TimedDeSpawnService(spawnedObject, duration)).Subscribe();
+            });
+
+
             yield return null;
         }
+        /// <summary>
+        /// Coroutin that returns a gameObject
+        /// </summary>
+        /// <param name="asset">Asset to spawn</param>
+        /// <param name="delay">Amount to delay spawn in seconds</param>
+        /// <returns></returns>
+        public static IObservable<GameObject> Spawn(GameObject asset, float delay)
+        {
+            // convert coroutine to IObservable
+            return Observable.FromCoroutine<GameObject>((observer, cancellationToken) =>
+                TimedSpawnService(asset, observer, delay));
         
-        while (startDelay > 0)
-        {
-            var countedTimeScale = Time.deltaTime /  Time.timeScale;
-            startDelay -= countedTimeScale;
-
-            yield return new WaitForSeconds(countedTimeScale);
-        }
-
-        var instantiatedAsset = GameObject.Instantiate(asset);
-        if (parent)
-        {
-            instantiatedAsset.transform.parent = parent;
-        }
-
-        Debug.Log("Finished");
-    }
-
-    internal static IEnumerator TimedSpawnDeSpawnService(GameObject asset, float startDelay, float duration,
-        Transform parent, string name)
-    {
-        //Handle game paused and prevent division by zero problem by preventing the coroutine from proceeding if timescale is zero
-        while (Time.timeScale == 0)
-        {
-            yield return null;
-        }
-        if (asset == null)
-        {
-           yield break;
-        }
-
-        GameObject spawnedObject;
-
-        Spawn(asset, startDelay).Subscribe(instantiatedAsset =>
-        {
-            spawnedObject = instantiatedAsset;
-            spawnedObject.name = name;
-            if (parent)
+            IEnumerator TimedSpawnService(GameObject assetIn, IObserver<GameObject> observer, float delayIn)
             {
-                spawnedObject.transform.parent = parent;
+                while (delayIn > 0)
+                {
+                    var countedTimeScale = Time.deltaTime;
+                    delayIn -= countedTimeScale;
+                    yield return null;
+                }
+
+                observer.OnNext(Object.Instantiate(assetIn));
+                observer.OnCompleted();
             }
-
-            Observable.FromCoroutine(x => TimedDeSpawnService(spawnedObject, duration)).Subscribe();
-        });
-
-
-        yield return null;
-    }
-
-    public static IObservable<GameObject> Spawn(GameObject asset, float delay)
-    {
-        // convert coroutine to IObservable
-        return Observable.FromCoroutine<GameObject>((observer, cancellationToken) =>
-            TimedSpawnService(asset, observer, delay));
-        
-        IEnumerator TimedSpawnService(GameObject assetIn, IObserver<GameObject> observer, float delayIn)
-        {
-            //Handle game paused and prevent division by zero problem by preventing the routine from proceeding if timescale is zero
-            while (Time.timeScale == 0f)
-            {
-                yield return null;
-            }
-            while (delayIn > 0)
-            {
-                var countedTimeScale = Time.deltaTime /  Time.timeScale;
-                delayIn -= countedTimeScale;
-                yield return new WaitForSeconds(countedTimeScale);
-            }
-
-            observer.OnNext(GameObject.Instantiate(assetIn));
-            observer.OnCompleted();
         }
-    }
 
     
-    private static IEnumerator TimedDeSpawnService(GameObject asset, float duration)
-    {
-        //Handle game paused and prevent division by zero problem by preventing the routine from proceeding if timescale is zero
-        while (Time.timeScale == 0)
+        private static IEnumerator TimedDeSpawnService(GameObject asset, float duration)
         {
-            yield return null;
-        }
-        while (duration > 0)
-        {
-            var countedTimeScale = Time.deltaTime /  Time.timeScale;
-            duration -= countedTimeScale;
-            yield return new WaitForSeconds(countedTimeScale);
+            
+            while (duration > 0)
+            {
+                var countedTimeScale = Time.deltaTime;
+                duration -= countedTimeScale;
+                yield return null;
+            }
+
+            if (asset != null)
+            {
+                Object.Destroy(asset);
+            }
+
         }
 
-        if (asset != null)
+        private static IEnumerator TimedActionService(Action<GameObject, Transform, Transform> actionToPerform,
+            GameObject asset, Transform source, Transform target, 
+            float duration)
         {
-            GameObject.Destroy(asset);
-        }
-
-    }
-
-    private static IEnumerator TimedActionService(Action<GameObject, Transform, Transform> actionToPerform,
-        GameObject asset, Transform source, Transform target, 
-        float duration)
-    {
-        //Handle game paused and prevent division by zero problem by preventing the routine from proceeding if timescale is zero
-        while (Time.timeScale == 0)
-        {
-            yield return null;
-        }
-        while (duration > 0)
-        {
-            var countedTimeScale = Time.deltaTime /  Time.timeScale;
-            actionToPerform(asset, source, target);
-            duration -= countedTimeScale;
-            yield return new WaitForSeconds(countedTimeScale);
+            //Handle game paused and prevent division by zero problem by preventing the routine from proceeding if timescale is zero
+            while (duration > 0)
+            {
+                var countedTimeScale = Time.deltaTime;
+                actionToPerform(asset, source, target);
+                duration -= countedTimeScale;
+                yield return null;
+            }
         }
     }
 }

@@ -31,13 +31,7 @@ namespace Plugins.GeometricVision.ImplementationsEntities
                 entityQuery = GetEntityQuery(entityFilterComponent, typeof(Translation),
                     typeof(GeometryDataModels.Target));
             }
-            else if (entityFilterComponent != null)
-            {
-                //For now there is only support for global filtering on entities. Requires some UI rework
 
-                entityQuery = GetEntityQuery(entityFilterComponent, typeof(Translation),
-                    typeof(GeometryDataModels.Target));
-            }
             else
             {
                 entityQuery = GetEntityQuery(typeof(Translation), typeof(GeometryDataModels.Target));
@@ -116,7 +110,7 @@ namespace Plugins.GeometricVision.ImplementationsEntities
                 {
                     return target3 + rayLocation;
                 }
-
+       
                 target.isEntity = true;
                 target.distanceToRay = Vector3.Distance(target.position, target.projectedTargetPosition);
                 target.distanceToCastOrigin = Vector3.Distance(rayLocWS, target.projectedTargetPosition);
@@ -157,27 +151,12 @@ namespace Plugins.GeometricVision.ImplementationsEntities
             geoVision = geometryVision;
             this.rayLocation = rayLocation;
             this.rayDirectionWS = rayDirection;
-            var mS = (MonoScript) targetingInstruction.EntityQueryFilter;
-            if (targetingInstruction.EntityQueryFilter)
-            {
-                var nameSpace = GetNameSpace(targetingInstruction.EntityQueryFilter.ToString());
-                Type entityFilterType = Type.GetType(string.Concat(nameSpace, ".", mS.name));
-                this.entityFilterComponent = entityFilterType;
-            }
-            
+            this.entityFilterComponent = targetingInstruction.GetCurrentEntityFilterType();
             Update();
 
             return this.targets.ToList();
         }
-
-        //Usage: this.targets.Sort<GeometryDataModels.Target, DistanceComparer>(new DistanceComparer());
-        public class DistanceComparer : IComparer<GeometryDataModels.Target>
-        {
-            public int Compare(GeometryDataModels.Target x, GeometryDataModels.Target y)
-            {
-                return Comparer<float>.Default.Compare(y.distanceToRay, x.distanceToRay);
-            }
-        }
+        
 
         public GeometryType TargetedType
         {
@@ -187,21 +166,6 @@ namespace Plugins.GeometricVision.ImplementationsEntities
         public bool IsForEntities()
         {
             return true;
-        }
-
-        private string GetNameSpace(string text)
-        {
-            string[] lines = text.Replace("\r", "").Split('\n');
-            string toReturn = "";
-            foreach (var line in lines)
-            {
-                if (line.Contains("namespace"))
-                {
-                    toReturn = line.Split(' ')[1].Trim();
-                }
-            }
-
-            return toReturn;
         }
     }
 }

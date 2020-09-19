@@ -67,7 +67,6 @@ namespace Plugins.GeometricVision.ImplementationsEntities
         /// </summary>
         protected override void OnUpdate()
         {
-            var commandBuffer = entityCommandBuffer.CreateCommandBuffer().ToConcurrent();
             var entityQuery = GetEntityQuery(typeof(GeometryDataModels.Target));
             var planes = new NativeArray<Plane>(6, Allocator.TempJob);
 

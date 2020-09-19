@@ -12,9 +12,9 @@
             public static string ManagerName { get; set; } = "GeometryVisionManager";
 
             public static string HeaderImagePath { get; set; } =
-                "/Plugins/GeometricVision/UI/Images/GeoVisionTargeting.png";
+                "/Plugins/GeometricVision/Editor/UI/Images/GeoVisionTargeting.png";
 
             public static string NewActionsAssetForTargetingPath { get; set; } =
-                "Assets/NewActionsAssetForTargeting.asset";
+                "Assets/Plugins/GeometricVision/NewActionsAssetForTargeting.asset";
         }
 }

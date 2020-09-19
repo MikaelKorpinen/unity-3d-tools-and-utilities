@@ -8,7 +8,6 @@ using Plugins.GeometricVision.ImplementationsGameObjects;
 using Plugins.GeometricVision.Interfaces;
 using Plugins.GeometricVision.Interfaces.Implementations;
 using Plugins.GeometricVision.Interfaces.ImplementationsEntities;
-using Plugins.GeometricVision.UI;
 using Unity.PerformanceTesting;
 using UnityEditor;
 using UnityEngine;

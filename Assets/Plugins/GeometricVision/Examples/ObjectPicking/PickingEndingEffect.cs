@@ -6,15 +6,19 @@ namespace Plugins.GeometricVision.Examples.ObjectPicking
     public class PickingEndingEffect : MonoBehaviour
     {
         private GeometryVision geoVision;
-
-        private ParticleSystem particleSystem;
         private GeometryDataModels.Target closestTarget;
 
         [SerializeField, Tooltip("Locks the effect to be spawned to the GeometryVision components transforms position")]
-        private bool lockPositionToTarget;
+        private bool lockPositionToTarget = false;
 
         private Transform cachedTransform;
-        
+        private ParticleSystem.TriggerModule trigger;
+        private void Awake()
+        {
+             this.GetComponent<ParticleSystem>().Stop();
+         
+        }
+
         // Start is called before the first frame update
         void Start()
         {
@@ -25,22 +29,16 @@ namespace Plugins.GeometricVision.Examples.ObjectPicking
             }
 
             transform.parent = null;
-
-            particleSystem = GetComponent<ParticleSystem>();
+            cachedTransform.position = geoVision.GetClosestTarget().position;
+            this.GetComponent<ParticleSystem>().Play();
         }
 
         // Update is called once per frame
         void Update()
         {
-            closestTarget = geoVision.GetClosestTarget(false);
+            closestTarget = geoVision.GetClosestTarget();
             if (closestTarget.distanceToCastOrigin > 0)
             {
-                if (closestTarget.distanceToCastOrigin < 0.56f)
-                {
-                    Destroy(this);
-                }
-
-                cachedTransform.LookAt(geoVision.transform);
                 if (lockPositionToTarget)
                 {
                     cachedTransform.position = closestTarget.position;

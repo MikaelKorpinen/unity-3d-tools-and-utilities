@@ -39,7 +39,7 @@ namespace Plugins.GeometricVision.EntityScripts
             entityQuery = EntityManager.CreateEntityQuery(typeof(Translation), typeof(GeometryDataModels.Target));
             var entities = entityQuery.ToEntityArray(Allocator.TempJob);
             
-            if(EntityManager.Exists(entityToMove[0]))
+            if(EntityManager.Exists(entityToMove[0]) && EntityManager.HasComponent<Translation>(entityToMove[0]))
             {
 
                 translationComponent[0] = EntityManager.GetComponentData<Translation>(entityToMove[0]);
@@ -49,7 +49,7 @@ namespace Plugins.GeometricVision.EntityScripts
                     translation = new NativeArray<Translation>(this.translationComponent, Allocator.TempJob),
        
                     target = target,
-                    moveSpeed = Time.DeltaTime * speed,
+                    moveSpeed = speed,
                     newPosition = this.newPosition
                 };
                
@@ -60,7 +60,7 @@ namespace Plugins.GeometricVision.EntityScripts
                 job2.entityToMove.Dispose();
                 job2.translation.Dispose();
                 target[0] = job2.target[0];
-                EntityManager.SetComponentData<Translation>(entityToMove[0], translationComponent[0]);
+                EntityManager.SetComponentData(entityToMove[0], translationComponent[0]);
             }
            
             translationComponent.Dispose();
@@ -74,28 +74,28 @@ namespace Plugins.GeometricVision.EntityScripts
             internal NativeArray<Entity> entityToMove;
             internal NativeArray<Translation> translation;
             internal NativeArray<GeometryDataModels.Target> target;
-            internal GeometryDataModels.Target targ;
+            private GeometryDataModels.Target tempJobTarget;
             internal Vector3 newPosition;
             internal float moveSpeed;
             
             public void Execute()
             {
-                 targ = target[0];
-                targ.position = Vector3.MoveTowards(targ.position, newPosition, moveSpeed);
-                target[0] = targ;
+                 tempJobTarget = target[0];
+                tempJobTarget.position = Vector3.MoveTowards(tempJobTarget.position, newPosition, moveSpeed);
+                target[0] = tempJobTarget;
                 var trans = translation[0];
-                trans.Value = targ.position;
+                trans.Value = tempJobTarget.position;
                 translation[0] = trans;
             }
         }
 
-        public Vector3 MoveEntityToPosition( Vector3 newPosition, GeometryDataModels.Target closestTarget, float speedMultiplier)
+        public Vector3 MoveEntityToPosition( Vector3 newPosition, GeometryDataModels.Target closestTarget, float speed)
         {
-            this.speedMultiplier = speedMultiplier;
+            this.speedMultiplier = speed;
             this.newPosition = newPosition;
-            target = new NativeArray<GeometryDataModels.Target>(1, Allocator.TempJob);
-            entityToMove = new NativeArray<Entity>(1, Allocator.TempJob);
-            entityToMove[0] = closestTarget.entity;
+            this.target = new NativeArray<GeometryDataModels.Target>(1, Allocator.TempJob);
+            this.entityToMove = new NativeArray<Entity>(1, Allocator.TempJob);
+            this.entityToMove[0] = closestTarget.entity;
             this.target[0] = closestTarget;
             this.Update();
 
@@ -111,11 +111,15 @@ namespace Plugins.GeometricVision.EntityScripts
             ecb   = endSimulationEcbSystem.CreateCommandBuffer();
             if (World.EntityManager.Exists(target1.entity))
             {
-                DynamicBuffer<Child> childs = World.EntityManager.GetBuffer<Child>(target1.entity);
-                foreach (var child in childs)
+                if (World.EntityManager.HasComponent<Child>(target1.entity))
                 {
-                    ecb.DestroyEntity(child.Value);
+                    DynamicBuffer<Child> childs = World.EntityManager.GetBuffer<Child>(target1.entity);
+                    foreach (var child in childs)
+                    {
+                        ecb.DestroyEntity(child.Value);
+                    }
                 }
+
                 ecb.DestroyEntity(target1.entity);
             }
         }

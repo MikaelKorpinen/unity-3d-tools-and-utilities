@@ -1,4 +1,6 @@
-﻿using UnityEditor;
+﻿using Plugins.GeometricVision.EntityScripts.Components;
+using Unity.Entities;
+using UnityEditor;
 using UnityEngine;
 
 namespace Plugins.GeometricVision.Examples.CustomScriptTargetIndicators
@@ -6,37 +8,79 @@ namespace Plugins.GeometricVision.Examples.CustomScriptTargetIndicators
     public class TargetingIndicator : MonoBehaviour
     {
         private GeometryVision geoVision;
-        [SerializeField] private GameObject targetingIndicator;
+        [SerializeField] private GameObject targetingIndicator = null;
         private GameObject spawnedTargetingIndicator;
-        [SerializeField] private float maxDistance;
-        [SerializeField] private float radius;
+        [SerializeField] private float maxDistance =0;
+        [SerializeField] private float radius=0;
+
+        private TextMesh text;
+
         // Start is called before the first frame update
         void Start()
         {
             geoVision = GetComponent<GeometryVision>();
             spawnedTargetingIndicator = GameObject.Instantiate(targetingIndicator);
+            text = spawnedTargetingIndicator.GetComponentInChildren<TextMesh>();
         }
 
         // Update is called once per frame
         void Update()
         {
-            var target = geoVision.GetClosestTarget(false);
-            if (target.distanceToCastOrigin > 0)
+            var target = geoVision.GetClosestTarget();
+
+            if (target.isEntity)
             {
-                if (Vector3.Distance(this.transform.position, target.projectedTargetPosition) < maxDistance
-                    && Vector3.Distance(target.projectedTargetPosition, target.position) < radius)
+                if (World.DefaultGameObjectInjectionWorld.EntityManager.HasComponent<Name>(target.entity))
                 {
-                    spawnedTargetingIndicator.transform.position = target.position;
-                    spawnedTargetingIndicator.transform.LookAt(this.transform);
+                    text.text = World.DefaultGameObjectInjectionWorld.EntityManager
+                        .GetComponentData<Name>(target.entity).Value.ToString();
                 }
                 else
                 {
+                    text.text = "Unknown";
+                }
+            }
+            else
+            {
+                var go = geoVision.GetGeoInfoBasedOnHashCode(target.GeoInfoHashCode);
+                if (go.gameObject)
+                {
+                    text.text = geoVision.GetGeoInfoBasedOnHashCode(target.GeoInfoHashCode).gameObject.name;
+                }
+            }
+
+            AnimateSimpleTargetIndicator();
+
+            void AnimateSimpleTargetIndicator()
+            {
+                if (target.distanceToCastOrigin > 0)
+                {
+                    if (Vector3.Distance(this.transform.position, target.projectedTargetPosition) < maxDistance
+                        && Vector3.Distance(target.projectedTargetPosition, target.position) < radius)
+                    {
+                        spawnedTargetingIndicator.transform.position = target.position;
+                        spawnedTargetingIndicator.transform.LookAt(this.transform);
+                    }
+                    else
+                    {
+                        //move targeting cursor out of sight
+                        spawnedTargetingIndicator.transform.position = new Vector3(0f, -100f, 0f);
+                    }
+                }
+            }
+
+            CleanUpTargetingIndicatorWhenThereAreNoTargets();
+
+            void CleanUpTargetingIndicatorWhenThereAreNoTargets()
+            {
+                if (geoVision.GetClosestTargetCount() == 0)
+                {
                     //move targeting cursor out of sight
-                    spawnedTargetingIndicator.transform.position = new Vector3(0f,-100f,0f);
+                    spawnedTargetingIndicator.transform.position = new Vector3(0f, -100f, 0f);
                 }
             }
         }
-        
+
 #if UNITY_EDITOR
 
         /// <summary>
@@ -63,11 +107,12 @@ namespace Plugins.GeometricVision.Examples.CustomScriptTargetIndicators
                 Handles.color = Color.blue;
                 Vector3 resetToVector = Vector3.zero;
                 var geoVisionTransform = geoVision.transform;
-                DrawTargetingVisualIndicators(geoVisionTransform.position, geoVision.ForwardWorldCoordinate,
+                var position = geoVisionTransform.position;
+                DrawTargetingVisualIndicators(position, geoVision.ForwardWorldCoordinate,
                     Color.blue);
 
-                var position = geoVision.transform.position;
-                var forward = position + geoVision.transform.forward * maxDistance;
+
+                var forward = position + geoVisionTransform.forward * maxDistance;
                 var up = geoVisionTransform.up;
                 var borderUp = Vector3.Scale(up, new Vector3(radius, radius, radius));
                 var right = geoVisionTransform.right;
