@@ -49,7 +49,7 @@ namespace Plugins.GeometricVision.ImplementationsGameObjects
             {
                 foreach (var geoInfoAsTarget in geoVision.GetEye<GeometryVisionEye>().SeenGeoInfos)
                 {
-                    if (geoInfoAsTarget.gameObject.CompareTag(targetingInstruction.TargetTag))
+                    if (geoInfoAsTarget.gameObject && geoInfoAsTarget.gameObject.CompareTag(targetingInstruction.TargetTag))
                     {
                         targetInfos = GetDataForTarget(geoInfoAsTarget);
                     }

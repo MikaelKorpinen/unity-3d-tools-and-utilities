@@ -4,7 +4,6 @@ using Plugins.GeometricVision.ImplementationsEntities;
 using Plugins.GeometricVision.ImplementationsGameObjects;
 using Plugins.GeometricVision.Interfaces;
 using Plugins.GeometricVision.Interfaces.Implementations;
-using Plugins.GeometricVision.Interfaces.ImplementationsEntities;
 using Unity.Entities;
 using UnityEngine;
 using Hash128 = UnityEngine.Hash128;
@@ -30,7 +29,6 @@ namespace Plugins.GeometricVision
             CreateHead(geoVisionManagerGO, geoVisionComponent);
             CreateGeometryProcessor(geoVisionManagerGO);
             HandleEyes(geoVisionManagerGO, geoVisionComponent);
-            geoVisionComponent.InitUnityCamera(false);
 
             geoVisionManagerGO.transform.position = startingPosition;
             geoVisionManagerGO.transform.rotation = rotation;
@@ -61,7 +59,7 @@ namespace Plugins.GeometricVision
             var geoVisionComponent = CreateGeoVisionComponent(new GameObject(), debugModeEnabled);
             CreateHead(geoVisionManagerGO, geoVisionComponent);
             CreateGeometryProcessor(geoVisionManagerGO);
-            geoVisionComponent.InitUnityCamera(false);
+            geoVisionComponent.InitUnityCamera();
 
             HandleEyes(geoVisionManagerGO, geoVisionComponent);
 

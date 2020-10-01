@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
 #if UNITY_EDITOR
 #endif
 
@@ -25,6 +26,13 @@ namespace Plugins.GeometricVision
         [SerializeField, Tooltip("Duration/lifeTime for instantiated endActionGameObject")] private float endDuration = 0;
         [SerializeField, Tooltip("Prefab containing animation or visualisation for end effect")] private GameObject endActionObject;
 
+        private void Awake()
+        {            
+            StartActionEnabled = startActionObject;
+            MainActionEnabled = mainActionObject;
+            EndActionEnabled = endActionObject;
+        }
+
         void OnValidate()
         {
             startDelay = Mathf.Clamp(startDelay, 0, float.MaxValue); 
@@ -34,9 +42,9 @@ namespace Plugins.GeometricVision
             mainActionDuration = Mathf.Clamp(mainActionDuration, 0, float.MaxValue); 
             endDuration = Mathf.Clamp(endDuration, 0, float.MaxValue);
             
-            startActionEnabled = startActionObject;
-            mainActionEnabled = mainActionObject;
-            endActionEnabled = endActionObject;
+            StartActionEnabled = startActionObject;
+            MainActionEnabled = mainActionObject;
+            EndActionEnabled = endActionObject;
         }
         public float StartDelay
         {
@@ -110,15 +118,7 @@ namespace Plugins.GeometricVision
             set { endActionObject = value; }
         }
 
-        public void OnBeforeSerialize()
-        {
-            throw new System.NotImplementedException();
-        }
 
-        public void OnAfterDeserialize()
-        {
-            throw new System.NotImplementedException();
-        }
     }
     
 }

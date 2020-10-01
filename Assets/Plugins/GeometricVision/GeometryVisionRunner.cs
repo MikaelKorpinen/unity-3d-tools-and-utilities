@@ -23,7 +23,8 @@ namespace Plugins.GeometricVision
         private HashSet<GeometryVision> geoVisions;
         private HashSet<IGeoProcessor> processors = new HashSet<IGeoProcessor>();
         internal GeometryVisionMemory GeoMemory { get; } = new GeometryVisionMemory();
-        public EyeDebugger EyeDebugger { get; } = new EyeDebugger();
+        private EyeDebugger EyeDebugger { get; } = new EyeDebugger();
+        //TODO:after 2.0 check if this is smart to move somewhere else.
 
         private void Awake()
         {
@@ -49,7 +50,7 @@ namespace Plugins.GeometricVision
                     geoVision.RegenerateVisionArea(geoVision.FieldOfView);
                     foreach (var geoEye in geoVision.Eyes)
                     {
-                        geoEye.UpdateVisibility();
+                        geoEye.UpdateVisibility(geoVision.UseBounds);
                         if (geoVision.DebugMode)
                         {
                             EyeDebugger.Debug(geoEye);

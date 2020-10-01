@@ -7,7 +7,6 @@ using Plugins.GeometricVision.ImplementationsEntities;
 using Plugins.GeometricVision.ImplementationsGameObjects;
 using Plugins.GeometricVision.Interfaces;
 using Plugins.GeometricVision.Interfaces.Implementations;
-using Plugins.GeometricVision.Interfaces.ImplementationsEntities;
 using Unity.PerformanceTesting;
 using UnityEditor;
 using UnityEngine;
@@ -26,7 +25,8 @@ namespace Plugins.GeometricVision.Tests
             fielOfView = 25f,
             processGameObjects = true,
             processEntities = true,
-            processGameObjectsEdges = false,
+            defaultTargeting = true,
+            defaultTag = "",
         };
 
         [TearDown]
@@ -145,7 +145,7 @@ namespace Plugins.GeometricVision.Tests
                 Assert.True(mainObject != null);
                 Assert.True(endObject != null);
                 totalTime += Time.deltaTime;
-            } while (totalTime < durationOfSpawn + 0.3f);
+            } while (totalTime < durationOfSpawn-0.1f);
 
             //Wait and check if objects are de spawned
             totalTime = 0;
@@ -207,14 +207,14 @@ namespace Plugins.GeometricVision.Tests
                 Assert.True(startObject == null);
                 Assert.True(mainObject == null);
                 Assert.True(endObject == null);
-            } while ((DateTime.UtcNow - utcNow).TotalSeconds < delay);
+            } while ((DateTime.UtcNow - utcNow).TotalSeconds < delay-0.1f);
 
 
             utcNow = DateTime.UtcNow;
             do
             {
                 yield return null;
-            } while ((DateTime.UtcNow - utcNow).TotalSeconds < 0.6f
+            } while ((DateTime.UtcNow - utcNow).TotalSeconds < 0.1f
             ); //This should get the counter over the delay of 1 second. I think this way of measuring is not accurate
             //The delay seems to work on play mode as expected so this is just used to check that there is a spawn delay. 
             //TODO: If there is a better way to check seconds replace this with that
@@ -226,12 +226,10 @@ namespace Plugins.GeometricVision.Tests
                 mainObject = GameObject.Find(GeometryVisionSettings.NameOfMainEffect);
                 endObject = GameObject.Find(GeometryVisionSettings.NameOfEndEffect);
                 yield return null;
-
                 Assert.True(startObject != null);
                 Assert.True(mainObject != null);
                 Assert.True(endObject != null);
-            } while ((DateTime.UtcNow - utcNow).TotalSeconds < durationOfSpawn
-            );
+            } while ((DateTime.UtcNow - utcNow).TotalSeconds < durationOfSpawn -0.05f);
         }
 
         private void ConfigureActionsTemplateObjectForSpawn(ActionsTemplateObject newActions, float durationOfSpawn,
@@ -239,12 +237,15 @@ namespace Plugins.GeometricVision.Tests
         {
             factorySettings.actionsTemplateObject = newActions;
             factorySettings.actionsTemplateObject.StartActionObject = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+            factorySettings.actionsTemplateObject.StartActionEnabled = true;
             factorySettings.actionsTemplateObject.StartDelay = delay;
             factorySettings.actionsTemplateObject.StartDuration = durationOfSpawn;
             factorySettings.actionsTemplateObject.MainActionObject = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+            factorySettings.actionsTemplateObject.MainActionEnabled = true;
             factorySettings.actionsTemplateObject.MainActionDelay = delay;
             factorySettings.actionsTemplateObject.MainActionDuration = durationOfSpawn;
             factorySettings.actionsTemplateObject.EndActionObject = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+            factorySettings.actionsTemplateObject.EndActionEnabled = true;
             factorySettings.actionsTemplateObject.EndDelay = delay;
             factorySettings.actionsTemplateObject.EndDuration = durationOfSpawn;
         }

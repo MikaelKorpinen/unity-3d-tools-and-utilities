@@ -124,8 +124,8 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 3617801984777026109}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -4.2, y: 3.7600002, z: -31.6}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 3617801984734261524}
@@ -148,9 +148,6 @@ MonoBehaviour:
   radius: 4
   pickingSpeed: 1.38
   distanceToStop: 1
-  grabPinchAction:
-    actionPath: /actions/default/in/GrabPinch
-    needsReinit: 0
 --- !u!114 &3617801984777026110
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -174,6 +171,8 @@ MonoBehaviour:
     targetTag: Respawn
     entityQueryFilter: {fileID: 11500000, guid: a1949d2deba66734786115c52849092f,
       type: 3}
+    entityQueryFilterName: RotationSpeed_SpawnAndRemove
+    entityQueryFilterNameSpace: Plugins.GeometricVision.EntityScripts.FromUnity
     targetingActions: {fileID: 11400000, guid: 5b87b5d89f739374a932b670a14f04ce, type: 2}
   gameObjectProcessing:
     value: 1

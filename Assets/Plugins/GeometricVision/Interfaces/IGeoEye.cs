@@ -18,7 +18,7 @@ namespace Plugins.GeometricVision.Interfaces
         string Id { get; set; }
         GeometryVisionRunner Runner { get; set; }
         GeometryVision GeoVision { get; set; }
-        void UpdateVisibility();
+        void UpdateVisibility(bool useBounds);
         NativeArray<GeometryDataModels.Edge> GetSeenEdges();
         
     }

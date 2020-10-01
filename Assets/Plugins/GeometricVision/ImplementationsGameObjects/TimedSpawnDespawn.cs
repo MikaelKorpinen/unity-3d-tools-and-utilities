@@ -26,6 +26,7 @@ namespace Plugins.GeometricVision.ImplementationsGameObjects
             Spawn(asset, startDelay).Subscribe(instantiatedAsset =>
             {
                 spawnedObject = instantiatedAsset;
+                instantiatedAsset.name = name;
                 spawnedObject.name = name;
                 if (parent)
                 {

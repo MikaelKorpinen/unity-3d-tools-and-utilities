@@ -1,16 +1,13 @@
 ﻿using System.Collections.Generic;
-using System.ComponentModel;
-using Plugins.GeometricVision.EntityScripts;
-using Plugins.GeometricVision.ImplementationsEntities;
+using Plugins.GeometricVision.Interfaces;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Jobs;
-using Unity.Mathematics;
 using Unity.Transforms;
 using UnityEngine;
 
-namespace Plugins.GeometricVision.Interfaces.ImplementationsEntities
+namespace Plugins.GeometricVision.ImplementationsEntities
 {
     /// <inheritdoc cref="Plugins.GeometricVision.Interfaces.IGeoProcessor" />
     /// 

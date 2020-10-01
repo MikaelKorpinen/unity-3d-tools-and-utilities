@@ -5,7 +5,6 @@ using Plugins.GeometricVision.ImplementationsEntities;
 using Plugins.GeometricVision.ImplementationsGameObjects;
 using Plugins.GeometricVision.Interfaces;
 using Plugins.GeometricVision.Interfaces.Implementations;
-using Plugins.GeometricVision.Interfaces.ImplementationsEntities;
 using Unity.PerformanceTesting;
 using UnityEditor;
 using UnityEngine;
@@ -24,7 +23,6 @@ namespace Plugins.GeometricVision.Tests.TestScriptsForGameObjects
             fielOfView = 25f,
             processGameObjects = true,
             processEntities = false,
-            processGameObjectsEdges = false,
             defaultTargeting = false
         };
 
@@ -259,6 +257,7 @@ namespace Plugins.GeometricVision.Tests.TestScriptsForGameObjects
             Assert.True(geometryVision.GetEye<GeometryVisionEye>() != null);
             Assert.True(geometryVision.Runner.GetProcessor<GeometryVisionEntityProcessor>() != null);
             Assert.True(geometryVision.Runner.GetProcessor<GeometryVisionProcessor>() != null);
+            factorySettings.processEntities = false;
         }
 
         [UnityTest, Version(TestSettings.Version)]
@@ -362,14 +361,13 @@ namespace Plugins.GeometricVision.Tests.TestScriptsForGameObjects
                 TestUtilities.SetupGeoVision(new Vector3(0f, 0f, -6f), new GeometryVisionFactory(factorySettings));
             yield return null;
             int AmountOfTargetingSystemsRegistered = 0;
-            int expectedObjectCount1 = 1;
+            int expectedSystemCount1 = 1;
 
             AmountOfTargetingSystemsRegistered = geoVision.GetComponent<GeometryTargetingSystemsContainer>()
                     .GetTargetingProgramsCount();
 
-
             Debug.Log("total targeting systems: " + AmountOfTargetingSystemsRegistered);
-            Assert.AreEqual(expectedObjectCount1, AmountOfTargetingSystemsRegistered);
+            Assert.AreEqual(expectedSystemCount1, AmountOfTargetingSystemsRegistered);
         }
     }
 }

@@ -57,7 +57,7 @@ namespace Plugins.GeometricVision.ImplementationsGameObjects
                 lastCount = currentObjectCount;
                 UpdateSceneTransforms(RootObjects, allTransforms, "");
                 CreateGeoInfoObjects(allTransforms, geoVision.Runner.GeoMemory.GeoInfos,
-                    geoVision.TargetingInstructions, false, false);
+                    geoVision.TargetingInstructions, geoVision.CollidersTargeted, geoVision.UseBounds);
             }
         }
 
@@ -142,7 +142,7 @@ namespace Plugins.GeometricVision.ImplementationsGameObjects
                 GetObjectsInTransformHierarchy(root.GetChild(index), ref targetList, numberOfObjects + 1);
             }
 
-            return childCount;
+            return numberOfObjects;
         }
 
         /// <summary>
@@ -165,12 +165,12 @@ namespace Plugins.GeometricVision.ImplementationsGameObjects
                 }
 
                 var geoInfo = CreateGeoInfoObject(seenTransform);
-                
+
                 if (requireRenderer)
                 {
                     geoInfo = GetGeoInfoGeometryData(targetedGeometries, geoInfo, seenTransform);
                 }
-                
+
                 geoInfos.Add(geoInfo);
             }
 
@@ -188,22 +188,21 @@ namespace Plugins.GeometricVision.ImplementationsGameObjects
             GeometryDataModels.GeoInfo GetGeoInfoGeometryData(List<TargetingInstruction> targetedGeometries2,
                 GeometryDataModels.GeoInfo geoInfo, Transform seenTransform)
             {
-                if (GeometryIsTargeted(targetedGeometries2))
+                var seenRenderer = seenTransform.GetComponent<Renderer>();
+                geoInfo.renderer = seenRenderer;
+
+                if (seenRenderer && GeometryIsTargeted(targetedGeometries2))
                 {
-                    var seenRenderer = seenTransform.GetComponent<Renderer>();
-                    if (seenRenderer)
+                    geoInfo.edges = new GeometryDataModels.Edge[0];
+
+                    var meshFilter = seenTransform.GetComponent<MeshFilter>();
+                    if (meshFilter)
                     {
-                        geoInfo.edges = new GeometryDataModels.Edge[0];
-                        geoInfo.renderer = seenRenderer;
-                        var meshFilter = seenTransform.GetComponent<MeshFilter>();
-                        if (meshFilter)
-                        {
-                            geoInfo.mesh = meshFilter.mesh;
-                        }
-
-                        geoInfo.edges = MeshUtilities.GetEdgesFromMesh(geoInfo.renderer, geoInfo.mesh, collidersTargeted, geoInfo);
-
+                        geoInfo.mesh = meshFilter.mesh;
                     }
+
+                    geoInfo.edges =
+                        MeshUtilities.GetEdgesFromMesh(geoInfo.renderer, geoInfo.mesh, collidersTargeted, geoInfo);
                 }
                 else
                 {

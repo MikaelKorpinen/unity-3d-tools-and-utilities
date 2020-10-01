@@ -20,8 +20,7 @@ namespace Plugins.GeometricVision.Tests.TestScriptsForGameObjects
         {
             fielOfView =  25f,
             processGameObjects = true,
-            processGameObjectsEdges = false,
-                    
+ 
         };
         
         [TearDown]
@@ -111,13 +110,14 @@ namespace Plugins.GeometricVision.Tests.TestScriptsForGameObjects
                 yield return null;
             }
 
-            int expectedObjectCount1 = GameObject.FindObjectsOfType<GameObject>().Length;
+           
             var geoVision = TestUtilities.SetupGeoVision(new Vector3(0f, 0f, -6f), new GeometryVisionFactory(factorySettings));
             yield return null;
+
             List<GameObject> rootGameObjects = new List<GameObject>();
             HashSet<Transform> result = new HashSet<Transform>();
             SceneManager.GetActiveScene().GetRootGameObjects(rootGameObjects);
-
+            int expectedObjectCount1 = TestUtilities.GetObjectCountFromScene();
             Measure.Method(() =>
             {
                 geoVision.GetComponent<GeometryVision>().Runner.GetProcessor<GeometryVisionProcessor>().GetTransformsFromRootObjects(rootGameObjects,ref result);

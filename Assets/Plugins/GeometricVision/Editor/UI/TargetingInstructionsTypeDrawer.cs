@@ -59,7 +59,7 @@ namespace Plugins.GeometricVision.UI
     {
         public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
         {
-            label.text = "Seen target type: " + property.displayName;
+            label.text = "Targeting instruction: " + property.displayName;
             EditorGUI.BeginProperty(position, label, property);
             position = EditorGUI.PrefixLabel(position, GUIUtility.GetControlID(FocusType.Passive), label);
 

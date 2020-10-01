@@ -4,7 +4,6 @@ using Plugins.GeometricVision.ImplementationsEntities;
 using Plugins.GeometricVision.ImplementationsGameObjects;
 using Plugins.GeometricVision.Interfaces;
 using Plugins.GeometricVision.Interfaces.Implementations;
-using Plugins.GeometricVision.Interfaces.ImplementationsEntities;
 using Unity.PerformanceTesting;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -20,7 +19,6 @@ namespace Plugins.GeometricVision.Tests.TestScriptsForEntities
         {
             fielOfView = 25f,
             processGameObjects = false,
-            processGameObjectsEdges = false,
             processEntities = true,
             defaultTargeting = true
         };

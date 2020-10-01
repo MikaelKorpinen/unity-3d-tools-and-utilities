@@ -133,9 +133,7 @@ namespace Plugins.GeometricVision.Tests.TestScriptsForEntities
                 Assert.True(Vector3.Distance(target.position, new Vector3(index * -2f, 0f, 10f)) < 0.1f+ offset);
             }
 
-            Debug.Log("found targeting system: " + target);
-
-            Assert.True(target.isEntity == true);
+            Assert.True(target.isEntity);
             Assert.True(target.distanceToCastOrigin > 0);
         }
         
@@ -156,6 +154,7 @@ namespace Plugins.GeometricVision.Tests.TestScriptsForEntities
             var geoVision =
                 TestUtilities.SetupGeoVision(new Vector3(0f, 0f, -6f), new GeometryVisionFactory(factorySettings));
             yield return null;
+            factorySettings.entityComponentQueryFilter = null;
             float offset = 0.1f;
             GeometryDataModels.Target target = new GeometryDataModels.Target();
             int amountOfItemsFound = 0;

@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using Plugins.GeometricVision.Interfaces;
-using Plugins.GeometricVision.Interfaces.ImplementationsEntities;
 using Plugins.GeometricVision.Utilities;
 using Unity.Burst;
 using Unity.Collections;
@@ -218,11 +217,9 @@ namespace Plugins.GeometricVision.ImplementationsEntities
 
             return visible;
         }
-
-        /// <summary>
-        /// Updates visibility status of the objects
-        /// </summary>
-        public void UpdateVisibility()
+        ///<inheritdoc cref="IGeoEye"/>
+        /// <param name="useBounds"></param>
+        public void UpdateVisibility(bool useBounds)
         {
             this.Update();
         }

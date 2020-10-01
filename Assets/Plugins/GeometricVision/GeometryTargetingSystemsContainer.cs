@@ -76,6 +76,7 @@ namespace Plugins.GeometricVision
         {
             return targetingPrograms.Count;
         }
+        
         public void RemoveTargetingProgram(IGeoTargeting targetingSystem)
         {
             if (targetingSystem != null)

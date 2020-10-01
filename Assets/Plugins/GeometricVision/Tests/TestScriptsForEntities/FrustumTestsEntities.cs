@@ -21,7 +21,6 @@ namespace Plugins.GeometricVision.Tests.TestScriptsForEntities
             processGameObjects = false,
             processEntities = true,
             defaultTargeting = true,
-            processGameObjectsEdges = false,
         };
         
         [TearDown]

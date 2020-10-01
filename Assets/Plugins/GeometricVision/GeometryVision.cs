@@ -7,7 +7,6 @@ using Plugins.GeometricVision.ImplementationsEntities;
 using Plugins.GeometricVision.ImplementationsGameObjects;
 using Plugins.GeometricVision.Interfaces;
 using Plugins.GeometricVision.Interfaces.Implementations;
-using Plugins.GeometricVision.Interfaces.ImplementationsEntities;
 using Plugins.GeometricVision.UniRx.Scripts.UnityEngineBridge;
 using Plugins.GeometricVision.Utilities;
 using UniRx;
@@ -36,7 +35,7 @@ namespace Plugins.GeometricVision
 
         //[SerializeField] private bool hideEdgesOutsideFieldOfView = true;
         [SerializeField] private float fieldOfView = 25f;
-        [SerializeField] private float farDistanceOfView = 25f;
+        [SerializeField] private float farDistanceOfView = 1500f;
 
         [SerializeField, Tooltip("User given parameters as set of targeting instructions")]
         private List<TargetingInstruction> targetingInstructions;
@@ -60,7 +59,8 @@ namespace Plugins.GeometricVision
         private TransformEntitySystem transformEntitySystem;
         private GeometryVisionRunner runner;
         private bool favorDistanceToCameraInsteadDistanceToPointer = false;
-        [SerializeField]private TextMesh debugTex;
+        private bool useBounds;
+        
         void Reset()
         {
             targetingInstructions = new List<TargetingInstruction>();
@@ -84,22 +84,8 @@ namespace Plugins.GeometricVision
         void Start()
         {
             InitializeGeometricVision();
-            debugTex.text += targetingInstructions[0];
-            debugTex.text += "\n";            
-            debugTex.text += targetingInstructions[0].EntityFilterComponent;
-            debugTex.text += "\n";
-            debugTex.text += "\n";
-            debugTex.text += "\n";
-            debugTex.text += "\n";
-            
-            debugTex.text += targetingInstructions[0].EntityQueryFilterName;
-            debugTex.text += "\n";
-            debugTex.text += targetingInstructions[0].EntityQueryFilterNameSpace;
-            debugTex.text += "\n";
-         //   debugTex.text += targetingInstructions[0].EntityFilterComponent;
-            debugTex.text += "\n";
-          //  debugTex.text += targetingInstructions[0].EntityQueryFilter;
         }
+        
 #if UNITY_EDITOR
         // On validate is called when there is a change in the UI
         void OnValidate()
@@ -108,17 +94,18 @@ namespace Plugins.GeometricVision
             InitializeTargeting(TargetingInstructions);
             ValidateTargetingSystems(targetingInstructions);
   
-            PushEditorChanges(targetingInstructions);
+            ApplyEntityFilterChanges(targetingInstructions);
      
         }
 
         /// <summary>
-        /// Pushes changes made to entity filter type
+        /// Applies changes made to entity filter type by the user from editor.
+        /// 
         /// </summary>
-        /// <remarks>Needs some operations only possible in the editor. Changes needs to be reflected to internal type variable.
-        /// Unless there is a way to read the type from the object with out converting it to MonoScript</remarks>
+        /// <remarks>It seems like the object type of script doesn't get saved, so it needs two variables to hold up information
+        /// about the script</remarks>
         /// <param name="instructions"></param>
-        private void PushEditorChanges(List<TargetingInstruction> instructions)
+        private void ApplyEntityFilterChanges(List<TargetingInstruction> instructions)
         {
             foreach (var targetingInstruction in instructions)
             {
@@ -134,7 +121,7 @@ namespace Plugins.GeometricVision
         {
             cachedTransform = transform;
             closestEntityTargets = new List<GeometryDataModels.Target>();
-            InitUnityCamera(false);
+            InitUnityCamera();
             planes = RegenerateVisionArea(FieldOfView, planes);
             targetingInstructions = InitializeTargeting(targetingInstructions);
 
@@ -157,6 +144,7 @@ namespace Plugins.GeometricVision
         private List<TargetingInstruction> InitializeTargeting(List<TargetingInstruction> targetingInstructions)
         {
             var geoTargetingSystemsContainer = HandleAddingGeometryTargetingComponent();
+            
             if (targetingInstructions == null)
             {
                 targetingInstructions = new List<TargetingInstruction>();
@@ -207,32 +195,30 @@ namespace Plugins.GeometricVision
 
         /// <summary>
         /// Inits unity camera which provides some needed features for geometric vision like Gizmos, planes and matrices.
-        /// 
         /// </summary>
-        public void InitUnityCamera(bool forceInit)
+        public void InitUnityCamera()
         {
             HiddenUnityCamera = gameObject.GetComponent<Camera>();
+
+            if (HiddenUnityCamera == null)
+            {
+                HiddenUnityCamera = gameObject.AddComponent<Camera>();
+            }
+            #if STEAMVR
             HiddenUnityCamera.stereoTargetEye = StereoTargetEyeMask.None;
-            if (forceInit && HiddenUnityCamera != null)
-            {
-                Destroy(HiddenUnityCamera);
-                HiddenUnityCamera = gameObject.AddComponent<Camera>();
-            }
-            else if (HiddenUnityCamera == null && forceInit == false)
-            {
-                HiddenUnityCamera = gameObject.AddComponent<Camera>();
-            }
+            #endif
+            HiddenUnityCamera.usePhysicalProperties = true;
 
             HiddenUnityCamera.cameraType = CameraType.Game;
             HiddenUnityCamera.clearFlags = CameraClearFlags.Nothing;
-            HiddenUnityCamera.usePhysicalProperties = true;
+
             HiddenUnityCamera.enabled = false;
         }
 
         /// <summary>
         /// Handles all the required operation for GeometricVision to work with game objects.
-        /// Such as GeometricVision eye/camera, processor for the data and targeting system
-        /// The functionality is subscribed to a toggle on the inspector GUI
+        /// Such as GeometricVision eye/camera and processor for the data.
+        /// The functionality is subscribed to a toggle that exists in the inspector GUI
         /// </summary>
         internal void InitGameObjectSwitch()
         {
@@ -617,11 +603,10 @@ namespace Plugins.GeometricVision
         /// <remarks>Faster way to get the current situation for planes might be to store planes into an object and move them with the eye</remarks>
         public void RegenerateVisionArea(float fieldOfView)
         {
-            hiddenUnityCamera.fieldOfView = fieldOfView;
-            hiddenUnityCamera.farClipPlane = farDistanceOfView;
+            this.HiddenUnityCamera.fieldOfView = fieldOfView;
+            this.HiddenUnityCamera.farClipPlane = farDistanceOfView;
             GeometryUtility.CalculateFrustumPlanes(
-                this.hiddenUnityCamera.projectionMatrix * this.hiddenUnityCamera.worldToCameraMatrix,
-                planes);
+                this.HiddenUnityCamera.projectionMatrix * this.HiddenUnityCamera.worldToCameraMatrix, planes);
         }
         
         /// <summary>
@@ -706,6 +691,7 @@ namespace Plugins.GeometricVision
             void HandleGameObjectEyeAddition()
             {
                 var eye = IfNoEyeComponentAddAndInit();
+                
                 AddEyeToCollectionOfInterfaceImplementations(eye);
             }
             
@@ -735,13 +721,22 @@ namespace Plugins.GeometricVision
                 {
                     gameObject.AddComponent(typeof(T));
                     var addedEye = (IGeoEye) gameObject.GetComponent(typeof(T));
+                    eye = InitEye(addedEye);
+                }
+                else
+                {
+                    var addedEye = (IGeoEye) gameObject.GetComponent(typeof(T));
+                    eye = InitEye(addedEye);
+                }
+                return eye;
+                
+                Component InitEye(IGeoEye addedEye)
+                {
                     addedEye.Runner = Runner;
                     addedEye.Id = new Hash128().ToString();
                     addedEye.GeoVision = this;
-                    eye = (Component) addedEye;
+                    return(Component) addedEye;
                 }
-
-                return eye;
             }
             //Checks that the eye is valid and add it to hashset for faster access avoiding get component calls
             void AddEyeToCollectionOfInterfaceImplementations(Component eye)
@@ -1103,6 +1098,13 @@ namespace Plugins.GeometricVision
             return closestTargets.Count;
         }
         
+        public bool UseBounds
+        {
+            get { return useBounds; }
+            set { useBounds = value; }
+        }
+
+        public bool CollidersTargeted { get; set; }
 #if UNITY_EDITOR
 
         /// <summary>
@@ -1116,7 +1118,7 @@ namespace Plugins.GeometricVision
                 HiddenUnityCamera.fieldOfView = this.fieldOfView;
             }
 
-            InitUnityCamera(false);
+            InitUnityCamera();
             RegenerateVisionArea(fieldOfView);
             if (!debugMode)
             {

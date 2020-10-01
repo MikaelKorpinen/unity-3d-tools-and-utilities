@@ -13,6 +13,7 @@ namespace Plugins.GeometricVision.Examples.ObjectPicking
 
         private Transform cachedTransform;
         private ParticleSystem.TriggerModule trigger;
+        [SerializeField]private bool rotateTowardsCamera = false;
         private void Awake()
         {
              this.GetComponent<ParticleSystem>().Stop();
@@ -37,11 +38,20 @@ namespace Plugins.GeometricVision.Examples.ObjectPicking
         void Update()
         {
             closestTarget = geoVision.GetClosestTarget();
+            if (closestTarget.distanceToCastOrigin == 0)
+            {
+                Destroy(this.gameObject);
+            }
             if (closestTarget.distanceToCastOrigin > 0)
             {
                 if (lockPositionToTarget)
                 {
                     cachedTransform.position = closestTarget.position;
+                }
+
+                if (rotateTowardsCamera)
+                {
+                    transform.LookAt(geoVision.transform.position);
                 }
             }
         }

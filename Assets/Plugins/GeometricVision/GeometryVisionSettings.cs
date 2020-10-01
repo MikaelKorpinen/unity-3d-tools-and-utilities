@@ -2,6 +2,7 @@
 {
         /*
          * Global settings for all the components
+         * Put only permanent stuff here
          */
         public static class GeometryVisionSettings
         {
@@ -16,5 +17,6 @@
 
             public static string NewActionsAssetForTargetingPath { get; set; } =
                 "Assets/Plugins/GeometricVision/NewActionsAssetForTargeting.asset";
+            
         }
 }

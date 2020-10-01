@@ -72,10 +72,10 @@ namespace Plugins.GeometricVision.Interfaces.Implementations
         /// <summary>
         /// Updates visibility of the objects in the eye and processor/manager
         /// </summary>
-        public void UpdateVisibility()
+        public void UpdateVisibility(bool useBounds)
         {
-            seenTransforms = UpdateTransformVisibility(Runner.GetProcessor<GeometryVisionProcessor>().GetAllTransforms(), seenTransforms);
-            SeenGeoInfos = UpdateRenderedMeshVisibility(GeoVision.Planes, Runner.GeoMemory.GeoInfos);
+            seenTransforms = UpdateTransformVisibility(GeoVision.Runner.GetProcessor<GeometryVisionProcessor>().GetAllTransforms(), seenTransforms);
+            SeenGeoInfos = UpdateRenderedMeshVisibility(GeoVision.Planes, Runner.GeoMemory.GeoInfos, useBounds);
         }
 
 
@@ -99,16 +99,17 @@ namespace Plugins.GeometricVision.Interfaces.Implementations
         /// </summary>
         /// <param name="planes"></param>
         /// <param name="allGeoInfos"></param>
-        private List<GeometryDataModels.GeoInfo> UpdateRenderedMeshVisibility(Plane[] planes, List<GeometryDataModels.GeoInfo> allGeoInfos)
+        /// <param name="useBounds"></param>
+        private List<GeometryDataModels.GeoInfo> UpdateRenderedMeshVisibility(Plane[] planes, List<GeometryDataModels.GeoInfo> allGeoInfos, bool useBounds)
         {
             int geoCount = allGeoInfos.Count;
             var newSeenGeometriesList = new List<GeometryDataModels.GeoInfo>();
             var newGeoInfos = new List<GeometryDataModels.GeoInfo>(allGeoInfos);
-            UpdateSeenGeometryObjects(false);
+            UpdateSeenGeometryObjects();
 
             // Updates object collection containing geometry and data related to seen object. Usage is to internally update seen geometry objects by checking objects renderer bounds
             // against eyes/cameras frustum
-            void UpdateSeenGeometryObjects(bool useBounds)
+            void UpdateSeenGeometryObjects()
             {
                 for (var i = 0; i < geoCount; i++)
                 {
@@ -126,17 +127,20 @@ namespace Plugins.GeometricVision.Interfaces.Implementations
                         continue;
                     }
                     
-                    if (useBounds && GeometryUtility.TestPlanesAABB(GeoVision.Planes, geInfo.renderer.bounds) &&
-                        hideEdgesOutsideFieldOfView)
+                    if (useBounds )
                     {
                         if (!geInfo.renderer)
                         {
                             newGeoInfos.Remove(geInfo);
                             continue;
                         }
-                        newSeenGeometriesList.Add(geInfo);
+                        if(GeometryUtility.TestPlanesAABB(GeoVision.Planes, geInfo.renderer.bounds))
+                        {
+                            newSeenGeometriesList.Add(geInfo);
+                        }
+                        
                     }
-                    else if ( useBounds == false && MeshUtilities.IsInsideFrustum(geInfo.transform.position, GeoVision.Planes))
+                    else if (MeshUtilities.IsInsideFrustum(geInfo.transform.position, GeoVision.Planes))
                     {
                         newSeenGeometriesList.Add(geInfo);
                     }
@@ -155,6 +159,8 @@ namespace Plugins.GeometricVision.Interfaces.Implementations
 
             return newSeenGeometriesList;
         }
+
+        public bool UseBounds { get; set; }
 
 
         private HashSet<Transform> GetTransformsInsideFrustum(HashSet<Transform> seenTransforms,

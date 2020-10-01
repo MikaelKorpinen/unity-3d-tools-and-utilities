@@ -17,7 +17,6 @@ namespace Plugins.GeometricVision.Tests.TestScriptsForGameObjects
         {
             fielOfView =  25f,
             processGameObjects = true,
-            processGameObjectsEdges = false,
             edgesTargeted = false,
             defaultTargeting = true,
             defaultTag = ""
@@ -60,17 +59,18 @@ namespace Plugins.GeometricVision.Tests.TestScriptsForGameObjects
             {
                 yield return null;
             }
+
+            factorySettings.defaultTag = "";
             var geoVision = TestUtilities.SetupGeoVision(new Vector3(0f, 0f, -6f), new GeometryVisionFactory(factorySettings));
             yield return null;
    
             GeometryDataModels.Target target = new GeometryDataModels.Target();
             Measure.Method(() => { target = geoVision.GetComponent<GeometryVision>().GetClosestTarget(); }).Run();
-
-            Debug.Log("found targeting system: " + target);
-                        
+            
             Assert.True(target.isEntity == false);
             Assert.True(target.distanceToCastOrigin > 0);
         }
+        
         [UnityTest, Performance, Version(TestSettings.Version)]
         [Timeout(TestSettings.DefaultPerformanceTests)]
         [PrebuildSetup(typeof(SceneBuildSettingsSetupForGameObjects))]
@@ -93,6 +93,7 @@ namespace Plugins.GeometricVision.Tests.TestScriptsForGameObjects
             yield return null;
             Assert.True(geoVision.GetComponent<GeometryVision>().GetClosestTargets().Count == 0);
         }
+        
         [UnityTest, Performance, Version(TestSettings.Version)]
         [Timeout(TestSettings.DefaultPerformanceTests)]
         [PrebuildSetup(typeof(SceneBuildSettingsSetupForGameObjectsTargeting))]
