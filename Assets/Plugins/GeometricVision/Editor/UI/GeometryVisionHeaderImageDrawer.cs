@@ -52,12 +52,15 @@ namespace Plugins.GeometricVision.Editor.UI.Editor
                     Selection.activeObject = newActionsTemplate;
                 }
                 var go = Selection.activeGameObject;
-                var container = go.GetComponent<GeometryTargetingSystemsContainer>();
 
-                if(go.GetComponent<GeometryVision>() != null)
+
+                if(go!= null && go.GetComponent<GeometryVision>() !=null)
                 {
+                    var container = go.GetComponent<GeometryTargetingSystemsContainer>();
                     go.GetComponent<Camera>().hideFlags = HideFlags.HideInInspector;
-                    container.hideFlags = HideFlags.HideInInspector;
+
+                        container.hideFlags = HideFlags.HideInInspector;
+                    
                 }
                 
                 void DrawTexture()

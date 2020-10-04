@@ -33,6 +33,11 @@ namespace Plugins.GeometricVision.Interfaces
         List<GeometryDataModels.Target> GetTargets(Vector3 rayLocation, Vector3 rayDirection, GeometryVision geometryVision,
             TargetingInstruction targetingInstruction);
         GeometryType TargetedType { get; }
+        
+        /// <summary>
+        /// Helper for checking if is targeting system for entities
+        /// </summary>
+        /// <returns></returns>
         bool IsForEntities();
     }
 }

@@ -1,4 +1,5 @@
-﻿using UnityEditor;
+﻿using Unity.Mathematics;
+using UnityEditor;
 using UnityEngine;
 #if STEAMVR
 using Valve.VR;
@@ -51,6 +52,7 @@ namespace Plugins.GeometricVision.Examples.UsingSystemForSpellCasting
             var target = geoVision.GetClosestTarget();
             // if distances are zeroed it means there was no targets inside vision area and the system return default
             // target, because target struct cannot be null for it to work with entities
+
             if (target.distanceToCastOrigin > 0)
             {
                 if (Vector3.Distance(this.transform.position, target.projectedTargetPosition) < maxDistance

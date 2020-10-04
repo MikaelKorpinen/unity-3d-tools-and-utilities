@@ -27,6 +27,7 @@ namespace Plugins.GeometricVision.Tests.TestScriptsForEntities
         public void TearDown()
         {
             TestUtilities.PostCleanUpBuildSettings(TestSessionVariables.BuildScenes);
+            TestUtilities.CleanUpEntities();
         }
 
         /// <summary>

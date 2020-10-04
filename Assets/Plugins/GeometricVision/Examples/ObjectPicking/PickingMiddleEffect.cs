@@ -1,5 +1,7 @@
 ﻿using Plugins.GeometricVision.Utilities;
+using Unity.Mathematics;
 using UnityEngine;
+using Random = UnityEngine.Random;
 
 namespace Plugins.GeometricVision.Examples.ObjectPicking
 {
@@ -121,7 +123,7 @@ namespace Plugins.GeometricVision.Examples.ObjectPicking
             }
         }
 
-        private Vector3 ElectrifyPoint(Vector3 geoCameraPosition, float pointOffsetFromStartToFinish, float strength,
+        private Vector3 ElectrifyPoint(float3 geoCameraPosition, float pointOffsetFromStartToFinish, float strength,
             float sinTime, float random)
         {
             var direction = closestTarget.position - geoCameraPosition;

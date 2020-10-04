@@ -25,12 +25,12 @@ namespace Plugins.GeometricVision
 
         private void Reset()
         {
-            InitializeTargeting();
+            InitializeTargetingContainer();
         }
 
         void Awake()
         {
-            InitializeTargeting();
+            InitializeTargetingContainer();
         }
         
         public IEnumerator RemoveAddedComponents()
@@ -57,7 +57,7 @@ namespace Plugins.GeometricVision
         }
 
         
-        private void InitializeTargeting()
+        private void InitializeTargetingContainer()
         {
             TargetingPrograms = new HashSet<IGeoTargeting>();
         }

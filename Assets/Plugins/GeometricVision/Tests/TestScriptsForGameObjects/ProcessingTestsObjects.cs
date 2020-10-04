@@ -45,8 +45,7 @@ namespace Plugins.GeometricVision.Tests.TestScriptsForGameObjects
             int amountOfObjectsInScene = 0;
             int expectedObjectCount1 = TestUtilities.GetObjectCountFromScene();
             Measure.Method(() => { amountOfObjectsInScene = geoVision.GetComponent<GeometryVision>().Runner.GetProcessor<GeometryVisionProcessor>().CountSceneObjects(); }).Run();
-
-            Debug.Log("total objects: " + amountOfObjectsInScene);
+            
             Assert.AreEqual(expectedObjectCount1, amountOfObjectsInScene);
         }
 
@@ -65,7 +64,6 @@ namespace Plugins.GeometricVision.Tests.TestScriptsForGameObjects
             Measure.Method(() => { amountOfObjectsInScene123 = GameObject.FindObjectsOfType<GameObject>().Length; })
                 .Run();
 
-            Debug.Log("total objects: " + amountOfObjectsInScene123);
             Assert.AreEqual(expectedObjectCount1, amountOfObjectsInScene123);
         }
 
@@ -95,7 +93,6 @@ namespace Plugins.GeometricVision.Tests.TestScriptsForGameObjects
                 }
             }).Run();
             
-            Debug.Log("total objects: " + amountOfObjectsInScene);
             Assert.AreEqual(expectedObjectCount1, amountOfObjectsInScene);
         }
 
@@ -123,7 +120,6 @@ namespace Plugins.GeometricVision.Tests.TestScriptsForGameObjects
                 geoVision.GetComponent<GeometryVision>().Runner.GetProcessor<GeometryVisionProcessor>().GetTransformsFromRootObjects(rootGameObjects,ref result);
             }).Run();
             
-            Debug.Log("total objects: " + result.Count);
             Assert.AreEqual(expectedObjectCount1, result.Count);
         }
     }

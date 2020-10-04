@@ -105,11 +105,12 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 5582068264463715909}
-  - component: {fileID: 5582068264463715906}
-  - component: {fileID: 5582068264463715907}
-  - component: {fileID: 5582068264463715904}
   - component: {fileID: 5582068264463715911}
   - component: {fileID: -1587692095927991223}
+  - component: {fileID: 543059379}
+  - component: {fileID: 543059378}
+  - component: {fileID: 543059377}
+  - component: {fileID: 543059376}
   m_Layer: 0
   m_Name: GeovisionCamera
   m_TagString: Untagged
@@ -132,92 +133,6 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &5582068264463715906
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5582068264463715905}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 84690430d6c8ee143a89537d2671a277, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  debugMode: 0
-  fieldOfView: 10.62
-  farDistanceOfView: 1500
-  targetingInstructions:
-  - geometryType: 3
-    isTargetingEnabled:
-      value: 1
-    isTargetActionsTemplateSlotVisible: 1
-    targetTag: Player
-    entityQueryFilter: {fileID: 11500000, guid: a1949d2deba66734786115c52849092f,
-      type: 3}
-    entityQueryFilterName: RotationSpeed_SpawnAndRemove
-    entityQueryFilterNameSpace: Plugins.GeometricVision.EntityScripts.FromUnity
-    targetingActions: {fileID: 11400000, guid: 62363c54228c3e543b10ddfc6c2d2788, type: 2}
-  gameObjectProcessing:
-    value: 1
-  entityBasedProcessing:
-    value: 1
---- !u!20 &5582068264463715907
-Camera:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5582068264463715905}
-  m_Enabled: 0
-  serializedVersion: 2
-  m_ClearFlags: 4
-  m_BackGroundColor: {r: 0.19215687, g: 0.3019608, b: 0.4745098, a: 0}
-  m_projectionMatrixMode: 2
-  m_GateFitMode: 2
-  m_FOVAxisMode: 0
-  m_SensorSize: {x: 36, y: 24}
-  m_LensShift: {x: 0, y: 0}
-  m_FocalLength: 129.11107
-  m_NormalizedViewPortRect:
-    serializedVersion: 2
-    x: 0
-    y: 0
-    width: 1
-    height: 1
-  near clip plane: 0.3
-  far clip plane: 1500
-  field of view: 10.62
-  orthographic: 0
-  orthographic size: 5
-  m_Depth: 0
-  m_CullingMask:
-    serializedVersion: 2
-    m_Bits: 0
-  m_RenderingPath: -1
-  m_TargetTexture: {fileID: 0}
-  m_TargetDisplay: 0
-  m_TargetEye: 0
-  m_HDR: 1
-  m_AllowMSAA: 1
-  m_AllowDynamicResolution: 0
-  m_ForceIntoRT: 0
-  m_OcclusionCulling: 1
-  m_StereoConvergence: 10
-  m_StereoSeparation: 0.022
---- !u!114 &5582068264463715904
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5582068264463715905}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 17dca9caeac20fa438b515142fcf00d5, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  debugMode: 0
 --- !u!114 &5582068264463715911
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -248,3 +163,106 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   maxDistance: 1233
   radius: 22
+--- !u!114 &543059379
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5582068264463715905}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 84690430d6c8ee143a89537d2671a277, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  debugMode: 0
+  fieldOfView: 25
+  farDistanceOfView: 1500
+  targetingInstructions:
+  - geometryType: 2
+    isTargetingEnabled:
+      value: 1
+    isTargetActionsTemplateSlotVisible: 1
+    targetTag: Player
+    entityQueryFilter: {fileID: 11500000, guid: a1949d2deba66734786115c52849092f,
+      type: 3}
+    entityQueryFilterName: RotationSpeed_SpawnAndRemove
+    entityQueryFilterNameSpace: Plugins.GeometricVision.EntityScripts.FromUnity
+    targetingActions: {fileID: 11400000, guid: 62363c54228c3e543b10ddfc6c2d2788, type: 2}
+  gameObjectProcessing:
+    value: 1
+  entityBasedProcessing:
+    value: 1
+  checkEnvironmentChangesInterval: 0.1
+--- !u!20 &543059378
+Camera:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5582068264463715905}
+  m_Enabled: 0
+  serializedVersion: 2
+  m_ClearFlags: 4
+  m_BackGroundColor: {r: 0.19215687, g: 0.3019608, b: 0.4745098, a: 0}
+  m_projectionMatrixMode: 2
+  m_GateFitMode: 2
+  m_FOVAxisMode: 0
+  m_SensorSize: {x: 36, y: 24}
+  m_LensShift: {x: 0, y: 0}
+  m_FocalLength: 54.1285
+  m_NormalizedViewPortRect:
+    serializedVersion: 2
+    x: 0
+    y: 0
+    width: 1
+    height: 1
+  near clip plane: 0.3
+  far clip plane: 1500
+  field of view: 25
+  orthographic: 0
+  orthographic size: 5
+  m_Depth: 0
+  m_CullingMask:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_RenderingPath: -1
+  m_TargetTexture: {fileID: 0}
+  m_TargetDisplay: 0
+  m_TargetEye: 3
+  m_HDR: 1
+  m_AllowMSAA: 1
+  m_AllowDynamicResolution: 0
+  m_ForceIntoRT: 0
+  m_OcclusionCulling: 1
+  m_StereoConvergence: 10
+  m_StereoSeparation: 0.022
+--- !u!114 &543059377
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5582068264463715905}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 17dca9caeac20fa438b515142fcf00d5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  debugMode: 0
+--- !u!114 &543059376
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5582068264463715905}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4793effb83309e1a0b913382cc52118f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  debugMode: 0
+  hideEdgesOutsideFieldOfView: 1
+  lastCount: 0
+  targetColliderMeshes: 0

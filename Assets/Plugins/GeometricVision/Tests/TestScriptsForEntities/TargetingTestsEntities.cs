@@ -1,7 +1,5 @@
-﻿using System;
-using System.Collections;
+﻿using System.Collections;
 using NUnit.Framework;
-using Plugins.GeometricVision.EntityScripts.FromUnity;
 using Plugins.GeometricVision.ImplementationsEntities;
 using Unity.PerformanceTesting;
 using UnityEditor;
@@ -12,19 +10,31 @@ namespace Plugins.GeometricVision.Tests.TestScriptsForEntities
 {
     public class TargetingTestsEntities : MonoBehaviour
     {
-        private Tuple<GeometryVisionFactory, EditorBuildSettingsScene[]> factoryAndOriginalScenes;
-
         private GeometryDataModels.FactorySettings factorySettings = new GeometryDataModels.FactorySettings
         {
             fielOfView = 25f,
             processEntities = true,
             defaultTargeting = true,
+            processGameObjects = false,
+            entityComponentQueryFilter = null,
+            edgesTargeted = false,
         };
         private string[] testObjectNames = {"GameObject", "Quad", "Plane", "Cylinder", "Sphere", "Cube"};
+        
         [TearDown]
         public void TearDown()
         {
             TestUtilities.PostCleanUpBuildSettings(TestSessionVariables.BuildScenes);
+            factorySettings = new GeometryDataModels.FactorySettings
+            {
+                fielOfView = 25f,
+                processEntities = true,
+                defaultTargeting = true,
+                processGameObjects = false,
+                entityComponentQueryFilter = null,
+                edgesTargeted = false,
+            };
+            TestUtilities.CleanUpEntities();
         }
 
         [UnityTest, Performance, Version(TestSettings.Version)]
@@ -70,9 +80,7 @@ namespace Plugins.GeometricVision.Tests.TestScriptsForEntities
 
             GeometryDataModels.Target target = new GeometryDataModels.Target();
             Measure.Method(() => { target = geoVision.GetComponent<GeometryVision>().GetClosestTarget(); }).Run();
-
-            Debug.Log("found targeting system: " + target);
-
+            
             Assert.True(target.isEntity == true);
             Assert.True(target.distanceToCastOrigin > 0);
         }
@@ -96,11 +104,11 @@ namespace Plugins.GeometricVision.Tests.TestScriptsForEntities
             yield return null;
 
 
-            Assert.True(geoVision.GetComponent<GeometryVision>().GetClosestTargets().Count > 0);
+            Assert.True(geoVision.GetComponent<GeometryVision>().GetClosestTargets().Length > 0);
             //Move camera away so there is nothing to be seen
             geoVision.transform.position = new Vector3(34343f, 343434f, 3434343f);
             yield return null;
-            Assert.True(geoVision.GetComponent<GeometryVision>().GetClosestTargets().Count == 0);
+            Assert.True(geoVision.GetComponent<GeometryVision>().GetClosestTargets().Length == 0);
         }
         
         [UnityTest, Performance, Version(TestSettings.Version)]
@@ -116,6 +124,7 @@ namespace Plugins.GeometricVision.Tests.TestScriptsForEntities
                 yield return null;
             }
 
+            factorySettings.entityComponentQueryFilter = null;
             var geoVision =
                 TestUtilities.SetupGeoVision(new Vector3(0f, 0f, -6f), new GeometryVisionFactory(factorySettings));
             yield return null;
@@ -123,9 +132,9 @@ namespace Plugins.GeometricVision.Tests.TestScriptsForEntities
             float offset = 0.1f;
             GeometryDataModels.Target target = new GeometryDataModels.Target();
 
+            //Go through every test object
             for (var index = 0; index < testObjectNames.Length; index++)
             {
-                var testObjectName = testObjectNames[index];
                 geoVision.transform.position = new Vector3(index * -2f + offset, 0f, -6f);
                 yield return null;
                 Measure.Method(() => { target = geoVision.GetComponent<GeometryVision>().GetClosestTarget(); })
@@ -161,7 +170,6 @@ namespace Plugins.GeometricVision.Tests.TestScriptsForEntities
             int amountOfExpectedItemsToBeFound = 1;
             for (var index = 0; index < testObjectNames.Length; index++)
             {
-                var testObjectName = testObjectNames[index];
                 geoVision.transform.position = new Vector3(index * -2f + offset, 0f, -6f);
                 yield return null;
                 Measure.Method(() => { target = geoVision.GetComponent<GeometryVision>().GetClosestTarget(); })

@@ -26,11 +26,15 @@ namespace Plugins.GeometricVision.UI
         public override void OnInspectorGUI()
         {
             var go = Selection.activeGameObject;
-            var container = go.GetComponent<GeometryTargetingSystemsContainer>();
-            if (go.GetComponent<GeometryVision>() == null && container != null)
+            if (go != null && go.GetComponent<GeometryVision>() == null )
             {
-                EditorCoroutineUtility.StartCoroutine(container.RemoveAddedComponents(), this);
+                var container = go.GetComponent<GeometryTargetingSystemsContainer>();
+                if (container != null)
+                {
+                    EditorCoroutineUtility.StartCoroutine(container.RemoveAddedComponents(), this);
+                }
             }
+
         }
     }
 
@@ -43,10 +47,13 @@ namespace Plugins.GeometricVision.UI
         public override void OnInspectorGUI()
         {
             var go = Selection.activeGameObject;
-            var container = go.GetComponent<GeometryTargetingSystemsContainer>();
-            if (go.GetComponent<GeometryVision>() == null && container != null)
+            if (go != null)
             {
-                EditorCoroutineUtility.StartCoroutine(container.RemoveAddedComponents(), this);
+                var container = go.GetComponent<GeometryTargetingSystemsContainer>();
+                if (go.GetComponent<GeometryVision>() == null && container != null)
+                {
+                    EditorCoroutineUtility.StartCoroutine(container.RemoveAddedComponents(), this);
+                }
             }
         }
     }
@@ -97,7 +104,7 @@ namespace Plugins.GeometricVision.UI
 
             if (istarget)
             {
-                EditorGUI.LabelField(labelRectOnTargetFound, "On target found:");
+                EditorGUI.LabelField(labelRectOnTargetFound, "Trigger actions:");
                 EditorGUI.PropertyField(onSomethingHappenedEvent, property.FindPropertyRelative("targetingActions"),
                     GUIContent.none);
             }

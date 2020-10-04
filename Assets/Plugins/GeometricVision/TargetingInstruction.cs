@@ -18,8 +18,8 @@ namespace Plugins.GeometricVision
     {
         private bool enabled = true;
 
-        [SerializeField, Tooltip("Choose what geometry to target or use.")]
-        private GeometryType geometryType;
+        [SerializeField, Tooltip("Choose what geometry to target or use. Default is Objects")]
+        private GeometryType geometryType = GeometryType.Objects;
 
         [SerializeField] private BoolReactiveProperty isTargetingEnabled = new BoolReactiveProperty();
 
@@ -47,14 +47,21 @@ namespace Plugins.GeometricVision
         /// </summary>
         /// <param name="geoType"></param>
         /// <param name="tagName"></param>
-        /// <param name="targetingSystem"></param>
+        /// <param name="targetingSystems">Item1 entity targeting system, Item2 GameObject targeting system</param>
         /// <param name="targetingEnabled"></param>
         /// <param name="entityQueryFilter"></param>
-        public TargetingInstruction(GeometryType geoType, string tagName, IGeoTargeting targetingSystem,
-            bool targetingEnabled, Object entityQueryFilter)
+        public TargetingInstruction(GeometryType geoType, string tagName, (IGeoTargeting, IGeoTargeting) targetingSystems, bool targetingEnabled, Object entityQueryFilter)
         {
             GeometryType = geoType;
-            targetTag = tagName;
+            if (targetTag == null && tagName == null)
+            {
+                targetTag = "";
+            }
+            else
+            {
+                targetTag = tagName;
+            }
+
             this.EntityQueryFilter = entityQueryFilter;
 #if UNITY_EDITOR
             if (this.EntityQueryFilter)
@@ -64,24 +71,12 @@ namespace Plugins.GeometricVision
                 this.EntityQueryFilterName = EntityQueryFilter.name;
             }
 #endif
-
-
+            
             isTargetingEnabled.Value = targetingEnabled;
-            AssignTargetingSystem(targetingSystem);
-
             isTargetActionsTemplateSlotVisible = targetingEnabled;
 
-            void AssignTargetingSystem(IGeoTargeting geoTargeting)
-            {
-                if (targetingSystem != null && geoTargeting.IsForEntities())
-                {
-                    TargetingSystemEntities = geoTargeting;
-                }
-                else
-                {
-                    TargetingSystemGameObjects = geoTargeting;
-                }
-            }
+            AssignTargetingSystem(targetingSystems.Item2);
+            AssignTargetingSystem(targetingSystems.Item1);
         }
 
         /// <summary>
@@ -96,7 +91,14 @@ namespace Plugins.GeometricVision
             GeometryDataModels.FactorySettings settings)
         {
             GeometryType = geoType;
-            targetTag = settings.defaultTag;
+            if (targetTag == null && settings.defaultTag == null)
+            {
+                targetTag = "";
+            }
+            else
+            {
+                targetTag = settings.defaultTag;
+            }
             this.entityQueryFilter = settings.entityComponentQueryFilter;
             this.entityFilterComponent = GetCurrentEntityFilterType();
             isTargetingEnabled.Value = settings.defaultTargeting;
@@ -104,19 +106,19 @@ namespace Plugins.GeometricVision
             TargetingActions = settings.actionsTemplateObject;
             isTargetActionsTemplateSlotVisible = settings.defaultTargeting;
 
-            void AssignTargetingSystem(IGeoTargeting geoTargeting)
+
+        }
+        void AssignTargetingSystem(IGeoTargeting targetingSystem)
+        {
+            if (targetingSystem != null && targetingSystem.IsForEntities())
             {
-                if (targetingSystem != null && geoTargeting.IsForEntities())
-                {
-                    TargetingSystemEntities = geoTargeting;
-                }
-                else
-                {
-                    TargetingSystemGameObjects = geoTargeting;
-                }
+                TargetingSystemEntities = targetingSystem;
+            }
+            else
+            {
+                TargetingSystemGameObjects = targetingSystem;
             }
         }
-
         public IGeoTargeting TargetingSystemGameObjects
         {
             get { return targetingSystemGameObjects; }
@@ -132,7 +134,17 @@ namespace Plugins.GeometricVision
         public string TargetTag
         {
             get { return targetTag; }
-            set { targetTag = value; }
+            set
+            {
+                if (value != null)
+                {
+                    targetTag = value;
+                }
+                else
+                {
+                    targetTag = "";
+                }
+            }
         }
 
         public GeometryType GeometryType
@@ -155,7 +167,11 @@ namespace Plugins.GeometricVision
             get { return enabled; }
             set { enabled = value; }
         }
-
+        
+        /// <summary>
+        /// This boolean variable handles it job on the inspector gui under the hood.
+        /// </summary>
+        /// <remarks>The other way is to find out how to get reactive value out of serialized property. Shows option for adding actions template from the inspector GUI</remarks>
         public bool IsTargetActionsTemplateSlotVisible
         {
             get { return isTargetActionsTemplateSlotVisible; }
@@ -196,9 +212,10 @@ namespace Plugins.GeometricVision
         {
             if (entityFilterObject)
             {
-                var nameSpace = GetNameSpace(this.EntityQueryFilter.ToString());
+                this.EntityQueryFilter = entityFilterObject;
+                var nameSpace = GetNameSpace(entityFilterObject.ToString());
                 this.EntityQueryFilterNameSpace = nameSpace;
-                this.EntityQueryFilterName = EntityQueryFilter.name;
+                this.EntityQueryFilterName = entityFilterObject.name;
                 this.entityFilterComponent = Type.GetType(string.Concat(nameSpace, ".", entityFilterObject.name));
             }
         }
@@ -270,7 +287,7 @@ namespace Plugins.GeometricVision
             // The type just couldn't be found...
             return null;
         }
-        
+
         /// <summary>
         /// Get namespace for getting a type with class name
         /// </summary>

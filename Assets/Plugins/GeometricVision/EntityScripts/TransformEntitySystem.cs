@@ -3,6 +3,7 @@ using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Jobs;
+using Unity.Mathematics;
 using Unity.Transforms;
 using UnityEngine;
 
@@ -75,7 +76,7 @@ namespace Plugins.GeometricVision.EntityScripts
             internal NativeArray<Translation> translation;
             internal NativeArray<GeometryDataModels.Target> target;
             private GeometryDataModels.Target tempJobTarget;
-            internal Vector3 newPosition;
+            internal float3 newPosition;
             internal float moveSpeed;
             
             public void Execute()

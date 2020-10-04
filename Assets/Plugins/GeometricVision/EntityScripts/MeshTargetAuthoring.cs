@@ -60,7 +60,7 @@ namespace Plugins.GeometricVision.EntityScripts
             
             dstManager.AddComponentData(entity, new GeometryDataModelsEntities.Visible
             {
-                IsVisible = GeometryDataModels.Boolean.True,
+                IsVisible = true,
             });
             
             var geoInfoData = new GeometryDataModelsEntities.GeoInfoEntityComponent

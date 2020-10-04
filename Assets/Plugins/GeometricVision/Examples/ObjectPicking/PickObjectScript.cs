@@ -98,7 +98,13 @@ namespace Plugins.GeometricVision.Examples.ObjectPicking
                 Handles.zTest = UnityEngine.Rendering.CompareFunction.LessEqual;
                 Handles.color = Color.green;
                 Vector3 resetToVector = Vector3.zero;
+
+                if (geoVision == null)
+                {
+                   return; 
+                }
                 var geoVisionTransform = geoVision.transform;
+                
                 DrawTargetingVisualIndicators(geoVisionTransform.position, geoVision.ForwardWorldCoordinate,
                     Color.green);
 

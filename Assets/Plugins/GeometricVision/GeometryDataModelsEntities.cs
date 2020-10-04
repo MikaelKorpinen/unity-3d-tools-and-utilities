@@ -32,7 +32,7 @@ namespace Plugins.GeometricVision
     
         public struct Visible : IComponentData
         {
-            public GeometryDataModels.Boolean IsVisible;
+            public bool IsVisible;
         }
     
         public struct VerticesBuffer : IBufferElementData
