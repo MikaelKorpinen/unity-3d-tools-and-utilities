@@ -172,7 +172,7 @@ namespace Plugins.GeometricVision.Tests.TestScriptsForGameObjects
             Assert.True(geometryVision.Runner != null);
             Assert.True(geometryVision.Runner.GeoVisions != null);
             Assert.True(geometryVision.GameObjectBasedProcessing.Value == true);
-            Assert.True(geometryVision.EntityBasedProcessing.Value == false);
+            Assert.True(geometryVision.EntityProcessing.Value == false);
             Assert.True(geometryVision.GetEye<GeometryVisionEntityEye>() == null);
             Assert.True(geometryVision.GetEye<GeometryVisionEye>() != null);
             Assert.True(geometryVision.Runner.GetProcessor<GeometryVisionEntityProcessor>() == null);
@@ -212,7 +212,7 @@ namespace Plugins.GeometricVision.Tests.TestScriptsForGameObjects
             Assert.True(geometryVision.Runner != null);
             Assert.True(geometryVision.Runner.GeoVisions != null);
             Assert.True(geometryVision.GameObjectBasedProcessing.Value == true);
-            Assert.True(geometryVision.EntityBasedProcessing.Value == false);
+            Assert.True(geometryVision.EntityProcessing.Value == false);
             Assert.True(geometryVision.GetEye<GeometryVisionEntityEye>() == null);
             Assert.True(geometryVision.GetEye<GeometryVisionEye>() != null);
             Assert.True(geometryVision.Runner.GetProcessor<GeometryVisionEntityProcessor>() == null);
@@ -238,7 +238,7 @@ namespace Plugins.GeometricVision.Tests.TestScriptsForGameObjects
             yield return null;
             int amountOfObjectsInScene = 0;
 
-            geoVision.GetComponent<GeometryVision>().EntityBasedProcessing.Value = true;
+            geoVision.GetComponent<GeometryVision>().EntityProcessing.Value = true;
             yield return null;
 
             var geometryVision = geoVision.GetComponent<GeometryVision>();
@@ -250,7 +250,7 @@ namespace Plugins.GeometricVision.Tests.TestScriptsForGameObjects
             Assert.True(geometryVision.Runner != null);
             Assert.True(geometryVision.Runner.GeoVisions != null);
             Assert.True(geometryVision.GameObjectBasedProcessing.Value == true);
-            Assert.True(geometryVision.EntityBasedProcessing.Value == true);
+            Assert.True(geometryVision.EntityProcessing.Value == true);
             Assert.True(geometryVision.GetEye<GeometryVisionEntityEye>() != null);
             Assert.True(geometryVision.GetEye<GeometryVisionEye>() != null);
             Assert.True(geometryVision.Runner.GetProcessor<GeometryVisionEntityProcessor>() != null);

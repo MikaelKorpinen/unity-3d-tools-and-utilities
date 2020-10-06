@@ -10,8 +10,7 @@ namespace Plugins.GeometricVision.ImplementationsGameObjects
 {
     public class GeometryObjectTargeting : IGeoTargeting
     {
-        public NativeArray<GeometryDataModels.Target> GetTargetsAsNativeArray(Vector3 rayLocation,
-            Vector3 rayDirectionWS, List<GeometryDataModels.GeoInfo> GeoInfos)
+        public NativeArray<GeometryDataModels.Target> GetTargetsAsNativeArray(Vector3 rayLocation, Vector3 rayDirection, GeometryVision geometryVision, TargetingInstruction targetingInstruction)
         {
             throw new NotImplementedException();
         }
@@ -64,7 +63,7 @@ namespace Plugins.GeometricVision.ImplementationsGameObjects
 
         }
 
-        public NativeList<GeometryDataModels.Target> GetTargets(Vector3 rayLocation, Vector3 rayDirectionWS,
+        public NativeArray<GeometryDataModels.Target> GetTargets(Vector3 rayLocation, Vector3 rayDirectionWS, GeometryVision geometryVision,
             List<GeometryDataModels.GeoInfo> targets)
         {
             List<GeometryDataModels.Target> targetInfos = new List<GeometryDataModels.Target>();

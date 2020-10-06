@@ -105,7 +105,7 @@ namespace Plugins.GeometricVision.Tests
             geoVision.AddComponent<GeometryVision>();
             var geometryVisionComponent = geoVision.GetComponent<GeometryVision>();
             geometryVisionComponent.GameObjectBasedProcessing.Value = true;
-            geometryVisionComponent.EntityBasedProcessing.Value = true;
+            geometryVisionComponent.EntityProcessing.Value = true;
             yield return null;
             int amountOfObjectsInScene = 0;
             IGeoProcessor processor =
@@ -139,7 +139,7 @@ namespace Plugins.GeometricVision.Tests
             geoVision.AddComponent<GeometryVision>();
             var geometryVisionComponent = geoVision.GetComponent<GeometryVision>();
             geometryVisionComponent.GameObjectBasedProcessing.Value = factorySettings.processGameObjects;
-            geoVision.GetComponent<GeometryVision>().EntityBasedProcessing.Value =
+            geoVision.GetComponent<GeometryVision>().EntityProcessing.Value =
                 factorySettings.processEntities;
             yield return null;
 
@@ -151,7 +151,7 @@ namespace Plugins.GeometricVision.Tests
             Assert.True(geometryVision.Runner != null);
             Assert.True(geometryVision.Runner.GeoVisions != null);
             Assert.True(geometryVision.GameObjectBasedProcessing.Value == true);
-            Assert.True(geometryVision.EntityBasedProcessing.Value == true);
+            Assert.True(geometryVision.EntityProcessing.Value == true);
             Assert.True(geometryVision.GetEye<GeometryVisionEntityEye>() != null);
             Assert.True(geometryVision.GetEye<GeometryVisionEye>() != null);
             Assert.True(geometryVision.Runner.GetProcessor<GeometryVisionEntityProcessor>() != null);
@@ -184,7 +184,7 @@ namespace Plugins.GeometricVision.Tests
             Assert.True(geometryVision.Runner != null);
             Assert.True(geometryVision.Runner.GeoVisions != null);
             Assert.True(geometryVision.GameObjectBasedProcessing.Value == true);
-            Assert.True(geometryVision.EntityBasedProcessing.Value == true);
+            Assert.True(geometryVision.EntityProcessing.Value == true);
             Assert.True(geometryVision.GetEye<GeometryVisionEntityEye>() != null);
             Assert.True(geometryVision.GetEye<GeometryVisionEye>() != null);
             Assert.True(geometryVision.Runner.GetProcessor<GeometryVisionEntityProcessor>() != null);
@@ -217,7 +217,7 @@ namespace Plugins.GeometricVision.Tests
             Assert.True(geometryVision.Runner != null);
             Assert.True(geometryVision.Runner.GeoVisions != null);
             Assert.True(geometryVision.GameObjectBasedProcessing.Value == true);
-            Assert.True(geometryVision.EntityBasedProcessing.Value == true);
+            Assert.True(geometryVision.EntityProcessing.Value == true);
             Assert.True(geometryVision.GetEye<GeometryVisionEntityEye>() != null);
             Assert.True(geometryVision.GetEye<GeometryVisionEye>() != null);
             Assert.True(geometryVision.Runner.GetProcessor<GeometryVisionEntityProcessor>() != null);
@@ -282,7 +282,7 @@ namespace Plugins.GeometricVision.Tests
             geoVision.AddComponent<GeometryVision>();
             geoVision.GetComponent<GeometryVision>().GameObjectBasedProcessing.Value =
                 factorySettings.processGameObjects;            
-            geoVision.GetComponent<GeometryVision>().EntityBasedProcessing.Value =
+            geoVision.GetComponent<GeometryVision>().EntityProcessing.Value =
                 factorySettings.processEntities;
             yield return null;
             int AmountOfTargetingSystemsRegistered = 0;
@@ -314,11 +314,9 @@ namespace Plugins.GeometricVision.Tests
 
             int amountOfTargetingSystemsRegistered = 0;
             int expectedObjectCount1 = 2;//1 targeting program for game objects and 1 for entities
-            Measure.Method(() =>
-            {
-                amountOfTargetingSystemsRegistered = geoVision.GetComponent<GeometryTargetingSystemsContainer>()
-                    .GetTargetingProgramsCount();
-            }).Run();
+
+            amountOfTargetingSystemsRegistered = geoVision.GetComponent<GeometryTargetingSystemsContainer>().GetTargetingProgramsCount();
+
 
             Assert.AreEqual(expectedObjectCount1, amountOfTargetingSystemsRegistered);
         }

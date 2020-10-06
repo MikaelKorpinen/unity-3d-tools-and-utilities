@@ -47,7 +47,7 @@ namespace Plugins.GeometricVision
                 foreach (var geoVision in geoVisions) //processor.GeoVisions
                 {
                     time += Time.deltaTime;
-                    if (time > geoVision.CheckEnvironmentChangesInterval)
+                    if (time > geoVision.CheckEnvironmentChangesTimeInterval)
                     {
                         time = 0f;
                         processor.CheckSceneChanges(geoVision);

@@ -40,7 +40,6 @@ namespace Plugins.GeometricVision.ImplementationsEntities
             if (entityQuery.IsEmptyIgnoreFilter == false)
             {
                 var job2 = new GetTargetsInParallel()
-
                 {
                     targets = entityQuery.ToComponentDataArray<GeometryDataModels.Target>(Allocator.TempJob),
                     rayDirWS = this.rayDirectionWS,
@@ -58,7 +57,7 @@ namespace Plugins.GeometricVision.ImplementationsEntities
 
                 this.Dependency = job3.Schedule(job2.targets.Length, this.Dependency);
                 this.Dependency.Complete();
-                this.targets = new NativeArray<GeometryDataModels.Target>(job3.seenTargets, Allocator.Temp);
+                this.targets = new NativeArray<GeometryDataModels.Target>(job3.seenTargets, Allocator.TempJob);
 
                 job3.targets.Dispose();
                 job3.seenTargets.Dispose();
@@ -135,11 +134,12 @@ namespace Plugins.GeometricVision.ImplementationsEntities
             }
         }
 
-        public NativeArray<GeometryDataModels.Target> GetTargetsAsNativeArray(Vector3 rayLocation, Vector3 rayDirection,
-            List<GeometryDataModels.GeoInfo> targets)
+        public NativeArray<GeometryDataModels.Target> GetTargetsAsNativeArray(Vector3 rayLocation, Vector3 rayDirection,GeometryVision geometryVision, TargetingInstruction targetingInstruction)
         {
+            geoVision = geometryVision;
             this.rayLocation = rayLocation;
             this.rayDirectionWS = rayDirection;
+            this.entityFilterComponent = targetingInstruction.GetCurrentEntityFilterType();
             Update();
 
             return this.targets;

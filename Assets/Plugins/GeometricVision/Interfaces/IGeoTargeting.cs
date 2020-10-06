@@ -12,17 +12,7 @@ namespace Plugins.GeometricVision.Interfaces
     public interface IGeoTargeting
     {
         /// <summary>
-        /// Gets targets sorted by which target is the closest to the looking direction of the object the GeometricVision
-        /// component is added.
-        /// </summary>
-        /// <param name="rayLocation"></param>
-        /// <param name="rayDirection"></param>
-        /// <param name="targets"></param>
-        /// <returns></returns>
-        NativeArray<GeometryDataModels.Target> GetTargetsAsNativeArray(Vector3 rayLocation, Vector3 rayDirection, List<GeometryDataModels.GeoInfo> targets);
-
-        /// <summary>
-        /// Gets targets sorted by which target is the closest to the looking direction of the object the GeometricVision
+        /// Gets targeting data
         /// component is added.
         /// </summary>
         /// <param name="rayLocation"></param>
@@ -30,8 +20,17 @@ namespace Plugins.GeometricVision.Interfaces
         /// <param name="geometryVision"></param>
         /// <param name="targetingInstruction"></param>
         /// <returns></returns>
-        List<GeometryDataModels.Target> GetTargets(Vector3 rayLocation, Vector3 rayDirection, GeometryVision geometryVision,
-            TargetingInstruction targetingInstruction);
+        NativeArray<GeometryDataModels.Target> GetTargetsAsNativeArray(Vector3 rayLocation, Vector3 rayDirection,GeometryVision geometryVision, TargetingInstruction targetingInstruction);
+
+        /// <summary>
+        /// Gets targeting data
+        /// </summary>
+        /// <param name="rayLocation"></param>
+        /// <param name="rayDirection"></param>
+        /// <param name="geometryVision"></param>
+        /// <param name="targetingInstruction"></param>
+        /// <returns></returns>
+        List<GeometryDataModels.Target> GetTargets(Vector3 rayLocation, Vector3 rayDirection, GeometryVision geometryVision, TargetingInstruction targetingInstruction);
         GeometryType TargetedType { get; }
         
         /// <summary>

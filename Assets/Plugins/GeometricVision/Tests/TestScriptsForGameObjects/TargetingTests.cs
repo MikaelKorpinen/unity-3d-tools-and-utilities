@@ -29,7 +29,7 @@ namespace Plugins.GeometricVision.Tests.TestScriptsForGameObjects
             TestUtilities.PostCleanUpBuildSettings(TestSessionVariables.BuildScenes);
         }
 
-        [UnityTest, Performance, Version(TestSettings.Version)]
+        [UnityTest,  Version(TestSettings.Version)]
         [Timeout(TestSettings.DefaultPerformanceTests)]
         [PrebuildSetup(typeof(SceneBuildSettingsSetupForGameObjects))]
         public IEnumerator TargetingSystemGetsAddedIfTargetingEnabled([ValueSource(typeof(TestUtilities), nameof(TestUtilities.GetSimpleTestScenePathsForGameObjects))] string scenePath)
@@ -44,7 +44,7 @@ namespace Plugins.GeometricVision.Tests.TestScriptsForGameObjects
    
             int AmountOfTargetingSystemsRegistered = 0;
             int expectedObjectCount1 = 1;
-            Measure.Method(() => { AmountOfTargetingSystemsRegistered = geoVision.GetComponent<GeometryTargetingSystemsContainer>().GetTargetingProgramsCount(); }).Run();
+            AmountOfTargetingSystemsRegistered = geoVision.GetComponent<GeometryTargetingSystemsContainer>().GetTargetingProgramsCount();;
             
             Assert.AreEqual(expectedObjectCount1, AmountOfTargetingSystemsRegistered);
         }

@@ -103,7 +103,7 @@ namespace Plugins.GeometricVision.Tests.TestScriptsForEntities
             var geoVision =
                 TestUtilities.SetupGeoVision(new Vector3(0f, 0f, -6f), new GeometryVisionFactory(factorySettings));
             yield return null;
-            geoVision.GetComponent<GeometryVision>().EntityBasedProcessing.Value = false;
+            geoVision.GetComponent<GeometryVision>().EntityProcessing.Value = false;
             yield return null;
 
             var processor = geoVision.GetComponent<GeometryVision>().Runner
@@ -130,7 +130,7 @@ namespace Plugins.GeometricVision.Tests.TestScriptsForEntities
             geoVision.transform.position = new Vector3(0f, 0f, -6f);
 
             geoVision.AddComponent<GeometryVision>();
-            geoVision.GetComponent<GeometryVision>().EntityBasedProcessing.Value = true;
+            geoVision.GetComponent<GeometryVision>().EntityProcessing.Value = true;
             yield return null;
             int amountOfObjectsInScene = 0;
 
@@ -157,7 +157,7 @@ namespace Plugins.GeometricVision.Tests.TestScriptsForEntities
             geoVision.transform.position = new Vector3(0f, 0f, -6f);
 
             geoVision.AddComponent<GeometryVision>();
-            geoVision.GetComponent<GeometryVision>().EntityBasedProcessing.Value = false;
+            geoVision.GetComponent<GeometryVision>().EntityProcessing.Value = false;
             yield return null;
 
             var processor = geoVision.GetComponent<GeometryVision>().Runner
@@ -185,7 +185,7 @@ namespace Plugins.GeometricVision.Tests.TestScriptsForEntities
 
             //TODO: Find out how to measure stuff happening in the start and awake from here to get the real estimate
             geoVision.AddComponent<GeometryVision>();
-            geoVision.GetComponent<GeometryVision>().EntityBasedProcessing.Value = true;
+            geoVision.GetComponent<GeometryVision>().EntityProcessing.Value = true;
             yield return null;
             int amountOfObjectsInScene = 0;
 
@@ -206,7 +206,7 @@ namespace Plugins.GeometricVision.Tests.TestScriptsForEntities
             Assert.True(geometryVision.Runner.Processors.Count == 1);
             Assert.True(geometryVision.Eyes.Count == 1);
             Assert.True(geometryVision.GameObjectBasedProcessing.Value == false);
-            Assert.True(geometryVision.EntityBasedProcessing.Value == true);
+            Assert.True(geometryVision.EntityProcessing.Value == true);
         }
 
         [UnityTest, Performance, Version(version)]
@@ -239,7 +239,7 @@ namespace Plugins.GeometricVision.Tests.TestScriptsForEntities
             Assert.True(geometryVision.Runner.GetProcessor<GeometryVisionEntityProcessor>() != null);
             Assert.True(geometryVision.Runner.GetProcessor<GeometryVisionProcessor>() == null);
             Assert.True(geometryVision.GameObjectBasedProcessing.Value == false);
-            Assert.True(geometryVision.EntityBasedProcessing.Value == true);
+            Assert.True(geometryVision.EntityProcessing.Value == true);
         }
 
         [UnityTest, Performance, Version(version)]
@@ -261,7 +261,7 @@ namespace Plugins.GeometricVision.Tests.TestScriptsForEntities
             yield return null;
             int amountOfObjectsInScene = 0;
 
-            geoVision.GetComponent<GeometryVision>().EntityBasedProcessing.Value = true;
+            geoVision.GetComponent<GeometryVision>().EntityProcessing.Value = true;
             yield return null;
             var geometryVision = geoVision.GetComponent<GeometryVision>();
             Assert.True(geometryVision != null);
@@ -275,7 +275,7 @@ namespace Plugins.GeometricVision.Tests.TestScriptsForEntities
             Assert.True(geometryVision.Runner.GetProcessor<GeometryVisionEntityProcessor>() != null);
             Assert.True(geometryVision.Runner.GetProcessor<GeometryVisionProcessor>() == null);
             Assert.True(geometryVision.GameObjectBasedProcessing.Value == false);
-            Assert.True(geometryVision.EntityBasedProcessing.Value == true);
+            Assert.True(geometryVision.EntityProcessing.Value == true);
         }
 
         [UnityTest, Performance, Version(version)]
@@ -297,19 +297,19 @@ namespace Plugins.GeometricVision.Tests.TestScriptsForEntities
             geoVision.AddComponent<GeometryVision>();
             var geometryVisionComponent = geoVision.GetComponent<GeometryVision>();
             geometryVisionComponent.GameObjectBasedProcessing.Value = false;
-            geometryVisionComponent.EntityBasedProcessing.Value = factorySettings.processEntities;
+            geometryVisionComponent.EntityProcessing.Value = factorySettings.processEntities;
             yield return null;
             Assert.True(geometryVisionComponent.Eyes.Count == 1);
             Assert.True(geometryVisionComponent.Runner.GetProcessor<GeometryVisionProcessor>() == null);
             Assert.True(geometryVisionComponent.Runner.GetProcessor<GeometryVisionEntityProcessor>() != null);
             Assert.True(geometryVisionComponent.GetEye<GeometryVisionEntityEye>() != null);
             Assert.True(geometryVisionComponent.GetEye<GeometryVisionEye>() == null);
-            geometryVisionComponent.EntityBasedProcessing.Value = false;
+            geometryVisionComponent.EntityProcessing.Value = false;
             yield return null;
             Assert.True(geometryVisionComponent.Eyes.Count == 0);
             Assert.True(geometryVisionComponent.Runner.GetProcessor<GeometryVisionProcessor>() == null);
             Assert.True(geometryVisionComponent.Runner.GetProcessor<GeometryVisionEntityProcessor>() == null);
-            geometryVisionComponent.EntityBasedProcessing.Value = true;
+            geometryVisionComponent.EntityProcessing.Value = true;
             yield return null;
             Assert.True(geometryVisionComponent.Eyes.Count == 1);
             Assert.True(geometryVisionComponent.Runner.GetProcessor<GeometryVisionProcessor>() == null);
@@ -331,7 +331,7 @@ namespace Plugins.GeometricVision.Tests.TestScriptsForEntities
 
             GameObject geoVision = new GameObject("geoTesting");
             geoVision.AddComponent<GeometryVision>();
-            geoVision.GetComponent<GeometryVision>().EntityBasedProcessing.Value = true;
+            geoVision.GetComponent<GeometryVision>().EntityProcessing.Value = true;
             yield return null;
 
             int AmountOfTargetingSystemsRegistered = 0;
@@ -389,7 +389,7 @@ namespace Plugins.GeometricVision.Tests.TestScriptsForEntities
 
             GameObject geoVision = new GameObject("geoTesting");
             geoVision.AddComponent<GeometryVision>();
-            geoVision.GetComponent<GeometryVision>().EntityBasedProcessing.Value = true;
+            geoVision.GetComponent<GeometryVision>().EntityProcessing.Value = true;
             yield return null;
 
             int AmountOfTargetingSystemsRegistered = 0;
