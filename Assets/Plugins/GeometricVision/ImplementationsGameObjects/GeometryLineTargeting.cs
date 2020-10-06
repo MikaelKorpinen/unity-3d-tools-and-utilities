@@ -1,29 +1,23 @@
 ﻿using System.Collections.Generic;
-using GeometricVision;
+using Plugins.GeometricVision.Interfaces;
 using Unity.Collections;
 using UnityEngine;
 
-namespace Plugins.GeometricVision.Interfaces.Implementations
+namespace Plugins.GeometricVision.ImplementationsGameObjects
 {
     public class GeometryLineTargeting : IGeoTargeting
     {
-        public NativeArray<GeometryDataModels.Target> GetTargetsAsNativeArray(Vector3 rayLocation, Vector3 rayDirection, List<GeometryDataModels.GeoInfo> targets)
+        public NativeArray<GeometryDataModels.Target> GetTargetsAsNativeArray(Vector3 rayLocation, Vector3 rayDirection,GeometryVision geometryVision, TargetingInstruction targetingInstruction)
         {
             throw new System.NotImplementedException();
         }
 
-        List<GeometryDataModels.Target> IGeoTargeting.GetTargets(Vector3 rayLocation, Vector3 rayDirection, List<GeometryDataModels.GeoInfo> targets)
+        public List<GeometryDataModels.Target> GetTargets(Vector3 rayLocation, Vector3 rayDirection, GeometryVision geometryVision,
+            TargetingInstruction targetingInstruction)
         {
             throw new System.NotImplementedException();
         }
-
-        public NativeList<GeometryDataModels.Target> GetTargets(Vector3 rayLocation, Vector3 rayDirection, List<GeometryDataModels.GeoInfo> targets)
-        {
-            
-            return new NativeList<GeometryDataModels.Target>();
-            //throw new System.NotImplementedException();
-        }
-
+        
         public GeometryType TargetedType
         {
             get

@@ -17,20 +17,19 @@ namespace Plugins.GeometricVision.Interfaces
         /// <summary>
         /// Gets all the transforms from list of objects
         /// </summary>
-        /// <param name="rootObjects"></param>
-        /// <param name="targetTransforms"></param>
+        /// <param name="objs"></param>
+
         /// <returns></returns>
         HashSet<Transform> GetTransforms(List<GameObject> objs);
     
-        List<Transform> GetAllObjects();
+        List<Transform> GetAllTransforms();
 
         /// <summary>
         /// Ask the manager brain to update it knowledge about targeted geometries
         /// </summary>
         /// <param name="geoVision"></param>
         void CheckSceneChanges(GeometryVision geoVision);
-
-        void Debug(GeometryVision geoVisions);
+        void Debug(GeometryVision geoVision);
         
         
     }

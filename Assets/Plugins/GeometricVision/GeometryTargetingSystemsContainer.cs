@@ -1,8 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using Plugins.GeometricVision.Interfaces;
 using Plugins.GeometricVision.Interfaces.Implementations;
-using Plugins.GeometricVision.Interfaces.ImplementationsEntities;
-using Unity.EditorCoroutines.Editor;
 using UnityEngine;
 
 namespace Plugins.GeometricVision
@@ -26,12 +25,12 @@ namespace Plugins.GeometricVision
 
         private void Reset()
         {
-            InitializeTargeting();
+            InitializeTargetingContainer();
         }
 
         void Awake()
         {
-            InitializeTargeting();
+            InitializeTargetingContainer();
         }
         
         public IEnumerator RemoveAddedComponents()
@@ -58,7 +57,7 @@ namespace Plugins.GeometricVision
         }
 
         
-        private void InitializeTargeting()
+        private void InitializeTargetingContainer()
         {
             TargetingPrograms = new HashSet<IGeoTargeting>();
         }
@@ -77,6 +76,7 @@ namespace Plugins.GeometricVision
         {
             return targetingPrograms.Count;
         }
+        
         public void RemoveTargetingProgram(IGeoTargeting targetingSystem)
         {
             if (targetingSystem != null)

@@ -1,0 +1,19 @@
+{
+    "name": "UIEditorDrawers",
+    "references": [
+        "GUID:0ef1befe41283b47d853cd25ee746b89",
+        "GUID:560b04d1a97f54a4e82edc0cbbb69285",
+        "GUID:478a2357cc57436488a56e564b08d223"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

@@ -1,9 +1,14 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections;
+using System.Collections.Generic;
 using GeometricVision;
+using Plugins.GeometricVision.EntityScripts;
 using Plugins.GeometricVision.ImplementationsEntities;
+using Plugins.GeometricVision.ImplementationsGameObjects;
 using Plugins.GeometricVision.Interfaces;
 using Plugins.GeometricVision.Interfaces.Implementations;
-using Plugins.GeometricVision.Interfaces.ImplementationsEntities;
+using Plugins.GeometricVision.UniRx.Scripts.UnityEngineBridge;
+using UniRx;
 using Unity.Entities;
 using UnityEngine;
 using Hash128 = UnityEngine.Hash128;
@@ -13,22 +18,29 @@ namespace Plugins.GeometricVision
     public class GeometryVisionFactory
     {
         private readonly GeometryDataModels.FactorySettings settings;
-        public  GeometryVisionFactory(GeometryDataModels.FactorySettings settings)
+
+        public GeometryVisionFactory(GeometryDataModels.FactorySettings settings)
         {
             this.settings = settings;
+            this.settings.defaultTag = settings.defaultTag;
+            this.settings.entityComponentQueryFilter = settings.entityComponentQueryFilter;
+            this.settings.processGameObjects = settings.processGameObjects;
+            this.settings.processEntities = settings.processEntities;
         }
-        public GameObject CreateGeometryVision(Vector3 startingPosition, Quaternion rotation, float fieldOfView,
-            GeometryVision geoVisionComponent, List<GeometryType> geoTypes, int layerIndex)
-        {
-            var geoVisionManagerGO = CreateGeometryVisionManagerGameObject();
 
-            CreateHead(geoVisionManagerGO, geoVisionComponent);
-            CreateGeometryProcessor(geoVisionManagerGO);
-            CreateEye(geoVisionManagerGO, geoVisionComponent);
-            geoVisionComponent.InitUnityCamera();
-            geoVisionManagerGO.transform.position = startingPosition;
-            geoVisionManagerGO.transform.rotation = rotation;
-            return geoVisionComponent.gameObject;
+        public GeometryVisionFactory()
+        {
+        }
+
+        public GeometryDataModels.FactorySettings Settings
+        {
+            get { return settings; }
+        }
+
+        public void CreateGeometryVisionRunner(GeometryVision geoVisionComponent)
+        {
+            var geoVisionRunnerGo = CreateGeometryVisionRunnerGameObject();
+            CreateGeometryVisionRunner(geoVisionRunnerGo, geoVisionComponent);
         }
 
         /// <summary>
@@ -37,159 +49,446 @@ namespace Plugins.GeometricVision
         /// <remarks>By default GeometryType to use is objects since plugin needs that in order to work</remarks>
         /// <param name="startingPosition"></param>
         /// <param name="rotation"></param>
-        /// <param name="fieldOfView"></param>
         /// <param name="geoTypes"></param>
-        /// <param name="layerIndex"></param>
         /// <param name="debugModeEnabled"></param>
         /// <returns></returns>
-        public GameObject CreateGeometryVision(Vector3 startingPosition, Quaternion rotation, float fieldOfView,
-            List<GeometryType> geoTypes, int layerIndex, bool debugModeEnabled)
+        public GameObject CreateGeometryVision(Vector3 startingPosition, Quaternion rotation,
+            List<GeometryType> geoTypes, bool debugModeEnabled)
         {
-            if (settings.edgesTargeted)
-            {
-                geoTypes.Add(GeometryType.Lines);
-            }
-            var geoVisionManagerGO = CreateGeometryVisionManagerGameObject();
-            
-            var geoVisionComponent = CreateGeoVisionComponent(new GameObject(), debugModeEnabled);
-            CreateHead(geoVisionManagerGO, geoVisionComponent);
-            CreateGeometryProcessor(geoVisionManagerGO);
-            geoVisionComponent.InitUnityCamera();
+            var geoVisionManagerGO = CreateGeometryVisionRunnerGameObject();
+            var geoVisionComponent = CreateGeoVisionComponent(new GameObject(), debugModeEnabled, geoTypes);
+            CreateGeometryVisionRunner(geoVisionManagerGO, geoVisionComponent);
 
-            CreateEye(geoVisionManagerGO, geoVisionComponent);
-            
             var geometryVision = geoVisionComponent.gameObject;
             var transform = geometryVision.transform;
             transform.position = startingPosition;
             transform.rotation = rotation;
-            AddAdditionalTargets(geoVisionComponent, geoTypes,layerIndex);
-            geoVisionComponent.InitEntitySwitch();
-            geoVisionComponent.InitGameObjectSwitch();
-            geoVisionComponent.UpdateTargetingSystemsContainer();
+
             return geometryVision;
         }
 
-        private void ConfigureGeometryVision(GeometryDataModels.FactorySettings factorySettings, GeometryVision geoVisionComponent)
+        internal void AddAdditionalTargets(GeometryVision geoVision, List<GeometryType> geoTypes)
         {
-            geoVisionComponent.EntityBasedProcessing.Value = factorySettings.processEntities;
-            geoVisionComponent.GameObjectBasedProcessing.Value = factorySettings.processGameObjects;
-            geoVisionComponent.InitializeSystems();
-        }
+            var targetingSystems = MakeTargetingSystems();
 
-        private void AddAdditionalTargets(GeometryVision geoVision, List<GeometryType> geoTypes, int layerIndex)
-        {
-            foreach (var geoType in geoTypes)
+            AssignTargetingInstructions();
+
+            //Make all currently supported targeting systems and return them in a tuple like object
+
+            void AssignTargetingInstructions()
             {
-                if (geoType == GeometryType.Lines)
+                foreach (var geoType in geoTypes)
                 {
-                    geoVision.TargetingInstructions.Add(new VisionTarget(GeometryType.Lines,"",new GeometryLineTargeting(), settings.defaultTargeting));
-                }                
-                if (geoType == GeometryType.Objects)
-                {
-                    geoVision.TargetingInstructions.Add(new VisionTarget(GeometryType.Objects,"",new GeometryObjectTargeting(), settings.defaultTargeting));
-                }
-                if (geoType == GeometryType.Vertices)
-                {
-                    geoVision.TargetingInstructions.Add(new VisionTarget(GeometryType.Vertices,"",new GeometryVertexTargeting(), settings.defaultTargeting));
+                    if (geoType == GeometryType.Objects)
+                    {
+                        var targetingInstruction = new TargetingInstruction(GeometryType.Objects, settings.defaultTag,
+                            (targetingSystems.Item4, targetingSystems.Item1), true, null);
+                        geoVision.TargetingInstructions.Add(targetingInstruction);
+                    }
+
+                    if (geoType == GeometryType.Lines)
+                    {
+                        var targetingInstruction = new TargetingInstruction(GeometryType.Lines, settings.defaultTag,
+                            (targetingSystems.Item5, targetingSystems.Item2), true, null);
+                        geoVision.TargetingInstructions.Add(targetingInstruction);
+                    }
+
+                    if (geoType == GeometryType.Vertices)
+                    {
+                        var targetingInstruction = new TargetingInstruction(GeometryType.Vertices, settings.defaultTag,
+                            (targetingSystems.Item6, targetingSystems.Item3), true, null);
+                        geoVision.TargetingInstructions.Add(targetingInstruction);
+                    }
                 }
             }
         }
-
-        private static GameObject CreateGeometryVisionManagerGameObject()
+        //Local function tha makes all the possible targeting systems
+        (IGeoTargeting, IGeoTargeting, IGeoTargeting, IGeoTargeting, IGeoTargeting, IGeoTargeting )
+            MakeTargetingSystems()
         {
-            GameObject geoVision = GameObject.Find("geoVision");
+            GeometryEntitiesObjectTargeting objectTargeting = null;
+            GeometryEntitiesLineTargeting lineTargeting = null;
+            if (Application.isPlaying)
+            {
+                var world = World.DefaultGameObjectInjectionWorld;
+                objectTargeting = world.CreateSystem<GeometryEntitiesObjectTargeting>();
+                lineTargeting = world.CreateSystem<GeometryEntitiesLineTargeting>();
+            }
+
+            return (objectTargeting, lineTargeting, null, new GeometryObjectTargeting(), new GeometryLineTargeting(),
+                new GeometryVertexTargeting());
+        }
+
+        private static GameObject CreateGeometryVisionRunnerGameObject()
+        {
+            GameObject geoVision = GameObject.Find(GeometryVisionSettings.RunnerName);
             if (geoVision == null)
             {
-                geoVision = new GameObject("geoVision");
+                geoVision = new GameObject(GeometryVisionSettings.RunnerName);
             }
 
             return geoVision;
         }
 
-        private GeometryVision CreateGeoVisionComponent(GameObject geoVision, bool debugModeEnabled)
+        private GeometryVision CreateGeoVisionComponent(GameObject geoVision, bool debugModeEnabled,
+            List<GeometryType> geoTypes)
         {
             geoVision.AddComponent<GeometryVision>();
             var geoVisionComponent = geoVision.GetComponent<GeometryVision>();
-            geoVisionComponent.Id = new Hash128().ToString();
+            geoVisionComponent.EntityProcessing.Value = settings.processEntities;
+            geoVisionComponent.GameObjectBasedProcessing.Value = settings.processGameObjects;
+            geoVisionComponent.InitializeGeometricVision(geoTypes); //Runs the init again but parametrized
+            geoVisionComponent.ApplyTagToTargetingInstructions(settings.defaultTag);
+            geoVisionComponent.ApplyEntityComponentFilterToTargetingInstructions(settings.entityComponentQueryFilter);
+            geoVisionComponent.ApplyActionsTemplateObject(settings.actionsTemplateObject);
+            geoVisionComponent.Id = new Hash128();
             geoVisionComponent.DebugMode = debugModeEnabled;
-            ConfigureGeometryVision(this.settings, geoVisionComponent);
+
+
             return geoVisionComponent;
         }
 
-        private GeometryVisionHead CreateHead(GameObject geoVisionHead, GeometryVision geoVisionComponent)
+        /// <summary>
+        /// Handles all the required operation for GeometricVision to work with entities.
+        /// Such as adding GeometricVision eye for seeing, processor for the data and a targeting system.
+        /// The functionality is subscribed to a toggle on the inspector GUI.
+        /// </summary>
+        /// <param name="entityBasedProcessing"></param>
+        /// <param name="entityToggleObservable"></param>
+        /// <param name="geoVision"></param>
+        /// <param name="transformEntitySystem"></param>
+        /// <remarks>        
+        /// Because of some differences on the entity system the entities functionality can only be enabled easily
+        /// when the application is running.
+        /// </remarks>
+        internal void InitEntitySwitch(BoolReactiveProperty entityBasedProcessing, IDisposable entityToggleObservable, GeometryVision geoVision, TransformEntitySystem transformEntitySystem)
         {
-            if (geoVisionHead.GetComponent<GeometryVisionHead>() == null)
+            ObserveButton(entityBasedProcessing, entityToggleObservable, geoVision);
+            
+            //Local functions
+            
+            //Observe changes in button and react to that
+            void ObserveButton(BoolReactiveProperty boolReactiveProperty, IDisposable disposable, GeometryVision geometryVision)
             {
-                geoVisionHead.AddComponent<GeometryVisionHead>();
-            }
-
-            var head = geoVisionHead.GetComponent<GeometryVisionHead>();
-            if (head.GeoVisions == null)
-            {
-                head.GeoVisions = new HashSet<GeometryVision>();  
-            }
-            head.GeoVisions.Add(geoVisionComponent);
-            geoVisionComponent.Head = head;
-            return geoVisionHead.GetComponent<GeometryVisionHead>();
-        }
-
-        internal void CreateEye(GameObject geoVisionManager,  GeometryVision geoVisionComponent)
-        {
-            if (settings.processGameObjects)
-            {
-                var eye = geoVisionComponent.GetEye<GeometryVisionEye>();
-                if (eye == null)
+                if (disposable == null)
                 {
-                    if (geoVisionComponent.GetEye<GeometryVisionEye>() == null)
+                    //Add initialization behaviour on the inspector toggle button
+                    disposable = boolReactiveProperty.Subscribe(entitiesEnabled =>
                     {
-                        if (geoVisionComponent.gameObject.GetComponent<GeometryVisionEye>() == null)
+                        InitEntities();
+
+                        void InitEntities()
                         {
-                            geoVisionComponent.gameObject.AddComponent<GeometryVisionEye>();
+                            geometryVision.EntityWorld = World.DefaultGameObjectInjectionWorld;
+                            //Handle toggle button use cases
+                            IfEntitiesEnabled(entitiesEnabled);
+                            IfEntitiesDisabled(entitiesEnabled);
                         }
+                    });
+                }
+            }
 
-                        geoVisionComponent.Eyes.Add(geoVisionComponent.gameObject.GetComponent<GeometryVisionEye>());
-                        eye = geoVisionComponent.GetEye<GeometryVisionEye>();
-                        eye.Head = geoVisionManager.GetComponent<GeometryVisionHead>();
-                        eye.Id = new Hash128().ToString();
-                        eye.GeoVision = geoVisionComponent;
+            //Handles toggle button enabled use case
+            void IfEntitiesEnabled(bool entitiesEnabled)
+            {
+                if (Application.isPlaying && entitiesEnabled)
+                {
+                    geoVision.Runner.AddEntityProcessor<GeometryVisionEntityProcessor>(geoVision.EntityWorld);
+                    InitGeometryEyeForEntities(geoVision.EntityWorld);
+
+                    IGeoTargeting targetingSystem =
+                        geoVision.EntityWorld.GetOrCreateSystem<GeometryEntitiesObjectTargeting>();
+                    IfNoDefaultTargetingAddOne(geoVision, targetingSystem);
+                }
+            }
+
+            //Handles toggle button disabled use case
+            void IfEntitiesDisabled(bool entitiesEnabled)
+            {
+                if (Application.isPlaying && entitiesEnabled == false)
+                {
+                    geoVision.Runner.RemoveEntityProcessor<GeometryVisionEntityProcessor>();
+                    DisableEntityEye(geoVision);
+
+                    if (geoVision.EntityWorld.GetExistingSystem<TransformEntitySystem>() != null)
+                    {
+                        geoVision.EntityWorld.DestroySystem(transformEntitySystem);
                     }
-                }
-            }
-            if (settings.processEntities)
-            {
-                var eye = geoVisionComponent.GetEye<GeometryVisionEntityEye>();
-                if (eye == null)
-                {
-                    geoVisionComponent.AddEye<GeometryVisionEntityEye>();
-                    eye = geoVisionComponent.GetEye<GeometryVisionEntityEye>();
-                    eye.Head = geoVisionManager.GetComponent<GeometryVisionHead>();
-                    eye.Id = new Hash128().ToString();
-                    eye.GeoVision = geoVisionComponent;
-                }
-            }
-        }
 
-        private void CreateGeometryProcessor(GameObject geoVisionManager)
-        {
-            var head = geoVisionManager.GetComponent<GeometryVisionHead>();
-            if (settings.processGameObjects)
-            {
-                if (head.GetProcessor<GeometryVisionProcessor>()== null)
-                {
-                    geoVisionManager.AddComponent<GeometryVisionProcessor>();
-                    head.AddProcessor(geoVisionManager.GetComponent<GeometryVisionProcessor>());
+                    transformEntitySystem = null;
+
+                    foreach (var targetinginstruction in geoVision.TargetingInstructions)
+                    {
+                        if (targetinginstruction.TargetingSystemEntities != null)
+                        {
+                            geoVision.EntityWorld.DestroySystem(
+                                (ComponentSystemBase) targetinginstruction.TargetingSystemEntities);
+                            targetinginstruction.TargetingSystemEntities = null;
+                        }
+                    }
+                    geoVision.UpdateClosestTargets();
                 }
             }
             
-            if (settings.processEntities)
+            void InitGeometryEyeForEntities(World world)
             {
-                if (head.GetProcessor<GeometryVisionEntityProcessor>() == null)
+                DisableEntityEye(geoVision);
+                GeometryVisionEntityEye eEey = world.CreateSystem<GeometryVisionEntityEye>();
+
+                InterfaceUtilities.AddImplementation(eEey, geoVision.Eyes);
+                var eye = geoVision.GetEye<GeometryVisionEntityEye>();
+                eye.GeoVision = geoVision;
+                eye.TargetingInstructions = geoVision.TargetingInstructions;
+                eye.Update();
+            }
+
+        }
+                
+        /// <summary>
+        /// Remove entity eye/camera eye so the Runner won't be iterating through them.
+        /// </summary>
+        private void DisableEntityEye(GeometryVision geoVision)
+        {
+            // Currently only one system
+            var eye = geoVision.GetEye<GeometryVisionEntityEye>();
+            if (eye != null)
+            {
+                geoVision.RemoveEntityEye<GeometryVisionEntityEye>();
+            }
+        }
+
+        
+        /// <summary>
+        /// Handles all the required operation for GeometricVision to work with game objects.
+        /// Such as GeometricVision eye/camera and processor for the data.
+        /// The functionality is subscribed to a toggle that exists in the inspector GUI
+        /// </summary>
+        internal void InitGameObjectSwitch( IDisposable gameObjectButtonObservable, BoolReactiveProperty gameObjectProcessing, GeometryVision geoVision)
+        {
+            ObserveButtonChanges();
+
+            void ObserveButtonChanges()
+            {
+                if (gameObjectButtonObservable == null)
                 {
-                    var world = World.DefaultGameObjectInjectionWorld;
-                    var newProcessor = world.GetOrCreateSystem<GeometryVisionEntityProcessor>();
-                    head.AddProcessor(newProcessor);
+                    gameObjectButtonObservable = gameObjectProcessing.Subscribe(InitGameObjectBasedSystem);
                 }
             }
+
+            void InitGameObjectBasedSystem(bool gameObjectBasedProcessing)
+            {
+                var geoEye = geoVision.GetEye<GeometryVisionEye>();
+                if (gameObjectBasedProcessing == true)
+                {
+                    if (geoEye == null)
+                    {
+                        geoVision.AddGameObjectEye<GeometryVisionEye>();
+                    }
+
+                    InitGeometryProcessorForGameObjects();
+                    IfNoDefaultTargetingAddOne(geoVision, new GeometryObjectTargeting());
+                }
+                else if (gameObjectBasedProcessing == false)
+                {
+                    geoVision.Runner.RemoveGameObjectProcessor<GeometryVisionProcessor>();
+                    geoVision.RemoveEye<GeometryVisionEye>();
+                    geoVision.UpdateClosestTargets();
+                }
+            }
+
+            void InitGeometryProcessorForGameObjects()
+            {
+                if (geoVision.Runner.gameObject.GetComponent<GeometryVisionProcessor>() == null)
+                {
+                    geoVision.Runner.gameObject.AddComponent<GeometryVisionProcessor>();
+                }
+
+                InterfaceUtilities.AddImplementation(geoVision.Runner.gameObject.GetComponent<GeometryVisionProcessor>(),
+                    geoVision.Runner.Processors);
+            }
+        }
+
+
+        // Handles target initialization. Adds needed components and subscribes changing variables to logic that updates the targeting system.
+        internal List<TargetingInstruction> InitializeTargeting(List<TargetingInstruction> theTargetingInstructionsIn, GeometryVision geoVision, BoolReactiveProperty entityBasedProcessing, BoolReactiveProperty gameObjectProcessing)
+        {
+            var geoTargetingSystemsContainer = HandleAddingGeometryTargetingComponent();
+
+            theTargetingInstructionsIn = geoVision.AddDefaultInstructionIfNone(theTargetingInstructionsIn,
+                entityBasedProcessing.Value,
+                gameObjectProcessing.Value);
+
+            foreach (var targetingInstruction in theTargetingInstructionsIn)
+            {
+                AssignActionsTemplate(targetingInstruction, theTargetingInstructionsIn.IndexOf(targetingInstruction));
+                OnTargetingEnabled(targetingInstruction, geoTargetingSystemsContainer, entityBasedProcessing, gameObjectProcessing);
+            }
+
+            return theTargetingInstructionsIn;
+
+            //Local functions
+
+            //Creates default template scriptable object that can hold actions on what to do when targeting
+            void AssignActionsTemplate(TargetingInstruction targetingInstruction, int indexOf)
+            {
+                if (targetingInstruction.TargetingActions == null)
+                {
+                    var newActions = ScriptableObject.CreateInstance<ActionsTemplateObject>();
+                    newActions.name += "_" + indexOf;
+                    targetingInstruction.TargetingActions = newActions;
+                }
+            }
+
+            //This container is needed so all the targeting systems can be run from a list by the runner/manager.
+            GeometryTargetingSystemsContainer HandleAddingGeometryTargetingComponent()
+            {
+                var geoTargeting = geoVision.GetComponent<GeometryTargetingSystemsContainer>();
+                if (geoVision.GetComponent<GeometryTargetingSystemsContainer>() == null)
+                {
+                    geoVision.gameObject.AddComponent<GeometryTargetingSystemsContainer>();
+                    geoTargeting = geoVision.GetComponent<GeometryTargetingSystemsContainer>();
+                }
+
+                return geoTargeting;
+            }
+        }
+
+        /// <summary>
+        /// Add targeting implementation, if it is enabled on the inspector.
+        /// Subscribes the targeting toggle button to functionality than handles creation of default targeting implementation for the
+        /// targeted geometry type
+        /// </summary>
+        /// <param name="theTargetingInstructions"></param>
+        /// <param name="targetingInstruction"></param>
+        /// <param name="geoTargetingSystemsContainer"></param>
+        private void OnTargetingEnabled(TargetingInstruction targetingInstruction, GeometryTargetingSystemsContainer geoTargetingSystemsContainer, BoolReactiveProperty entityBasedProcessing, BoolReactiveProperty gameObjectProcessing)
+        {
+            if (!targetingInstruction.Subscribed)
+            {
+                SubscribeInstructionToTargetingButton();
+
+                void SubscribeInstructionToTargetingButton()
+                {
+                    targetingInstruction.IsTargetingEnabled.Subscribe(targeting =>
+                    {
+                        targetingInstruction.IsTargetActionsTemplateSlotVisible = targeting;
+                        if (targeting == true)
+                        {
+                            AddTargetingPrograms(geoTargetingSystemsContainer);
+                        }
+                        else
+                        {
+                            RemoveDefaultTargeting(geoTargetingSystemsContainer);
+                        }
+                    });
+                }
+
+                targetingInstruction.Subscribed = true;
+            }
+
+            //AddDefaultTargeting for both game objects and entities
+            //Default is objects
+            void AddTargetingPrograms(
+                GeometryTargetingSystemsContainer geometryTargetingSystemsContainer)
+            {
+                if (gameObjectProcessing.Value == true)
+                {
+                    if (targetingInstruction.TargetingSystemGameObjects != null)
+                    {
+                        geometryTargetingSystemsContainer.AddTargetingProgram(
+                            (IGeoTargeting) targetingInstruction.TargetingSystemGameObjects);
+                    }
+                }
+
+                if (entityBasedProcessing.Value == true)
+                {
+                    if (targetingInstruction.TargetingSystemEntities != null)
+                    {
+                        geometryTargetingSystemsContainer.AddTargetingProgram(
+                            (IGeoTargeting) targetingInstruction.TargetingSystemEntities);
+                    }
+                }
+            }
+
+            //RemoveDefaultTargeting for both game objects and entities
+            void RemoveDefaultTargeting(
+                GeometryTargetingSystemsContainer geometryTargetingSystemsContainer)
+            {
+                geometryTargetingSystemsContainer.RemoveTargetingProgram(targetingInstruction
+                    .TargetingSystemGameObjects);
+
+                geometryTargetingSystemsContainer.RemoveTargetingProgram(targetingInstruction
+                    .TargetingSystemEntities);
+            }
+        }
+
+        /// <summary>
+        /// Provides Needed default object targeting for the system in case there is none. Otherwise replaces one from the current users
+        /// targeting instructions. 
+        /// </summary>
+        /// <param name="geoVision"></param>
+        /// <param name="targetingSystem"></param>
+        private void IfNoDefaultTargetingAddOne(GeometryVision geoVision, IGeoTargeting targetingSystem)
+        {
+            var targetingInstruction = geoVision.GetTargetingInstructionOfType(GeometryType.Objects);
+            string defaulTag = "";
+            if (targetingInstruction == null)
+            {
+                targetingInstruction = new TargetingInstruction(GeometryType.Objects, defaulTag,
+                    (targetingSystem, null), true,
+                    null);
+
+                AssignDefaultTargetingSystem(targetingSystem);
+                geoVision.TargetingInstructions.Add(targetingInstruction);
+            }
+            else
+            {
+                AssignDefaultTargetingSystem(targetingSystem);
+            }
+
+            void AssignDefaultTargetingSystem(IGeoTargeting geoTargeting)
+            {
+                var targetingSystemsContainer = geoVision.GetComponent<GeometryTargetingSystemsContainer>();
+                if (geoTargeting.IsForEntities())
+                {
+                    var sys = targetingSystemsContainer.GetTargetingProgram<GeometryEntitiesObjectTargeting>();
+                    if (sys != null)
+                    {
+                        targetingSystemsContainer.RemoveTargetingProgram(sys);
+                    }
+                   
+                    targetingInstruction.TargetingSystemEntities = geoTargeting;
+                    targetingSystemsContainer.AddTargetingProgram(targetingInstruction.TargetingSystemEntities);
+                }
+                else if (!geoTargeting.IsForEntities())
+                {
+                    var sys = targetingSystemsContainer.GetTargetingProgram<GeometryObjectTargeting>();
+                    if (sys != null)
+                    {
+                        targetingSystemsContainer.RemoveTargetingProgram(sys);
+                    }
+
+                    targetingInstruction.TargetingSystemGameObjects = geoTargeting;
+                    targetingSystemsContainer.AddTargetingProgram(targetingInstruction.TargetingSystemGameObjects);
+                }
+            }
+        }
+
+        private void CreateGeometryVisionRunner(GameObject geoVisionHead, GeometryVision geoVisionComponent)
+        {
+            if (geoVisionHead.GetComponent<GeometryVisionRunner>() == null)
+            {
+                geoVisionHead.AddComponent<GeometryVisionRunner>();
+            }
+
+            var runner = geoVisionHead.GetComponent<GeometryVisionRunner>();
+            if (runner.GeoVisions == null)
+            {
+                runner.GeoVisions = new HashSet<GeometryVision>();
+            }
+
+            runner.GeoVisions.Add(geoVisionComponent);
+            geoVisionComponent.Runner = runner;
         }
     }
 }
