@@ -326,7 +326,7 @@ namespace Plugins.GeometricVision
             InterfaceUtilities.RemoveInterfaceImplementationsOfTypeFromList(typeof(T), ref eyes);
 
             var system = EntityWorld.GetExistingSystem<T>();
-            if (system != null)
+            if (system != null )
             {
                 EntityWorld.DestroySystem(system);
             }
@@ -582,8 +582,7 @@ namespace Plugins.GeometricVision
         /// Use to get list of targets containing data from entities and gameObjects. 
         /// </summary>
         /// <returns>List of target objects that can be used to find out closest target.</returns>
-        private NativeArray<GeometryDataModels.Target> GetTargetsForGameObjectsAndEntities(
-            NativeArray<GeometryDataModels.Target> closestTargetsIn)
+        private NativeArray<GeometryDataModels.Target> GetTargetsForGameObjectsAndEntities(NativeArray<GeometryDataModels.Target> closestTargetsIn)
         {
             var offsetGameObjects = 0;
             var offsetEntities = 0;
@@ -595,9 +594,7 @@ namespace Plugins.GeometricVision
                     continue;
                 }
 
-                var gameObjects =
-                    new NativeArray<GeometryDataModels.Target>(GetGameObjectTargets(targetingInstruction).ToArray(),
-                        Allocator.TempJob);
+                var gameObjects = new NativeArray<GeometryDataModels.Target>(GetGameObjectTargets(targetingInstruction).ToArray(), Allocator.TempJob);
                 var entities =GetEntityTargets(targetingInstruction);
                 
                 if (gameObjects.Length > 0)
@@ -606,7 +603,6 @@ namespace Plugins.GeometricVision
                     job1.offset = 0;
                     job1.finalTargets = closestTargetsIn;
                     job1.targetsToInsert = gameObjects;
-                    job1.target = new GeometryDataModels.Target();
                     var handle = job1.Schedule();
                     handle.Complete();
                 }
@@ -617,7 +613,6 @@ namespace Plugins.GeometricVision
                     job2.offset = gameObjects.Length;
                     job2.finalTargets = closestTargetsIn;
                     job2.targetsToInsert = entities;
-                    job2.target = new GeometryDataModels.Target();
                     var handle = job2.Schedule();
                     handle.Complete();
                 }
@@ -626,8 +621,6 @@ namespace Plugins.GeometricVision
 
                 gameObjects.Dispose();
                 entities.Dispose();
-
-
             }
 
             return closestTargetsIn;
@@ -659,7 +652,6 @@ namespace Plugins.GeometricVision
                             ForwardWorldCoordinate, this, targetingInstruction);
                     //Only update entities if the burst compiled job has finished its job OnUpdate
                     //If it has not finished it returns empty list.
-
                     return closestentityTargetsIn;
                 }
 
@@ -672,7 +664,6 @@ namespace Plugins.GeometricVision
         {
             public NativeArray<GeometryDataModels.Target> finalTargets;
             public NativeArray<GeometryDataModels.Target> targetsToInsert;
-            internal GeometryDataModels.Target target;
             public int offset;
             
 

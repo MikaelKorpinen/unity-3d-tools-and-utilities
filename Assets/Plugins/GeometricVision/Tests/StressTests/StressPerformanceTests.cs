@@ -13,7 +13,7 @@ namespace Plugins.GeometricVision.Tests.StressTests
         private GeometryDataModels.FactorySettings factorySettings = new GeometryDataModels.FactorySettings
         {
             fielOfView = 25f,
-            processEntities = true,
+            processEntities = false,
             defaultTargeting = true,
             processGameObjects = false,
             entityComponentQueryFilter = null,

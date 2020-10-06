@@ -75,15 +75,6 @@ namespace Plugins.GeometricVision
                 }
             }
         }
-        /// <summary>
-        /// Adds the processor of given type for the runner.
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <returns></returns>
-        public void AddProcessor<T>()
-        {
-           
-        }
         
         /// <summary>
         /// Gets the processor of given type from the runner.
@@ -121,6 +112,7 @@ namespace Plugins.GeometricVision
             foreach (GeometryVision geoVision in geoVisions)
             {
                 var system = geoVision.EntityWorld.GetExistingSystem<T>();
+                
                 if (system != null)
                 {
                     geoVision.EntityWorld.DestroySystem(system);
@@ -145,7 +137,7 @@ namespace Plugins.GeometricVision
             
             void InitProcessor()
             {
-              //Initialisation variable setup here  
+              //Initialisation variable setup here  in case needed
             }
         }
     }

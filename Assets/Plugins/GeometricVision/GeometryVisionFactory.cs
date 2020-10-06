@@ -24,6 +24,8 @@ namespace Plugins.GeometricVision
             this.settings = settings;
             this.settings.defaultTag = settings.defaultTag;
             this.settings.entityComponentQueryFilter = settings.entityComponentQueryFilter;
+            this.settings.processGameObjects = settings.processGameObjects;
+            this.settings.processEntities = settings.processEntities;
         }
 
         public GeometryVisionFactory()
@@ -221,8 +223,10 @@ namespace Plugins.GeometricVision
                         {
                             geoVision.EntityWorld.DestroySystem(
                                 (ComponentSystemBase) targetinginstruction.TargetingSystemEntities);
+                            targetinginstruction.TargetingSystemEntities = null;
                         }
                     }
+                    geoVision.UpdateClosestTargets();
                 }
             }
             
@@ -288,6 +292,7 @@ namespace Plugins.GeometricVision
                 {
                     geoVision.Runner.RemoveGameObjectProcessor<GeometryVisionProcessor>();
                     geoVision.RemoveEye<GeometryVisionEye>();
+                    geoVision.UpdateClosestTargets();
                 }
             }
 

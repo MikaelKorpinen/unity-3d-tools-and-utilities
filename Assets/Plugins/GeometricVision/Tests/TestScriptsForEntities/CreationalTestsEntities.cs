@@ -103,11 +103,11 @@ namespace Plugins.GeometricVision.Tests.TestScriptsForEntities
             var geoVision =
                 TestUtilities.SetupGeoVision(new Vector3(0f, 0f, -6f), new GeometryVisionFactory(factorySettings));
             yield return null;
-            geoVision.GetComponent<GeometryVision>().EntityProcessing.Value = false;
+            var geoVisionComponent = geoVision.GetComponent<GeometryVision>();
+            geoVisionComponent.EntityProcessing.Value = false;
             yield return null;
-
-            var processor = geoVision.GetComponent<GeometryVision>().Runner
-                .GetProcessor<GeometryVisionEntityProcessor>();
+            
+            var processor =geoVisionComponent.Runner.GetProcessor<GeometryVisionEntityProcessor>();
             yield return null;
 
             Assert.True(processor == null);
