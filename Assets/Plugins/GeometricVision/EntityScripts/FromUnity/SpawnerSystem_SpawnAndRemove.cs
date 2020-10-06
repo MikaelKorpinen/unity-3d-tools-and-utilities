@@ -38,7 +38,7 @@ namespace Plugins.GeometricVision.EntityScripts.FromUnity
             // perform such changes on the main thread after the Job has finished. Command buffers allow you to perform
             // any, potentially costly, calculations on a worker thread, while queuing up the actual insertions and
             // deletions for later.
-            var commandBuffer = m_EntityCommandBufferSystem.CreateCommandBuffer().ToConcurrent();
+            var commandBuffer = m_EntityCommandBufferSystem.CreateCommandBuffer().AsParallelWriter();
             if (runOnce)
             {
                 // Schedule the job that will add Instantiate commands to the EntityCommandBuffer.
@@ -60,7 +60,7 @@ namespace Plugins.GeometricVision.EntityScripts.FromUnity
                                 var position = (Vector3) math.transform(location.Value,
                                     new float3(x * 1.3F - spawner.CountX * separationMultiplier, y * 1.3F * separationMultiplier, noise.cnoise(new float2(x, y) * 0.21F) * 2 + 25) * separationMultiplier);
                                 commandBuffer.SetComponent(entityInQueryIndex, instance, new Translation {Value = position});
-                                commandBuffer.AddComponent(entityInQueryIndex, instance, new RotationSpeed_SpawnAndRemove { RadiansPerSecond = math.radians(random.NextFloat(25.0F, 90.0F)) });
+                                commandBuffer.AddComponent(entityInQueryIndex, instance, new RotationSpeed_SpawnAndRemove { RadiansPerSecond = math.radians(random.NextFloat(25.0F, 90.0F)*25) });
                             }
                         }
 

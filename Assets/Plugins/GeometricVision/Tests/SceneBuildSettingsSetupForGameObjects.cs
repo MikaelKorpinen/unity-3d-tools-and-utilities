@@ -64,7 +64,34 @@ namespace Plugins.GeometricVision.Tests
         }
     }
     
+    public class SceneBuildSettingsSetupForEntitiesStressTests : IPrebuildSetup
+    {
+        public void Setup()
+        {
+            TestSessionVariables.BuildScenes = TestUtilities.SetupBuildSettings(GetScenesForEntitiesFromPath());
+        }
         
+        List<string>  GetScenesForEntitiesFromPath()
+        {
+            var scenePaths = TestUtilities.CreateScenePathFromRelativeAddress(TestSettings.EntitiesStressTestsPath);
+
+            return scenePaths;
+        }
+    }
+    public class SceneBuildSettingsSetupForGameObjectsStressTests : IPrebuildSetup
+    {
+        public void Setup()
+        {
+            TestSessionVariables.BuildScenes = TestUtilities.SetupBuildSettings(GetScenesForFromPath());
+        }
+        
+        List<string>  GetScenesForFromPath()
+        {
+            var scenePaths = TestUtilities.CreateScenePathFromRelativeAddress(TestSettings.GameObjectsStressTestsPath);
+
+            return scenePaths;
+        }
+    }   
     public class SceneBuildSettingsSetupForGameObjectsTargeting : IPrebuildSetup
     {
         public void Setup()

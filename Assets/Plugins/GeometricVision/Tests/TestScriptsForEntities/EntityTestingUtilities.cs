@@ -8,7 +8,7 @@ namespace Plugins.GeometricVision.Tests.TestScriptsForEntities
     public class EntityTestingUtilities :  SystemBase
     {
         private BeginInitializationEntityCommandBufferSystem m_EntityCommandBufferSystem;
-        [System.ComponentModel.ReadOnly(true)] public EntityCommandBuffer.Concurrent ConcurrentCommands;
+        [System.ComponentModel.ReadOnly(true)] public EntityCommandBuffer.ParallelWriter ConcurrentCommands;
         private int currentObjectCount;
 
 

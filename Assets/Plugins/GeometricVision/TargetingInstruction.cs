@@ -1,10 +1,8 @@
 ﻿using System;
-using GeometricVision;
+using System.Reflection;
 using Plugins.GeometricVision.Interfaces;
-using Plugins.GeometricVision.Interfaces.Implementations;
-using Plugins.GeometricVision.UI;
 using Plugins.GeometricVision.UniRx.Scripts.UnityEngineBridge;
-using UniRx;
+using Plugins.GeometricVision.UtilitiesAndPlugins;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Events;
@@ -12,21 +10,16 @@ using Object = UnityEngine.Object;
 
 namespace Plugins.GeometricVision
 {
-    [Serializable]
-    public class TargetingEvents : UnityEvent
-    {
-    }
-
     /// <summary>
     /// Contains user defined targeting instructions for the GeometryVision object
     /// </summary>
     [Serializable]
     public class TargetingInstruction
     {
-        public bool enabled = true;
+        private bool enabled = true;
 
-        [SerializeField, Tooltip("Choose what geometry to target or use.")]
-        private GeometryType geometryType;
+        [SerializeField, Tooltip("Choose what geometry to target or use. Default is Objects")]
+        private GeometryType geometryType = GeometryType.Objects;
 
         [SerializeField] private BoolReactiveProperty isTargetingEnabled = new BoolReactiveProperty();
 
@@ -41,47 +34,55 @@ namespace Plugins.GeometricVision
         public bool Subscribed { get; set; }
 
         //GeometryVision plugin needs to be able to target both GameObjects and Entities at the same time
-        private IGeoTargeting targetingSystemGameObjects = null; //TODO:consider: remove these
+        private IGeoTargeting targetingSystemGameObjects = null; //TODO:consider: remove these for 2.0
         private IGeoTargeting targetingSystemEntities = null; //TODO:same
         [SerializeField] private Object entityQueryFilter;
+        [SerializeField] private string entityQueryFilterName;
+        [SerializeField] private string entityQueryFilterNameSpace;
+        [SerializeField] private Type entityFilterComponent;
         [SerializeField] private ActionsTemplateObject targetingActions;
 
         /// <summary>
-        /// Constructor for the GeometryVision target object
+        /// Constructor for the GeometryVision targeting instructions object
         /// </summary>
         /// <param name="geoType"></param>
         /// <param name="tagName"></param>
-        /// <param name="targetingSystem"></param>
+        /// <param name="targetingSystems">Item1 entity targeting system, Item2 GameObject targeting system</param>
         /// <param name="targetingEnabled"></param>
         /// <param name="entityQueryFilter"></param>
-        public TargetingInstruction(GeometryType geoType, string tagName, IGeoTargeting targetingSystem,
-            bool targetingEnabled, Object entityQueryFilter)
+        public TargetingInstruction(GeometryType geoType, string tagName, (IGeoTargeting, IGeoTargeting) targetingSystems, bool targetingEnabled, Object entityQueryFilter)
         {
             GeometryType = geoType;
-            targetTag = tagName;
+            if (targetTag == null && tagName == null)
+            {
+                targetTag = "";
+            }
+            else
+            {
+                targetTag = tagName;
+            }
+
             this.EntityQueryFilter = entityQueryFilter;
-
+#if UNITY_EDITOR
+            if (this.EntityQueryFilter)
+            {
+                var nameSpace = GetNameSpace(this.EntityQueryFilter.ToString());
+                this.EntityQueryFilterNameSpace = nameSpace;
+                this.EntityQueryFilterName = EntityQueryFilter.name;
+            }
+#endif
+            
             isTargetingEnabled.Value = targetingEnabled;
-            AssignTargetingSystem(targetingSystem);
-
             isTargetActionsTemplateSlotVisible = targetingEnabled;
 
-            void AssignTargetingSystem(IGeoTargeting geoTargeting)
-            {
-                if (targetingSystem != null && geoTargeting.IsForEntities())
-                {
-                    TargetingSystemEntities = geoTargeting;
-                }
-                else
-                {
-                    TargetingSystemGameObjects = geoTargeting;
-                }
-            }
+            AssignTargetingSystem(targetingSystems.Item2);
+            AssignTargetingSystem(targetingSystems.Item1);
         }
 
         /// <summary>
-        /// Constructor overload for the GeometryVision target object
-        /// provides factory settings as parameter. Easier to pass multiple parameters
+        /// Constructor overload for the GeometryVision targeting instruction object.
+        /// Accepts factory settings as parameter.
+        /// Easier to pass multiple parameters.
         /// </summary>
         /// <param name="geoType"></param>
         /// <param name="targetingSystem"></param>
@@ -90,26 +91,34 @@ namespace Plugins.GeometricVision
             GeometryDataModels.FactorySettings settings)
         {
             GeometryType = geoType;
-            targetTag = settings.defaultTag;
+            if (targetTag == null && settings.defaultTag == null)
+            {
+                targetTag = "";
+            }
+            else
+            {
+                targetTag = settings.defaultTag;
+            }
             this.entityQueryFilter = settings.entityComponentQueryFilter;
+            this.entityFilterComponent = GetCurrentEntityFilterType();
             isTargetingEnabled.Value = settings.defaultTargeting;
             AssignTargetingSystem(targetingSystem);
             TargetingActions = settings.actionsTemplateObject;
             isTargetActionsTemplateSlotVisible = settings.defaultTargeting;
 
-            void AssignTargetingSystem(IGeoTargeting geoTargeting)
+
+        }
+        void AssignTargetingSystem(IGeoTargeting targetingSystem)
+        {
+            if (targetingSystem != null && targetingSystem.IsForEntities())
             {
-                if (targetingSystem != null && geoTargeting.IsForEntities())
-                {
-                    TargetingSystemEntities = geoTargeting;
-                }
-                else
-                {
-                    TargetingSystemGameObjects = geoTargeting;
-                }
+                TargetingSystemEntities = targetingSystem;
+            }
+            else
+            {
+                TargetingSystemGameObjects = targetingSystem;
             }
         }
-
         public IGeoTargeting TargetingSystemGameObjects
         {
             get { return targetingSystemGameObjects; }
@@ -125,7 +134,17 @@ namespace Plugins.GeometricVision
         public string TargetTag
         {
             get { return targetTag; }
-            set { targetTag = value; }
+            set
+            {
+                if (value != null)
+                {
+                    targetTag = value;
+                }
+                else
+                {
+                    targetTag = "";
+                }
+            }
         }
 
         public GeometryType GeometryType
@@ -148,7 +167,11 @@ namespace Plugins.GeometricVision
             get { return enabled; }
             set { enabled = value; }
         }
-
+        
+        /// <summary>
+        /// This boolean variable handles it job on the inspector gui under the hood.
+        /// </summary>
+        /// <remarks>The other way is to find out how to get reactive value out of serialized property. Shows option for adding actions template from the inspector GUI</remarks>
         public bool IsTargetActionsTemplateSlotVisible
         {
             get { return isTargetActionsTemplateSlotVisible; }
@@ -167,20 +190,123 @@ namespace Plugins.GeometricVision
             set { targetingActions = value; }
         }
 
-        private Type GetCurrentEntityFilterType()
+        public Type EntityFilterComponent
         {
-            if (entityQueryFilter != null)
+            get { return entityFilterComponent; }
+        }
+
+        public string EntityQueryFilterName
+        {
+            get { return entityQueryFilterName; }
+            set { entityQueryFilterName = value; }
+        }
+
+        public string EntityQueryFilterNameSpace
+        {
+            get { return entityQueryFilterNameSpace; }
+            set { entityQueryFilterNameSpace = value; }
+        }
+
+
+        public void SetCurrentEntityFilterType(UnityEngine.Object entityFilterObject)
+        {
+            if (entityFilterObject)
             {
-                var mS = (MonoScript) entityQueryFilter;
-                Debug.Log(mS);
-                Type type = mS.GetClass().UnderlyingSystemType;
-                Debug.Log(type);
+                this.EntityQueryFilter = entityFilterObject;
+                var nameSpace = GetNameSpace(entityFilterObject.ToString());
+                this.EntityQueryFilterNameSpace = nameSpace;
+                this.EntityQueryFilterName = entityFilterObject.name;
+                this.entityFilterComponent = Type.GetType(string.Concat(nameSpace, ".", entityFilterObject.name));
+            }
+        }
+
+        public Type GetCurrentEntityFilterType()
+        {
+#if UNITY_EDITOR
+            if (this.entityQueryFilter)
+            {
+                var nameSpace = GetNameSpace(this.EntityQueryFilter.ToString());
+                this.EntityQueryFilterNameSpace = nameSpace;
+                this.EntityQueryFilterName = EntityQueryFilter.name;
+            }
+#endif
+            Type entityFilterType = Type.GetType(string.Concat(EntityQueryFilterNameSpace, ".", EntityQueryFilterName));
+            return entityFilterType;
+        }
+
+        /// <summary>
+        /// Finds the correct type for a script. 
+        /// Script from unity forums combined with suggestion.
+        /// </summary>
+        /// <param name="TypeName"></param>
+        /// <returns></returns>
+        public static Type GetType(string TypeName)
+        {
+            // Try Type.GetType() first. This will work with types defined
+            // by the Mono runtime, in the same assembly as the caller, etc.
+            var type = Type.GetType(TypeName);
+
+            // If it worked, then we're done here
+            if (type != null)
                 return type;
-            }
-            else
+
+            // If the TypeName is a full name, then we can try loading the defining assembly directly
+            if (TypeName.Contains("."))
             {
-                return null;
+                // Get the name of the assembly (Assumption is that we are using 
+                // fully-qualified type names)
+                var assemblyName = TypeName.Substring(0, TypeName.IndexOf('.'));
+
+                // Attempt to load the indicated Assembly
+                var assembly = Assembly.Load(assemblyName);
+                if (assembly == null)
+                    return null;
+
+                // Ask that assembly to return the proper Type
+                type = assembly.GetType(TypeName);
+                if (type != null)
+                    return type;
             }
+
+            System.Reflection.Assembly[] assemblies = System.AppDomain.CurrentDomain.GetAssemblies();
+            foreach (var A in assemblies)
+            {
+                if (A.FullName.Contains("GeometricVision"))
+                {
+                    // Attempt to load the indicated Assembly
+                    var assembly = Assembly.Load(A.FullName);
+                    if (assembly == null)
+                        return null;
+
+                    // Ask that assembly to return the proper Type
+
+                    return assembly.GetType(TypeName);
+                }
+            }
+
+            // The type just couldn't be found...
+            return null;
+        }
+
+        /// <summary>
+        /// Get namespace for getting a type with class name
+        /// </summary>
+        /// <param name="text"></param>
+        /// <returns>Trimmed namespace</returns>
+        private string GetNameSpace(string text)
+        {
+            string[] lines = text.Replace("\r", "").Split('\n');
+            string toReturn = "";
+            int elementFollowingNamespaceDeclaration = 1;
+            foreach (var line in lines)
+            {
+                if (line.Contains("namespace"))
+                {
+                    toReturn = line.Split(' ')[elementFollowingNamespaceDeclaration].Trim();
+                }
+            }
+
+            return toReturn;
         }
     }
 }

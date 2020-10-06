@@ -2,7 +2,9 @@
 using System.Linq;
 using Plugins.GeometricVision.Interfaces;
 using Plugins.GeometricVision.Utilities;
+using Unity.Collections;
 using UnityEngine;
+using UnityEngine.Jobs;
 using UnityEngine.SceneManagement;
 
 namespace Plugins.GeometricVision.ImplementationsGameObjects
@@ -49,15 +51,33 @@ namespace Plugins.GeometricVision.ImplementationsGameObjects
         /// </summary>
         public void CheckSceneChanges(GeometryVision geoVision)
         {
-            SceneManager.GetActiveScene().GetRootGameObjects(RootObjects);
-            var currentObjectCount = CountObjectsInHierarchy(RootObjects);
-
-            if (currentObjectCount != lastCount)
+            if (geoVision.TargetingInstructions[0].TargetTag.Length == 0)
             {
-                lastCount = currentObjectCount;
-                UpdateSceneTransforms(RootObjects, allTransforms, "");
-                CreateGeoInfoObjects(allTransforms, geoVision.Runner.GeoMemory.GeoInfos,
-                    geoVision.TargetingInstructions, false, false);
+                SceneManager.GetActiveScene().GetRootGameObjects(RootObjects);
+                var currentObjectCount = CountObjectsInHierarchy(RootObjects);
+
+                UpdateSceneChanges(currentObjectCount);
+            }
+            else
+            {
+                allTransforms = new HashSet<Transform>(GameObject
+                    .FindGameObjectsWithTag(geoVision.TargetingInstructions[0].TargetTag).ToList()
+                    .Select(go => go.transform).ToList());
+
+
+                int currentObjectCount = allTransforms.Count;
+                UpdateSceneChanges(currentObjectCount);
+            }
+
+            void UpdateSceneChanges(int currentObjectCount)
+            {
+                if (currentObjectCount != lastCount)
+                {
+                    lastCount = currentObjectCount;
+                    UpdateSceneTransforms(RootObjects, allTransforms);
+                    CreateGeoInfoObjects(allTransforms, geoVision.Runner.GeoMemory.GeoInfos,
+                        geoVision.TargetingInstructions, geoVision.CollidersTargeted, geoVision.UseBounds);
+                }
             }
         }
 
@@ -98,7 +118,7 @@ namespace Plugins.GeometricVision.ImplementationsGameObjects
 
             return numberOfObjects;
         }
-
+   
         /// <summary>
         /// Gets all the transforms from list of root objects
         /// </summary>
@@ -142,7 +162,7 @@ namespace Plugins.GeometricVision.ImplementationsGameObjects
                 GetObjectsInTransformHierarchy(root.GetChild(index), ref targetList, numberOfObjects + 1);
             }
 
-            return childCount;
+            return numberOfObjects;
         }
 
         /// <summary>
@@ -165,12 +185,12 @@ namespace Plugins.GeometricVision.ImplementationsGameObjects
                 }
 
                 var geoInfo = CreateGeoInfoObject(seenTransform);
-                
+
                 if (requireRenderer)
                 {
                     geoInfo = GetGeoInfoGeometryData(targetedGeometries, geoInfo, seenTransform);
                 }
-                
+
                 geoInfos.Add(geoInfo);
             }
 
@@ -188,21 +208,17 @@ namespace Plugins.GeometricVision.ImplementationsGameObjects
             GeometryDataModels.GeoInfo GetGeoInfoGeometryData(List<TargetingInstruction> targetedGeometries2,
                 GeometryDataModels.GeoInfo geoInfo, Transform seenTransform)
             {
-                if (GeometryIsTargeted(targetedGeometries2))
+                var seenRenderer = seenTransform.GetComponent<Renderer>();
+                geoInfo.renderer = seenRenderer;
+
+                if (seenRenderer && GeometryIsTargeted(targetedGeometries2))
                 {
-                    var seenRenderer = seenTransform.GetComponent<Renderer>();
-                    if (seenRenderer)
+                    geoInfo.edges = new GeometryDataModels.Edge[0];
+
+                    var meshFilter = seenTransform.GetComponent<MeshFilter>();
+                    if (meshFilter)
                     {
-                        geoInfo.edges = new GeometryDataModels.Edge[0];
-                        geoInfo.renderer = seenRenderer;
-                        var meshFilter = seenTransform.GetComponent<MeshFilter>();
-                        if (meshFilter)
-                        {
-                            geoInfo.mesh = meshFilter.mesh;
-                        }
-
-                        geoInfo.edges = MeshUtilities.GetEdgesFromMesh(geoInfo.renderer, geoInfo.mesh, collidersTargeted, geoInfo);
-
+                        geoInfo.mesh = meshFilter.mesh;
                     }
                 }
                 else
@@ -218,15 +234,15 @@ namespace Plugins.GeometricVision.ImplementationsGameObjects
         /// <summary>
         /// Check if user has selected mesh geometry as target for the operation
         /// </summary>
-        /// <param name="targetedGeometries"></param>
+        /// <param name="targetingInstructions"></param>
         /// <returns></returns>
-        private bool GeometryIsTargeted(List<TargetingInstruction> targetedGeometries)
+        private bool GeometryIsTargeted(List<TargetingInstruction> targetingInstructions)
         {
             bool found = false;
-            foreach (var visionTarget in targetedGeometries)
+            foreach (var targetingInstruction in targetingInstructions)
             {
-                if (visionTarget.GeometryType == GeometryType.Lines ||
-                    visionTarget.GeometryType == GeometryType.Vertices)
+                if (targetingInstruction.GeometryType == GeometryType.Lines ||
+                    targetingInstruction.GeometryType == GeometryType.Vertices)
                 {
                     found = true;
                 }
@@ -240,16 +256,9 @@ namespace Plugins.GeometricVision.ImplementationsGameObjects
         /// </summary>
         /// <param name="rootObjects"></param>
         /// <param name="allObjects"></param>
-        private void UpdateSceneTransforms(List<GameObject> rootObjects, HashSet<Transform> allObjects, string tagName)
+        private void UpdateSceneTransforms(List<GameObject> rootObjects, HashSet<Transform> allObjects)
         {
-            if (tagName.Length > 0)
-            {
-                GetTransforms(GameObject.FindGameObjectsWithTag(tagName).ToList(), ref allObjects);
-            }
-            else
-            {
-                GetTransformsFromRootObjects(rootObjects, ref allObjects);
-            }
+            GetTransformsFromRootObjects(rootObjects, ref allObjects);
         }
     }
 }

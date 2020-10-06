@@ -1,10 +1,7 @@
 ﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using Plugins.GeometricVision.UI;
+using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
-using UnityEditor;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
@@ -12,7 +9,6 @@ namespace Plugins.GeometricVision
 {
     public enum GeometryType
     {
-        all,
         Vertices,
         Lines,
         Objects
@@ -27,11 +23,14 @@ namespace Plugins.GeometricVision
         {
             public int firstEdgePointIndex;
             public int secondEdgePointIndex;
-            public Vector3 firstVertex;
-            public Vector3 secondVertex;
-            public Boolean isVisible;
+            public float3 firstVertex;
+            public float3 secondVertex;
+            public bool isVisible;
         }
-
+        
+        /// <summary>
+        /// Cache object for GameObject related data
+        /// </summary>
         public struct GeoInfo
         {
             public GameObject gameObject;
@@ -39,14 +38,17 @@ namespace Plugins.GeometricVision
             public Transform transform;
             public GeometryDataModels.Edge[] edges;
             public Mesh mesh;
-           // private Vector3[] BoundsCorners;
             public Mesh colliderMesh;
         }
         
-        public struct Target :IComponentData
+        /// <summary>
+        /// Multi threading friendly target object containing info how to find entity or gameObject and info about
+        /// distances.
+        /// </summary>
+        public struct Target :IComponentData, IComparable<Target>
         {
-            public Vector3 position;
-            public Vector3 projectedTargetPosition;
+            public float3 position;
+            public float3 projectedTargetPosition;
             public float distanceToRay;
             public float distanceToCastOrigin;
             public bool isEntity;
@@ -54,7 +56,15 @@ namespace Plugins.GeometricVision
             public Entity entity;
             public bool isSeen;
 
-
+            public int CompareTo(Target other)
+            {
+                var distanceToRayComparison = distanceToRay.CompareTo(other.distanceToRay);
+                if (distanceToRayComparison != 0) return distanceToRayComparison;
+                var distanceToCastOriginComparison = distanceToCastOrigin.CompareTo(other.distanceToCastOrigin);
+                if (distanceToCastOriginComparison != 0) return distanceToCastOriginComparison;
+       
+                return isSeen.CompareTo(other.isSeen);
+            }
         }
         
         public enum Plane : ushort
@@ -71,7 +81,6 @@ namespace Plugins.GeometricVision
         {
             public bool processGameObjects;
             public bool processEntities;
-            public bool processGameObjectsEdges;
             public float fielOfView;
             public bool edgesTargeted;
             public bool defaultTargeting;
@@ -79,16 +88,5 @@ namespace Plugins.GeometricVision
             public Object entityComponentQueryFilter;
             public ActionsTemplateObject actionsTemplateObject;
         }
-        
-        /// <summary>
-        /// Great and easy idea for Blittable type boolean from playerone-studio.com
-        /// </summary>
-        public enum Boolean : byte
-        {
-            False = 0,
-            True = 1
-        }
-  
-
     }
 }

@@ -3,39 +3,15 @@ using System.Collections.Generic;
 using Plugins.GeometricVision.Interfaces;
 using Plugins.GeometricVision.Interfaces.Implementations;
 using Unity.Collections;
+using Unity.Mathematics;
 using UnityEngine;
 
 namespace Plugins.GeometricVision.ImplementationsGameObjects
 {
     public class GeometryObjectTargeting : IGeoTargeting
     {
-        public NativeArray<GeometryDataModels.Target> GetTargetsAsNativeArray(Vector3 rayLocation,
-            Vector3 rayDirectionWS,
-            List<GeometryDataModels.GeoInfo> GeoInfos)
+        public NativeArray<GeometryDataModels.Target> GetTargetsAsNativeArray(Vector3 rayLocation, Vector3 rayDirection, GeometryVision geometryVision, TargetingInstruction targetingInstruction)
         {
-            GeometryDataModels.Target targetInfo = new GeometryDataModels.Target();
-            List<GeometryDataModels.Target> targetInfos = new List<GeometryDataModels.Target>();
-            foreach (var geoInfoAsTarget in GeoInfos)
-            {
-                targetInfos = GetDataForTarget();
-
-                List<GeometryDataModels.Target> GetDataForTarget()
-                {
-                    Vector3 point = geoInfoAsTarget.transform.position;
-                    Vector3 rayDirectionEndPoint = rayDirectionWS;
-                    point = pointToRaySpace(rayLocation, point);
-                    rayDirectionEndPoint = pointToRaySpace(rayLocation, rayDirectionWS);
-                    targetInfo.projectedTargetPosition = Vector3.Project(point, rayDirectionEndPoint) + rayLocation;
-                    targetInfo.position = pointFromRaySpaceToObjectSpace(point, rayLocation);
-                    targetInfo.distanceToRay =
-                        Vector3.Distance(targetInfo.position, targetInfo.projectedTargetPosition);
-                    targetInfo.distanceToCastOrigin = Vector3.Distance(rayLocation, targetInfo.projectedTargetPosition);
-                    targetInfo.GeoInfoHashCode = geoInfoAsTarget.GetHashCode();
-                    targetInfos.Add(targetInfo);
-                    return targetInfos;
-                }
-            }
-
             throw new NotImplementedException();
         }
 
@@ -43,15 +19,15 @@ namespace Plugins.GeometricVision.ImplementationsGameObjects
             GeometryVision geoVision, TargetingInstruction targetingInstruction)
         {
             GeometryDataModels.Target targetInfo = new GeometryDataModels.Target();
-            List<GeometryDataModels.Target> targetInfos = new List<GeometryDataModels.Target>();
+            List<GeometryDataModels.Target> gameObjectTargets= new List<GeometryDataModels.Target>();
             
             if (targetingInstruction.TargetTag.Length > 0)
             {
                 foreach (var geoInfoAsTarget in geoVision.GetEye<GeometryVisionEye>().SeenGeoInfos)
                 {
-                    if (geoInfoAsTarget.gameObject.CompareTag(targetingInstruction.TargetTag))
+                    if (geoInfoAsTarget.gameObject && geoInfoAsTarget.gameObject.CompareTag(targetingInstruction.TargetTag))
                     {
-                        targetInfos = GetDataForTarget(geoInfoAsTarget);
+                        gameObjectTargets.Add(GetDataForTarget(geoInfoAsTarget));
                     }
                 }
             }
@@ -59,14 +35,19 @@ namespace Plugins.GeometricVision.ImplementationsGameObjects
             {
                 foreach (var geoInfoAsTarget in geoVision.GetEye<GeometryVisionEye>().SeenGeoInfos)
                 {
-                    targetInfos = GetDataForTarget(geoInfoAsTarget);
+                    gameObjectTargets.Add(GetDataForTarget(geoInfoAsTarget));
                 } 
             }
             
-            List<GeometryDataModels.Target> GetDataForTarget(GeometryDataModels.GeoInfo geoInfoAsTarget)
+
+            return gameObjectTargets;
+            
+            //Local functions 
+            
+            GeometryDataModels.Target GetDataForTarget(GeometryDataModels.GeoInfo geoInfoAsTarget)
             {
-                Vector3 point = geoInfoAsTarget.transform.position;
-                Vector3 rayDirectionEndPoint = rayDirectionWS;
+                float3 point = geoInfoAsTarget.transform.position;
+                float3 rayDirectionEndPoint = rayDirectionWS;
                 point = pointToRaySpace(rayLocation, point);
                 rayDirectionEndPoint = pointToRaySpace(rayLocation, rayDirectionWS);
                 targetInfo.projectedTargetPosition = Vector3.Project(point, rayDirectionEndPoint) + rayLocation;
@@ -76,14 +57,13 @@ namespace Plugins.GeometricVision.ImplementationsGameObjects
                 targetInfo.distanceToCastOrigin =
                     Vector3.Distance(rayLocation, targetInfo.projectedTargetPosition);
                 targetInfo.GeoInfoHashCode = geoInfoAsTarget.GetHashCode();
-                targetInfos.Add(targetInfo);
-                return targetInfos;
+                
+                return targetInfo;
             }
 
-            return targetInfos;
         }
 
-        public NativeList<GeometryDataModels.Target> GetTargets(Vector3 rayLocation, Vector3 rayDirectionWS,
+        public NativeArray<GeometryDataModels.Target> GetTargets(Vector3 rayLocation, Vector3 rayDirectionWS, GeometryVision geometryVision,
             List<GeometryDataModels.GeoInfo> targets)
         {
             List<GeometryDataModels.Target> targetInfos = new List<GeometryDataModels.Target>();

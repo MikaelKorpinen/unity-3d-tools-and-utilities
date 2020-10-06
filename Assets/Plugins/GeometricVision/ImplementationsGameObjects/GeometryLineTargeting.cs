@@ -7,7 +7,7 @@ namespace Plugins.GeometricVision.ImplementationsGameObjects
 {
     public class GeometryLineTargeting : IGeoTargeting
     {
-        public NativeArray<GeometryDataModels.Target> GetTargetsAsNativeArray(Vector3 rayLocation, Vector3 rayDirection, List<GeometryDataModels.GeoInfo> targets)
+        public NativeArray<GeometryDataModels.Target> GetTargetsAsNativeArray(Vector3 rayLocation, Vector3 rayDirection,GeometryVision geometryVision, TargetingInstruction targetingInstruction)
         {
             throw new System.NotImplementedException();
         }

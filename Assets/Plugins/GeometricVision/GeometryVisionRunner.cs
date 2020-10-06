@@ -4,6 +4,8 @@ using System.Collections.Generic;
 using Plugins.GeometricVision.ImplementationsGameObjects;
 using Plugins.GeometricVision.Interfaces;
 using Plugins.GeometricVision.Interfaces.Implementations;
+using Plugins.GeometricVision.Utilities;
+using Unity.Entities;
 using UnityEngine;
 using Object = System.Object;
 
@@ -23,7 +25,10 @@ namespace Plugins.GeometricVision
         private HashSet<GeometryVision> geoVisions;
         private HashSet<IGeoProcessor> processors = new HashSet<IGeoProcessor>();
         internal GeometryVisionMemory GeoMemory { get; } = new GeometryVisionMemory();
-        public EyeDebugger EyeDebugger { get; } = new EyeDebugger();
+
+        private EyeDebugger EyeDebugger { get; } = new EyeDebugger();
+        private float time = 0f;
+        
 
         private void Awake()
         {
@@ -37,52 +42,60 @@ namespace Plugins.GeometricVision
 
         private void Update()
         {
-            foreach (var processor in processors)
+            foreach (var processor in Processors)
             {
-                foreach (var geoVision in geoVisions)//processor.GeoVisions
+                foreach (var geoVision in geoVisions) //processor.GeoVisions
                 {
-                    processor.CheckSceneChanges(geoVision);
+                    time += Time.deltaTime;
+                    if (time > geoVision.CheckEnvironmentChangesTimeInterval)
+                    {
+                        time = 0f;
+                        processor.CheckSceneChanges(geoVision);
+                    }
+                    
                     if (geoVision.DebugMode)
                     {
                         processor.Debug(geoVision);
                     }
+
                     geoVision.RegenerateVisionArea(geoVision.FieldOfView);
                     foreach (var geoEye in geoVision.Eyes)
                     {
-                        geoEye.UpdateVisibility();
+
+                        geoEye.UpdateVisibility(geoVision.UseBounds);
+                        
+
                         if (geoVision.DebugMode)
                         {
                             EyeDebugger.Debug(geoEye);
                         }
                     }
+
                     geoVision.UpdateClosestTargets();
                 }
             }
         }
-
-        public void AddProcessor<T>(T processor)
+        /// <summary>
+        /// Adds the processor of given type for the runner.
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <returns></returns>
+        public void AddProcessor<T>()
         {
-            if (processors == null)
-            {
-                processors = new HashSet<IGeoProcessor>();
-            }
-
-            if (InterfaceUtilities.ListContainsInterfaceImplementationOfType(processor.GetType(), processors) == false)
-            {
-                var dT = (IGeoProcessor) default(T);
-                if (Object.Equals(processor, dT) == false)
-                {
-                    processors.Add((IGeoProcessor) processor);
-                }
-            }
-        }
-
-        public T GetProcessor<T>()
-        {
-            return (T) InterfaceUtilities.GetInterfaceImplementationOfTypeFromList(typeof(T), processors);
+           
         }
         
-        public void RemoveProcessor<T>()
+        /// <summary>
+        /// Gets the processor of given type from the runner.
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <returns></returns>
+        public T GetProcessor<T>()
+        {
+            return (T) InterfaceUtilities.GetInterfaceImplementationOfTypeFromList(typeof(T), Processors);
+        }
+
+        public void RemoveGameObjectProcessor<T>() 
         {
             InterfaceUtilities.RemoveInterfaceImplementationsOfTypeFromList(typeof(T), ref processors);
             if (typeof(T) == typeof(GeometryVisionProcessor))
@@ -96,33 +109,44 @@ namespace Plugins.GeometricVision
                 }
                 else if (Application.isPlaying == false && processor != null)
                 {
-                    DestroyImmediate(processor); 
+                    DestroyImmediate(processor);
                 }
             }
         }
         
-        public void RemoveProcessors<T>()
+        public void RemoveEntityProcessor<T>() where T : ComponentSystemBase
         {
             InterfaceUtilities.RemoveInterfaceImplementationsOfTypeFromList(typeof(T), ref processors);
-            if (typeof(T) == typeof(GeometryVisionProcessor))
+            
+            foreach (GeometryVision geoVision in geoVisions)
             {
-                var processor = GetComponent<GeometryVisionProcessor>();
-                //also remove the mono behaviour from gameObject, if it is one. TODO: get the if implements monobehaviour
-                //Currently there is only 2 types
-                if (Application.isPlaying && processor != null)
+                var system = geoVision.EntityWorld.GetExistingSystem<T>();
+                if (system != null)
                 {
-                    Destroy(processor);
-                }
-                else if (Application.isPlaying == false && processor != null)
-                {
-                    DestroyImmediate(processor); 
+                    geoVision.EntityWorld.DestroySystem(system);
                 }
             }
         }
+        
         public HashSet<GeometryVision> GeoVisions
         {
             get { return geoVisions; }
             set { geoVisions = value; }
+        }
+
+        public HashSet<IGeoProcessor> Processors
+        {
+            get { return processors; }
+        }
+
+        public void AddEntityProcessor<T>(World world) where T : ComponentSystemBase, IGeoProcessor, new()
+        {
+            GeometryVisionUtilities.HandleEntityImplementationAddition(GetProcessor<T>(), processors, world, InitProcessor);
+            
+            void InitProcessor()
+            {
+              //Initialisation variable setup here  
+            }
         }
     }
 }

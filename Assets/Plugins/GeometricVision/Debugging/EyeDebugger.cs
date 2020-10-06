@@ -7,9 +7,7 @@ using Plugins.GeometricVision;
 using Plugins.GeometricVision.Interfaces;
 using Plugins.GeometricVision.Interfaces.Implementations;
 using Unity.Collections;
-using UnityEditor.Graphs;
 using UnityEngine;
-using static Plugins.GeometricVision.GeometryDataModels.Boolean;
 using Plane = Plugins.GeometricVision.GeometryDataModels.Plane;
 
 public class EyeDebugger 
@@ -113,7 +111,7 @@ public class EyeDebugger
 
         foreach (var edge in edges)
         {
-            if (edge.isVisible == True)
+            if (edge.isVisible == true)
             {
                 UnityEngine.Debug.DrawLine(edge.firstVertex, edge.secondVertex, Color.blue, 1);
                 amountOfSeenEdges++;
@@ -143,7 +141,7 @@ public class EyeDebugger
         
         if (eye != null)
         {
-            DrawEdges(iGeoEye.GetSeenEdges());
+          //  DrawEdges(iGeoEye.GetSeenEdges());
         }
     }
     

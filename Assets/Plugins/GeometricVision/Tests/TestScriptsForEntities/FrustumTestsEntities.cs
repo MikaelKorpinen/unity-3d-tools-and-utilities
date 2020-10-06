@@ -21,13 +21,13 @@ namespace Plugins.GeometricVision.Tests.TestScriptsForEntities
             processGameObjects = false,
             processEntities = true,
             defaultTargeting = true,
-            processGameObjectsEdges = false,
         };
         
         [TearDown]
         public void TearDown()
         {
             TestUtilities.PostCleanUpBuildSettings(TestSessionVariables.BuildScenes);
+            TestUtilities.CleanUpEntities();
         }
 
         /// <summary>

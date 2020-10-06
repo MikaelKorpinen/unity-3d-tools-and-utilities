@@ -1,26 +1,13 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using Plugins.GeometricVision;
 using Plugins.GeometricVision.Interfaces;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
 public static class InterfaceUtilities
 {
-    public static bool ListContainsInterfaceImplementationOfType<T>(Type typeToCheck, List<T> interfaces)
-    {
-        bool found = false;
-
-        foreach (var processor in interfaces)
-        {
-            if (processor.GetType() == typeToCheck && processor != null)
-            {
-                found = true;
-            }
-        }
-
-        return found;
-    }
 
     public static bool ListContainsInterfaceImplementationOfType<T>(Type typeToCheck, HashSet<T> interfaces)
     {
@@ -36,22 +23,47 @@ public static class InterfaceUtilities
 
         return found;
     }
+    
 
-    public static void RemoveInterfaceImplementationsOfTypeFromList<T>(Type typeToCheck, ref List<T> implementations)
+    public static void AddImplementation<Tinterface, TValue>(TValue implementationToAdd, HashSet<Tinterface> implementations) where TValue: Tinterface
     {
-
-        List<T> tempList = new List<T>();
-        foreach (var processor in implementations)
+        if (implementations == null)
         {
-            if (processor.GetType() != typeToCheck)
-            {
-                tempList.Add(processor);
-            }
+            implementations = new HashSet<Tinterface>();
         }
 
-        implementations = tempList;
+        if (ListContainsInterfaceImplementationOfType(implementationToAdd.GetType(), implementations) == false)
+        {
+            var dT = (Tinterface) default(TValue);
+            if (Equals(implementationToAdd, dT) == false)
+            {
+                implementations.Add(implementationToAdd);
+            }
+        }
     }
+    public static void AddImplementation<TInterface, TImplementation>(Func<IGeoEye> action, HashSet<TInterface> implementations, GameObject gameObject) where TImplementation: TInterface
+    {
+        if (implementations == null)
+        {
+            implementations = new HashSet<TInterface>();
+        }
+        var eye = gameObject.GetComponent(typeof(TImplementation));
+        if (eye == null)
+        {
+            gameObject.AddComponent(typeof(TImplementation));
+        }
 
+        TInterface implementation = (TInterface)action.Invoke();
+        if (ListContainsInterfaceImplementationOfType(implementation.GetType(), implementations) == false)
+        {
+           
+            var dT = (TInterface) default(TImplementation);
+            if (Equals(implementation, dT) == false)
+            {
+                implementations.Add(implementation);
+            }
+        }
+    }
     public static void RemoveInterfaceImplementationsOfTypeFromList<T>(Type typeToCheck, ref HashSet<T> implementations)
     {
         HashSet<T> tempList = new HashSet<T>();
@@ -67,33 +79,6 @@ public static class InterfaceUtilities
         implementations = tempList;
     }
 
-    public static T GetInterfaceImplementationOfTypeFromList<T>(Type typeToCheck, List<T> implementations)
-    {
-        T interfaceToReturn = default(T);
-        foreach (var processor in implementations)
-        {
-            if (processor.GetType() == typeToCheck)
-            {
-                interfaceToReturn = processor;
-            }
-        }
-
-        return interfaceToReturn;
-    }
-    
-    public static HashSet<T> GetInterfaceImplementationsOfTypeFromList<T>(Type typeToCheck, HashSet<T> implementations)
-    {
-        HashSet<T> toReturn = new HashSet<T>();
-        foreach (var implementation in implementations)
-        {
-            if (implementation.GetType() == typeToCheck)
-            {
-                toReturn.Add(implementation);
-            }
-        }
-        return toReturn;
-    }
-    
     public static T GetInterfaceImplementationOfTypeFromList<T>(Type typeToCheck, HashSet<T> implementations)
     {
         T interfaceToReturn = default(T);

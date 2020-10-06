@@ -1,29 +1,26 @@
 ﻿using System.Collections.Generic;
-using System.ComponentModel;
-using Plugins.GeometricVision.EntityScripts;
-using Plugins.GeometricVision.ImplementationsEntities;
+using Plugins.GeometricVision.Interfaces;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Jobs;
-using Unity.Mathematics;
 using Unity.Transforms;
 using UnityEngine;
 
-namespace Plugins.GeometricVision.Interfaces.ImplementationsEntities
+namespace Plugins.GeometricVision.ImplementationsEntities
 {
-    /// <inheritdoc />
+    /// <inheritdoc cref="Plugins.GeometricVision.Interfaces.IGeoProcessor" />
+    /// 
     [DisableAutoCreation]
     [AlwaysUpdateSystem]
     [UpdateAfter(typeof(GeometryVisionEntityEye))]
     public class GeometryVisionEntityProcessor : SystemBase, IGeoProcessor
     {
-        private int lastCount = 0;
         private bool collidersTargeted;
 
         //private bool extractGeometry;
         private BeginInitializationEntityCommandBufferSystem entityCommandBufferSystem;
-        [System.ComponentModel.ReadOnly(true)] public EntityCommandBuffer.Concurrent ConcurrentCommands;
+        [System.ComponentModel.ReadOnly(true)] public EntityCommandBuffer.ParallelWriter ConcurrentCommands;
         private int currentObjectCount;
         private GeometryVision geoVision;
         private EntityQuery entityQuery = new EntityQuery();
@@ -40,7 +37,7 @@ namespace Plugins.GeometricVision.Interfaces.ImplementationsEntities
         protected override void OnUpdate()
         {
 
-            entityCommandBufferSystem.CreateCommandBuffer().ToConcurrent();
+            entityCommandBufferSystem.CreateCommandBuffer().AsParallelWriter();
 
             EntityQuery entitiesWithoutTargetComponent = GetEntityQuery(
                 new EntityQueryDesc()
@@ -79,13 +76,6 @@ namespace Plugins.GeometricVision.Interfaces.ImplementationsEntities
             job2.translations.Dispose();
             job2.targets.Dispose();
             job2.entities.Dispose();
-
-            // CheckSceneChanges(GeoVision);
-            /*if (extractGeometry)
-            {
-                ExtractGeometry(commandBuffer, _targetedGeometries);
-                extractGeometry = false;
-            }*/
         }
         
         [BurstCompile]
@@ -105,72 +95,16 @@ namespace Plugins.GeometricVision.Interfaces.ImplementationsEntities
                 targets[index] = target;
             }
         }
-        
-        /// <summary>
-        /// Extracts geometry from Unity Mesh to geometry object
-        /// </summary>
-        /// <param name="commandBuffer"></param>
-        /// <param name="geoInfos"></param>
-        private void ExtractGeometry(EntityCommandBuffer.Concurrent commandBuffer,
-            List<TargetingInstruction> targetedGeometries)
-        {
-            // var tG = targetedGeometries;
-            if (geometryIsTargeted(targetedGeometries, GeometryType.Lines))
-            {
-                List<GeometryDataModels.GeoInfo> geos = new List<GeometryDataModels.GeoInfo>();
-                // GeometryDataModels.GeoInfo geo = new GeometryDataModels.GeoInfo();
-                Entities
-                    .WithChangeFilter<GeometryDataModelsEntities.GeoInfoEntityComponent>()
-                    .WithBurst(FloatMode.Default, FloatPrecision.Standard, true)
-                    .ForEach((DynamicBuffer<GeometryDataModelsEntities.VerticesBuffer> vBuffer, DynamicBuffer<GeometryDataModelsEntities.TrianglesBuffer> tBuffer,
-                        GeometryDataModelsEntities.LocalToWorldMatrix localToWorldMatrix, DynamicBuffer<GeometryDataModelsEntities.EdgesBuffer> edgeBuffer,
-                        GeometryDataModelsEntities.GeoInfoEntityComponent geoE) =>
-                    {
-                        //    MeshUtilities.BuildEdgesFromNativeArrays(localToWorldMatrix.Matrix, tBuffer, vBuffer).CopyTo(geo.edges);
-                        //      geos.Add(geo);
-                    }).ScheduleParallel();
-            }
-
-            if (geometryIsTargeted(targetedGeometries, GeometryType.Vertices))
-            {
-            }
-        }
 
         /// <summary>
         /// Used to check, if things inside scene has changed. Like if new object has been removed or moved.
         /// </summary>
         public void CheckSceneChanges(GeometryVision geoVision)
         {
-
-            Update();
             this.GeoVision = geoVision;
-            if (currentObjectCount != lastCount)
-            {
-                lastCount = currentObjectCount;
-                //extractGeometry = true;
-            }
+            Update();
         }
-
-        /// <summary>
-        /// Check if user has selected mesh geometry as target for the operation
-        /// </summary>
-        /// <param name="targetedGeometries"></param>
-        /// <param name="lines"></param>
-        /// <returns></returns>
-        private bool geometryIsTargeted(List<TargetingInstruction> targetedGeometries, GeometryType type)
-        {
-            bool found = false;
-            foreach (var visionTarget in targetedGeometries)
-            {
-                if (visionTarget.GeometryType == type)
-                {
-                    found = true;
-                }
-            }
-
-            return found;
-        }
-
+        
         public int CountSceneObjects()
         {
             return currentObjectCount;

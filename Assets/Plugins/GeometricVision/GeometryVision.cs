@@ -2,19 +2,19 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
-using GeometricVision;
 using Plugins.GeometricVision.EntityScripts;
 using Plugins.GeometricVision.ImplementationsEntities;
 using Plugins.GeometricVision.ImplementationsGameObjects;
 using Plugins.GeometricVision.Interfaces;
 using Plugins.GeometricVision.Interfaces.Implementations;
-using Plugins.GeometricVision.Interfaces.ImplementationsEntities;
-using Plugins.GeometricVision.UI;
 using Plugins.GeometricVision.UniRx.Scripts.UnityEngineBridge;
 using Plugins.GeometricVision.Utilities;
 using UniRx;
+using Unity.Burst;
+using Unity.Collections;
 using Unity.Entities;
+using Unity.Jobs;
+using Unity.Mathematics;
 using UnityEditor;
 using UnityEngine;
 using Hash128 = Unity.Entities.Hash128;
@@ -32,14 +32,13 @@ namespace Plugins.GeometricVision
     [DisallowMultipleComponent]
     public class GeometryVision : MonoBehaviour
     {
-        public string Id { get; set; }
+        public UnityEngine.Hash128 Id { get; set; }
 
         [SerializeField, Tooltip("Enables editor drawings for seeing targeting data")]
         private bool debugMode;
 
-        //[SerializeField] private bool hideEdgesOutsideFieldOfView = true;
         [SerializeField] private float fieldOfView = 25f;
-        [SerializeField] private float farDistanceOfView = 25f;
+        [SerializeField] private float farDistanceOfView = 1500f;
 
         [SerializeField, Tooltip("User given parameters as set of targeting instructions")]
         private List<TargetingInstruction> targetingInstructions;
@@ -47,368 +46,199 @@ namespace Plugins.GeometricVision
         [SerializeField, Tooltip("Will enable the system to use GameObjects")]
         private BoolReactiveProperty gameObjectProcessing = new BoolReactiveProperty();
 
-        [SerializeField, Tooltip("Include entities")]
-        private BoolReactiveProperty entityBasedProcessing = new BoolReactiveProperty();
+        [SerializeField, Tooltip("Will enable the system to use entities")]
+        private BoolReactiveProperty entityProcessing = new BoolReactiveProperty();
 
-       // [SerializeField, Tooltip("Entity component to use in filtering queries. If none uses all entities.")]
-       // private UnityEngine.Object entityFilterComponent;
-     
-        private string defaultTag = "";
         private IDisposable gameObjectProcessingObservable = null;
         private IDisposable entityToggleObservable = null;
-
-        public GeometryVisionRunner Runner
-        {
-            get { return runner; }
-            set { runner = value; }
-        }
-
         private HashSet<IGeoEye> eyes = new HashSet<IGeoEye>();
         private Camera hiddenUnityCamera;
         private Plane[] planes = new Plane[6];
         private Vector3 forwardWorldCoordinate = Vector3.zero;
         private Transform cachedTransform;
-        private List<GeometryDataModels.Target> closestTargets = new List<GeometryDataModels.Target>();
-        private List<GeometryDataModels.Target> closestEntityTargets;
+        private NativeArray<GeometryDataModels.Target> closestTargetsContainer;
+        private NativeSlice<GeometryDataModels.Target> closestTargets;
+        private NativeSlice<GeometryDataModels.Target> closestEntityTargets;
+        private NativeSlice<GeometryDataModels.Target> closestGameObjectTargets;
         private World entityWorld;
         private TransformEntitySystem transformEntitySystem;
         private GeometryVisionRunner runner;
+        private bool favorDistanceToCameraInsteadDistanceToPointer = false;
+        private bool useBounds = false;
+        private string defaultTag = "";
+        [SerializeField] private int maxTargets = 100000;
+        private int amountOfTargets = 0;
+
+        [SerializeField,
+         Tooltip(
+             "How often system will check for object scene changes like new or destroyed game objects. This can improve performance in case you have many GameObjects and the scene doesn't get a lot of changes like gameObjects spawning in and out. Zero is checks every frame.")]
+        private float checkEnvironmentChangesTimeInterval = 0.0f;
 
         void Reset()
         {
-            targetingInstructions = new List<TargetingInstruction>();
-            InitializeGeometricVision();
-            if (targetingInstructions.Count == 0)
-            {
-                targetingInstructions.Add(
-                    new TargetingInstruction(GeometryType.Objects, DefaultTag, new GeometryObjectTargeting(), true, null));
-            }
+            InitializeGeometricVision(new List<GeometryType>());
         }
 
         //Awake is called when script is instantiated.
         //Call initialize on Awake to init systems in case Component is created on the factory method.
         void Awake()
         {
-            InitializeGeometricVision();
+            if (EntityWorld == null)
+            {
+                entityWorld = World.DefaultGameObjectInjectionWorld;
+            }
+
+            if (maxTargets == 0)
+            {
+                maxTargets = 1000000;
+            }
+            closestTargetsContainer = new NativeArray<GeometryDataModels.Target>(maxTargets, Allocator.Persistent);
         }
 
         // Start is called before the first frame update
         void Start()
         {
-            InitializeGeometricVision();
+            InitializeGeometricVision(new List<GeometryType>());
+        }
+        
+        /// <summary>
+        /// Should be run before start or in case making changes to GUI values from code and want the changes to happen before next frame(instantly).
+        /// 
+        /// </summary>
+        public void InitializeGeometricVision(List<GeometryType> additionalGeometryTypesToProcess)
+        {
+            cachedTransform = transform;
+            InitUnityCamera();
+            planes = RegenerateVisionArea(FieldOfView, planes);
+            var factory = new GeometryVisionFactory();
+            factory.AddAdditionalTargets(this, additionalGeometryTypesToProcess);
+            targetingInstructions = factory.InitializeTargeting(targetingInstructions, this, entityProcessing, gameObjectProcessing);
+            factory.CreateGeometryVisionRunner(this);
+            factory.InitEntitySwitch(entityProcessing, entityToggleObservable, this, transformEntitySystem);
+            factory.InitGameObjectSwitch(gameObjectProcessingObservable, gameObjectProcessing,this );
         }
 
-        // On validate is called when there is a change in the UI
+        private void OnApplicationQuit()
+        {
+            closestTargetsContainer.Dispose();
+        }
+        
         void OnValidate()
         {
             cachedTransform = transform;
-            InitializeTargeting(TargetingInstructions);
-            ValidateTargetingSystems(targetingInstructions);
-        }
-
-
-        /// <summary>
-        /// Should be run in case making changes to GUI values from code and want the changes to happen before next frame(instantly).
-        /// </summary>
-        public void InitializeGeometricVision()
-        {
-            cachedTransform = transform;
-            closestEntityTargets = new List<GeometryDataModels.Target>();
-            InitUnityCamera(false);
-            planes = RegenerateVisionArea(FieldOfView, planes);
-            targetingInstructions = InitializeTargeting(targetingInstructions);
-
-            GeometryDataModels.FactorySettings factorySettings = new GeometryDataModels.FactorySettings
+            targetingInstructions = AddDefaultInstructionIfNone(targetingInstructions, entityProcessing.Value,
+                gameObjectProcessing.Value);
+            targetingInstructions = GeometryVisionUtilities.ValidateTargetingSystems(targetingInstructions,
+                gameObjectProcessing.Value, entityProcessing.Value, entityWorld);
+            if (targetingInstructions.Count != 1)
             {
-                fielOfView = fieldOfView,
-                processGameObjects = gameObjectProcessing.Value,
-                processEntities = entityBasedProcessing.Value,
-                defaultTargeting = true,
-                defaultTag = ""
-            };
-
-            GeometryVisionUtilities.SetupGeometryVision(this, targetingInstructions, factorySettings);
-            InitEntitySwitch();
-            InitGameObjectSwitch();
-            UpdateTargetingSystemsContainer();
-        }
-
-        // Handles target initialization. Adds needed components and subscribes changing variables to logic that updates the targeting system.
-        private List<TargetingInstruction> InitializeTargeting(List<TargetingInstruction> targetingInstructions)
-        {
-            var geoTargetingSystemsContainer = HandleAddingGeometryTargetingComponent();
-            if (targetingInstructions == null)
-            {
-                targetingInstructions = new List<TargetingInstruction>();
+                var currentTargetingInstruction = targetingInstructions[0];
+                targetingInstructions = new List<TargetingInstruction>(1);
+                targetingInstructions.Add(currentTargetingInstruction);
             }
+            
+            ApplyEntityFilterChanges(targetingInstructions);
+        }
+        
+        /// <summary>
+        /// Applies changes made to entity filter type by the user from editor.
+        /// 
+        /// </summary>
+        /// <remarks>It seems like the object type of script doesn't get saved, so it needs two variables to hold up information
+        /// about the script</remarks>
+        /// <param name="instructions"></param>
+        private void ApplyEntityFilterChanges(List<TargetingInstruction> instructions)
+        {
+            foreach (var targetingInstruction in instructions)
+            {
+                targetingInstruction.SetCurrentEntityFilterType(targetingInstruction.EntityQueryFilter);
+            }
+        }
 
+        internal void ApplyActionsTemplateObject(ActionsTemplateObject template)
+        {
             foreach (var targetingInstruction in targetingInstructions)
             {
-                OnTargetingEnabled(targetingInstruction, geoTargetingSystemsContainer);
-            }
-
-            return targetingInstructions;
-        }
-
-        /// <summary>
-        /// Clears up current targeting and creates a new Hashset, then proceeds to add all the available targeting systems
-        /// to the targeting systems container
-        /// </summary>
-        internal void UpdateTargetingSystemsContainer()
-        {
-            var targetingSystemsContainer = GetComponent<GeometryTargetingSystemsContainer>();
-            targetingSystemsContainer.TargetingPrograms = new HashSet<IGeoTargeting>();
-
-            foreach (var targetingInstruction in targetingInstructions)
-            {
-                if (targetingInstruction.TargetingSystemGameObjects != null)
-                {
-                    targetingSystemsContainer.AddTargetingProgram(targetingInstruction.TargetingSystemGameObjects);
-                }
-
-                if (targetingInstruction.TargetingSystemEntities != null)
-                {
-                    targetingSystemsContainer.AddTargetingProgram(targetingInstruction.TargetingSystemEntities);
-                }
+                targetingInstruction.TargetingActions = template;
             }
         }
 
-        private GeometryTargetingSystemsContainer HandleAddingGeometryTargetingComponent()
+        internal List<TargetingInstruction> AddDefaultInstructionIfNone(
+            List<TargetingInstruction> targetingInstructionsIn, bool entityBased, bool gameObjectBased)
         {
-            var geoTargeting = gameObject.GetComponent<GeometryTargetingSystemsContainer>();
-            if (gameObject.GetComponent<GeometryTargetingSystemsContainer>() == null)
+            if (targetingInstructionsIn == null)
             {
-                gameObject.AddComponent<GeometryTargetingSystemsContainer>();
-                geoTargeting = gameObject.GetComponent<GeometryTargetingSystemsContainer>();
+                targetingInstructionsIn = new List<TargetingInstruction>();
             }
 
-            return geoTargeting;
+            if (targetingInstructionsIn.Count == 0)
+            {
+                GeometryEntitiesObjectTargeting entityTargeting = null;
+                GeometryObjectTargeting objectTargeting = null;
+
+                if (entityBased)
+                {
+                    var world = World.DefaultGameObjectInjectionWorld;
+                    entityTargeting = world.CreateSystem<GeometryEntitiesObjectTargeting>();
+                }
+
+                if (gameObjectBased)
+                {
+                    objectTargeting = new GeometryObjectTargeting();
+                }
+
+                targetingInstructionsIn.Add(
+                    new TargetingInstruction(GeometryType.Objects, defaultTag, (entityTargeting, objectTargeting), true,
+                        null));
+            }
+
+            return targetingInstructionsIn;
         }
 
         /// <summary>
         /// Inits unity camera which provides some needed features for geometric vision like Gizmos, planes and matrices.
-        /// 
         /// </summary>
-        public void InitUnityCamera(bool forceInit)
+        public void InitUnityCamera()
         {
             HiddenUnityCamera = gameObject.GetComponent<Camera>();
-            if (forceInit && HiddenUnityCamera != null)
-            {
-                Destroy(HiddenUnityCamera);
-                HiddenUnityCamera = gameObject.AddComponent<Camera>();
-            }
-            else if (HiddenUnityCamera == null && forceInit == false)
+
+            if (HiddenUnityCamera == null)
             {
                 HiddenUnityCamera = gameObject.AddComponent<Camera>();
             }
+#if STEAMVR
+            HiddenUnityCamera.stereoTargetEye = StereoTargetEyeMask.None;
+#endif
+            HiddenUnityCamera.usePhysicalProperties = true;
+            HiddenUnityCamera.aspect = 1f;
+
+            HiddenUnityCamera.cameraType = CameraType.Game;
+            HiddenUnityCamera.clearFlags = CameraClearFlags.Nothing;
 
             HiddenUnityCamera.enabled = false;
         }
 
         /// <summary>
-        /// Handles all the required operation for GeometricVision to work with game objects.
-        /// Such as GeometricVision eye/camera, processor for the data and targeting system
-        /// The functionality is subscribed to a toggle on the inspector GUI
+        /// Gets closest entity or gameObject as target according to parameters set by the user from this component.
+        /// If there is no targets it tries to first update the closest target list.
         /// </summary>
-        internal void InitGameObjectSwitch()
+        /// <returns>GeometryDataModels.Target that contain information about gameObject or entity</returns>
+        public GeometryDataModels.Target GetClosestTarget()
         {
-            SubscribeToButton();
-
-            void SubscribeToButton()
+            if (closestTargets.Length > 0)
             {
-                if (gameObjectProcessingObservable == null)
-                {
-                    gameObjectProcessingObservable = gameObjectProcessing.Subscribe(InitGameObjectBasedSystem);
-                }
-            }
-
-            void InitGameObjectBasedSystem(bool gameObjectBasedProcessing)
-            {
-                var geoEye = GetEye<GeometryVisionEye>();
-                if (gameObjectBasedProcessing == true)
-                {
-                    if (geoEye == null)
-                    {
-                        AddEye<GeometryVisionEye>();
-                    }
-
-                    InitGeometryProcessorForGameObjects();
-                    IfNoDefaultTargetingAddOne(new GeometryObjectTargeting());
-                }
-                else if (gameObjectBasedProcessing == false)
-                {
-                    Runner.RemoveProcessor<GeometryVisionProcessor>();
-                    RemoveEye<GeometryVisionEye>();
-                }
-            }
-
-            void InitGeometryProcessorForGameObjects()
-            {
-                if (Runner.gameObject.GetComponent<GeometryVisionProcessor>() == null)
-                {
-                    Runner.gameObject.AddComponent<GeometryVisionProcessor>();
-                }
-
-                Runner.AddProcessor(Runner.gameObject.GetComponent<GeometryVisionProcessor>());
-            }
-        }
-
-        /// <summary>
-        /// Provides Needed default object targeting for the system in case there is none. Otherwise replaces one from the current users
-        /// targeting instructions. 
-        /// </summary>
-        /// <param name="targetingSystem"></param>
-        private void IfNoDefaultTargetingAddOne(IGeoTargeting targetingSystem)
-        {
-            var targetingInstruction = GetTargetingInstructionOfType(GeometryType.Objects);
-            if (targetingInstruction == null)
-            {
-                targetingInstruction = new TargetingInstruction(GeometryType.Objects, DefaultTag, targetingSystem, true,
-                    null);
-                AssignTargetingSystem(targetingSystem);
-                targetingInstructions.Add(targetingInstruction);
-            }
-            else
-            {
-                AssignTargetingSystem(targetingSystem);
-            }
-
-            void AssignTargetingSystem(IGeoTargeting geoTargeting)
-            {
-                if (geoTargeting.IsForEntities())
-                {
-                    targetingInstruction.TargetingSystemEntities = geoTargeting;
-                }
-                else
-                {
-                    targetingInstruction.TargetingSystemGameObjects = geoTargeting;
-                }
-            }
-        }
-
-
-        /// <summary>
-        /// Handles all the required operation for GeometricVision to work with entities.
-        /// Such as GeometricVision eye/camera, processor for the data and targeting system
-        /// The functionality is subscribed to a toggle on the inspector GUI.
-        /// Because of some differences on the entity system the entities functionality can only be enabled easily
-        /// when the application is running.
-        /// </summary>
-        internal void InitEntitySwitch()
-        {
-            if (entityToggleObservable != null)
-            {
-                return;
-            }
-
-            //Add initialization behaviour on the inspector toggle button
-            entityToggleObservable = EntityBasedProcessing.Subscribe(entitiesEnabled =>
-            {
-                InitEntities(entitiesEnabled);
-
-                void InitEntities(bool entitiesBasedProcessing)
-                {
-                    entityWorld = World.DefaultGameObjectInjectionWorld;
-                    //Handle toggle button use cases
-                    IfEntitiesEnabled(entitiesEnabled, entitiesBasedProcessing);
-                    IfEntitiesDisabled(entitiesEnabled);
-                }
-            });
-
-            //Handles toggle button enabled use case
-            void IfEntitiesEnabled(bool entitiesEnabled, bool entitiesBasedProcessing)
-            {
-                if (Application.isPlaying && entitiesEnabled)
-                {
-                    InitGeometryProcessorForEntities(entitiesBasedProcessing, entityWorld);
-                    InitGeometryCameraForEntities(entityWorld);
-
-                    IGeoTargeting targetingSystem =
-                        entityWorld.GetOrCreateSystem<GeometryEntitiesObjectTargeting>();
-                    IfNoDefaultTargetingAddOne(targetingSystem);
-                }
-            }
-
-            //Handles toggle button disabled use case
-            void IfEntitiesDisabled(bool entitiesEnabled)
-            {
-                if (Application.isPlaying && entitiesEnabled == false)
-                {
-                    RemoveEntityProcessors();
-                    DisableEntityCameras();
-                    if (entityWorld.GetExistingSystem<TransformEntitySystem>() != null)
-                    {
-                        entityWorld.DestroySystem(transformEntitySystem);
-                    }
-
-                    transformEntitySystem = null;
-
-                    foreach (var targetinginstruction in targetingInstructions)
-                    {
-                        if (targetinginstruction.TargetingSystemEntities != null)
-                        {
-                            entityWorld.DestroySystem(
-                                (ComponentSystemBase) targetinginstruction.TargetingSystemEntities);
-                        }
-                    }
-                }
-            }
-        }
-
-
-        /// <summary>
-        /// Remove entity cameras eye so the Head won't be iterating through them.
-        /// Also destroy system just in case
-        /// </summary>
-        private void DisableEntityCameras()
-        {
-            // Currently only one system
-            var eye = GetEye<GeometryVisionEntityEye>();
-            if (eye != null)
-            {
-                RemoveEye<GeometryVisionEntityEye>();
-                if (entityWorld.GetExistingSystem<GeometryVisionEntityEye>() != null)
-                {
-                    entityWorld.DestroySystem(eye);
-                }
-            }
-        }
-
-        private void RemoveEntityProcessors()
-        {
-            var processor = Runner.GetProcessor<GeometryVisionEntityProcessor>();
-            if (processor != null)
-            {
-                Runner.RemoveProcessor<GeometryVisionEntityProcessor>();
-                if (entityWorld.GetExistingSystem<GeometryVisionEntityProcessor>() != null)
-                {
-                    entityWorld.DestroySystem(processor);
-                }
-            }
-        }
-
-        public GeometryDataModels.Target GetClosestTarget(bool favorDistanceToCameraInsteadDistanceToRay)
-        {
-            if (closestTargets.Count == 0)
-            {
-                UpdateClosestTargets();
-            }
-
-            if (closestTargets.Count > 0)
-            {
-                if (favorDistanceToCameraInsteadDistanceToRay == false)
-                {
-                    return closestTargets[0];
-                }
-                else
-                {
-                    throw new NotImplementedException();
-                }
+                return closestTargets[0];
             }
 
             return new GeometryDataModels.Target();
         }
 
+        /// <summary>
+        /// Fetch the data structure for gameObject based on the hash code usually got from the target object.
+        /// Target object cannot contain transforms or gameObjects, because its not safe.
+        /// </summary>
+        /// <param name="geoInfoHashCode">Hash code that you can get from closest target</param>
+        /// <returns>geoInfo object that contains reference to gameObject related data</returns>
         public GeometryDataModels.GeoInfo GetGeoInfoBasedOnHashCode(int geoInfoHashCode)
         {
             var geoInfo = Runner.GeoMemory.GeoInfos.FirstOrDefault(geoInfoElement =>
@@ -416,180 +246,16 @@ namespace Plugins.GeometricVision
             return geoInfo;
         }
 
+        /// <summary>
+        /// Gets you a transform of a target object based on the hashCode inside it.
+        /// </summary>
+        /// <param name="geoInfoHashCode">The hashcode from target object</param>
+        /// <returns>related gameObjects transform</returns>
         public Transform GetTransformBasedOnGeoHashCode(int geoInfoHashCode)
         {
             var geoInfo = Runner.GeoMemory.GeoInfos.FirstOrDefault(geoInfoElement =>
                 geoInfoElement.GetHashCode() == geoInfoHashCode);
             return geoInfo.transform;
-        }
-
-
-        private void InitGeometryProcessorForEntities(bool toEntities, World world)
-        {
-            RemoveEntityProcessors();
-            world.CreateSystem<GeometryVisionEntityProcessor>();
-            IGeoProcessor eProcessor = world.GetExistingSystem<GeometryVisionEntityProcessor>();
-            Runner.AddProcessor(eProcessor);
-            var addedProcessor = Runner.GetProcessor<GeometryVisionEntityProcessor>();
-            addedProcessor.GeoVision = this;
-            addedProcessor.CheckSceneChanges(this);
-            addedProcessor.Update();
-        }
-
-        private void InitGeometryCameraForEntities(World world)
-        {
-            DisableEntityCameras();
-            GeometryVisionEntityEye eEey = world.CreateSystem<GeometryVisionEntityEye>();
-            AddEye(eEey);
-            var eye = GetEye<GeometryVisionEntityEye>();
-            eye.GeoVision = this;
-            eye.TargetingInstructions = targetingInstructions;
-            eye.Update();
-        }
-
-        /// <summary>
-        /// Checks if geometrytype is targeted.
-        /// </summary>
-        /// <param name="targetingInstructions"></param>
-        /// <returns></returns>
-        bool isGeometryTypeTargetingInstructionAdded(List<TargetingInstruction> targetingInstructions,
-            GeometryType geoType)
-        {
-            bool targetingTypeFound = false;
-            foreach (var targetingInstruction in targetingInstructions)
-            {
-                if (targetingInstruction.GeometryType == geoType)
-                {
-                    targetingTypeFound = true;
-                }
-            }
-
-            return targetingTypeFound;
-        }
-
-        /// <summary>
-        /// Add targeting implementation, if it is enabled on the inspector.
-        /// Subscribes the targeting toggle button to functionality than handles creation of default targeting implementation for the
-        /// targeted geometry type
-        /// </summary>
-        /// <param name="targetingInstruction"></param>
-        /// <param name="geoTargetingSystemsContainer"></param>
-        private void OnTargetingEnabled(TargetingInstruction targetingInstruction,
-            GeometryTargetingSystemsContainer geoTargetingSystemsContainer)
-        {
-            if (!targetingInstruction.Subscribed)
-            {
-                targetingInstruction.IsTargetingEnabled.Subscribe(targeting =>
-                {
-                    //Cannot get Reactive value from serialized property, so this boolean variable handles it job on the inspector gui under the hood.
-                    //The other way is to find out how to get reactive value out of serialized property. Shows option for adding actions template from the inspector GUI
-                    targetingInstruction.IsTargetActionsTemplateSlotVisible = targeting;
-                    if (targeting == true)
-                    {
-                        AssignActionsForTargeting(targetingInstructions.IndexOf(targetingInstruction));
-
-                        AddDefaultTargeting(geoTargetingSystemsContainer);
-                    }
-                    else
-                    {
-                        RemoveDefaultTargeting(geoTargetingSystemsContainer);
-                    }
-                });
-                targetingInstruction.Subscribed = true;
-            }
-
-            //Creates default template scriptable object that can hold actions on what to do when targeting
-            void AssignActionsForTargeting(int indexOf)
-            {
-                if (targetingInstruction.TargetingActions == null)
-                {
-                    var newActions = ScriptableObject.CreateInstance<ActionsTemplateObject>();
-                    newActions.name += "_" + indexOf;
-                    targetingInstruction.TargetingActions = newActions;
-                }
-            }
-
-            //AddDefaultTargeting for both game objects and entities
-            void AddDefaultTargeting(
-                GeometryTargetingSystemsContainer geometryTargetingSystemsContainer)
-            {
-                if (gameObjectProcessing.Value == true)
-                {
-                    geometryTargetingSystemsContainer.AddTargetingProgram(
-                        (IGeoTargeting) targetingInstruction.TargetingSystemGameObjects);
-                }
-                else if (entityBasedProcessing.Value == true)
-                {
-                    geometryTargetingSystemsContainer.AddTargetingProgram(
-                        (IGeoTargeting) targetingInstruction.TargetingSystemEntities);
-                }
-            }
-
-            //RemoveDefaultTargeting for both game objects and entities
-            void RemoveDefaultTargeting(
-                GeometryTargetingSystemsContainer geometryTargetingSystemsContainer)
-            {
-                if (gameObjectProcessing.Value == true)
-                {
-                    geometryTargetingSystemsContainer.RemoveTargetingProgram(targetingInstruction
-                        .TargetingSystemGameObjects);
-                }
-                else if (entityBasedProcessing.Value == true)
-                {
-                    geometryTargetingSystemsContainer.RemoveTargetingProgram(targetingInstruction
-                        .TargetingSystemEntities);
-                }
-            }
-        }
-
-        /// <summary>
-        /// In case the user plays around with the settings on the inspector and changes thins this needs to be run.
-        /// It checks that the targeting system implementations are correct.
-        /// </summary>
-        /// <param name="targetingInstructions"></param>
-        internal void ValidateTargetingSystems(List<TargetingInstruction> targetingInstructions)
-        {
-            foreach (var targetingInstruction in targetingInstructions)
-            {
-                if (gameObjectProcessing.Value == true)
-                {
-                    targetingInstruction.TargetingSystemGameObjects = AssignNewTargetIngSystem(targetingInstruction,
-                        new GeometryObjectTargeting(), new GeometryLineTargeting());
-                }
-
-                if (entityBasedProcessing.Value == true && Application.isPlaying)
-                {
-                    if (entityWorld == null)
-                    {
-                        entityWorld = World.DefaultGameObjectInjectionWorld;
-                    }
-
-                    var newObjectTargetng = entityWorld.CreateSystem<GeometryEntitiesObjectTargeting>();
-                    var newLineTargetng = entityWorld.CreateSystem<GeometryEntitiesLineTargeting>();
-
-                    targetingInstruction.TargetingSystemEntities =
-                        AssignNewTargetIngSystem(targetingInstruction, newObjectTargetng, newLineTargetng);
-                }
-            }
-
-            IGeoTargeting AssignNewTargetIngSystem(TargetingInstruction visionTarget1, IGeoTargeting newObjectTargeting,
-                IGeoTargeting newLineTargeting)
-            {
-                IGeoTargeting targetingToReturn = null;
-                //No need to assign in case the system is already what it should be
-                if (visionTarget1.GeometryType == GeometryType.Objects)
-                {
-                    targetingToReturn = newObjectTargeting;
-                }
-
-                //Same here
-                if (visionTarget1.GeometryType == GeometryType.Lines)
-                {
-                    targetingToReturn = newLineTargeting;
-                }
-
-                return targetingToReturn;
-            }
         }
 
         /// <summary>
@@ -620,13 +286,17 @@ namespace Plugins.GeometricVision
         /// <remarks>Faster way to get the current situation for planes might be to store planes into an object and move them with the eye</remarks>
         public void RegenerateVisionArea(float fieldOfView)
         {
-            hiddenUnityCamera.fieldOfView = fieldOfView;
-            hiddenUnityCamera.farClipPlane = farDistanceOfView;
+            this.HiddenUnityCamera.fieldOfView = fieldOfView;
+            this.HiddenUnityCamera.farClipPlane = farDistanceOfView;
             GeometryUtility.CalculateFrustumPlanes(
-                this.hiddenUnityCamera.projectionMatrix * this.hiddenUnityCamera.worldToCameraMatrix,
-                planes);
+                this.HiddenUnityCamera.projectionMatrix * this.HiddenUnityCamera.worldToCameraMatrix, planes);
         }
 
+        /// <summary>
+        /// Use this to remove eye game object or entity implementation.
+        /// Also handles removing the MonoBehaviour component if the implementation is one 
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
         public void RemoveEye<T>()
         {
             InterfaceUtilities.RemoveInterfaceImplementationsOfTypeFromList(typeof(T), ref eyes);
@@ -646,31 +316,56 @@ namespace Plugins.GeometricVision
             }
         }
 
+        /// <summary>
+        /// Use this to remove eye game object or entity implementation.
+        /// Also handles removing the MonoBehaviour component if the implementation is one 
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        public void RemoveEntityEye<T>() where T : ComponentSystemBase
+        {
+            InterfaceUtilities.RemoveInterfaceImplementationsOfTypeFromList(typeof(T), ref eyes);
+
+            var system = EntityWorld.GetExistingSystem<T>();
+            if (system != null)
+            {
+                EntityWorld.DestroySystem(system);
+            }
+        }
+
+        /// <summary>
+        /// Used to get the eye implementation for either game object or entities from hash set.
+        /// </summary>
+        /// <typeparam name="T">Implementation to get. If none exists return default T</typeparam>
+        /// <returns></returns>
         public T GetEye<T>()
         {
             return (T) InterfaceUtilities.GetInterfaceImplementationOfTypeFromList(typeof(T), eyes);
         }
 
+
         /// <summary>
         /// Adds eye/camera component to the list and makes sure that the implementation to be added is unique.
         /// Does not add duplicate implementation.
         /// </summary>
-        /// <param name="eye"></param>
         /// <typeparam name="T"></typeparam>
-        public void AddEye<T>(T eye)
+        public void AddGameObjectEye<T>()
         {
-            if (eyes == null)
-            {
-                eyes = new HashSet<IGeoEye>();
-            }
+            HandleGameObjectEyeAddition();
 
-            if (InterfaceUtilities.ListContainsInterfaceImplementationOfType(eye.GetType(), eyes) == false)
+            //local functions//
+
+            void HandleGameObjectEyeAddition()
             {
-                var defaultEyeFromTypeT = (IGeoEye) default(T);
-                //Check that the implementation is not the default one
-                if (Object.Equals(eye, defaultEyeFromTypeT) == false)
+                InterfaceUtilities.AddImplementation<IGeoEye, GeometryVisionEye>(InitEye, Eyes, gameObject);
+
+                IGeoEye InitEye()
                 {
-                    eyes.Add((IGeoEye) eye);
+                    var addedEye = (IGeoEye) gameObject.GetComponent(typeof(T));
+                    addedEye.Runner = Runner;
+                    addedEye.Id = new Hash128().ToString();
+                    addedEye.GeoVision = this;
+                    var added = (Component) addedEye;
+                    return (IGeoEye) added;
                 }
             }
         }
@@ -680,78 +375,32 @@ namespace Plugins.GeometricVision
         /// Does not add duplicate implementation.
         /// </summary>
         /// <typeparam name="T"></typeparam>
-        public void AddEye<T>()
+        public void AddEntityEye<T>() where T : ComponentSystemBase, IGeoEye, new()
         {
-            if (eyes == null)
+            GeometryVisionUtilities.HandleEntityImplementationAddition(GetEye<T>(), eyes, EntityWorld, InitEye);
+
+            //local functions//
+
+            void InitEye()
             {
-                eyes = new HashSet<IGeoEye>();
-            }
-
-            if (typeof(T).IsSubclassOf(typeof(MonoBehaviour)))
-            {
-                HandleGameObjectEyeAddition();
-
-                void HandleGameObjectEyeAddition()
-                {
-                    var eye = gameObject.GetComponent(typeof(T));
-                    if (eye == null)
-                    {
-                        gameObject.AddComponent(typeof(T));
-                        var addedEye = (IGeoEye) gameObject.GetComponent(typeof(T));
-                        addedEye.Runner = Runner;
-                        addedEye.Id = new Hash128().ToString();
-                        addedEye.GeoVision = this;
-                        eye = (Component) addedEye;
-                    }
-
-                    if (InterfaceUtilities.ListContainsInterfaceImplementationOfType(typeof(T), eyes) == false)
-                    {
-                        var defaultEyeFromTypeT = (IGeoEye) default(T);
-                        //Check that the implementation is not the default one
-                        if (Object.Equals(eye, defaultEyeFromTypeT) == false)
-                        {
-                            eyes.Add((IGeoEye) eye);
-                        }
-                    }
-                }
-            }
-            else
-            {
-                if (GetEye<T>() == null)
-                {
-                    HandleEntityEyeAddition();
-                }
-
-                void HandleEntityEyeAddition()
-                {
-                    if (entityWorld == null)
-                    {
-                        entityWorld = World.DefaultGameObjectInjectionWorld;
-                    }
-
-                    var eye = entityWorld.CreateSystem<GeometryVisionEntityEye>();
-                    var defaultEyeFromTypeT = (IGeoEye) default(T);
-                    //Check that the implementation is not the default one
-                    if (Object.Equals(eye, defaultEyeFromTypeT) == false)
-                    {
-                        eyes.Add((IGeoEye) eye);
-                    }
-                }
+                var addedEye = (IGeoEye) GetEye<T>();
+                addedEye.Runner = runner;
+                addedEye.Id = new Hash128().ToString();
+                addedEye.GeoVision = this;
             }
         }
-
 
         /// <summary>
         /// Gets the first targeting instruction matching the give type as GeometryType.
         /// </summary>
-        /// <param name="type"></param>
+        /// <param name="geometryType">Targeting instruction search parameter. GeometryType to look for. Default use case is GeometryType.Objects</param>
         /// <returns></returns>
-        public TargetingInstruction GetTargetingInstructionOfType(GeometryType type)
+        public TargetingInstruction GetTargetingInstructionOfType(GeometryType geometryType)
         {
             TargetingInstruction instructionToReturn = null;
             foreach (var instruction in TargetingInstructions)
             {
-                if (instruction.GeometryType == GeometryType.Objects)
+                if ((int) instruction.GeometryType == (int) geometryType)
                 {
                     instructionToReturn = instruction;
                     break;
@@ -764,56 +413,87 @@ namespace Plugins.GeometricVision
         /// <summary>
         /// Gets targets for both entities and GameObject. Then sorts them.
         /// </summary>
-        /// <returns>List<GeometryDataModels.Target> - new list of sorted targets.</returns>
-        public List<GeometryDataModels.Target> GetClosestTargets()
+        /// <returns>New list of sorted targets </returns>
+        public NativeSlice<GeometryDataModels.Target> GetClosestTargets()
         {
-            List<GeometryDataModels.Target> newClosestTargets =
-                new List<GeometryDataModels.Target>(GetTargetsForGameObjectsAndEntities());
-            if (newClosestTargets.Count > 0)
+            closestTargetsContainer = GetTargetsForGameObjectsAndEntities(closestTargetsContainer);
+            var sortJob = new SortTargets
             {
-                closestTargets = newClosestTargets.OrderBy(target => target.distanceToRay).ToList();
-            }
-
+                newClosestTargets = closestTargetsContainer, 
+                favorDistanceToCameraInsteadDistanceToPointer = false,
+                comparer = new GeometryVisionUtilities.DistanceComparer()
+            };
+            sortJob.Schedule().Complete();
+            closestTargetsContainer = sortJob.newClosestTargets;
+            closestTargets = new NativeSlice<GeometryDataModels.Target>(closestTargetsContainer,0,amountOfTargets);
             return closestTargets;
         }
 
         /// <summary>
         /// Updates components internal targets list for both entities and GameObject. Then sorts them.
+        /// It has currently hidden feature to allow target sorting on based how close the targets are to the camera.
         /// </summary>
         public void UpdateClosestTargets()
         {
-            List<GeometryDataModels.Target> newClosestTargets =
-                new List<GeometryDataModels.Target>(GetTargetsForGameObjectsAndEntities());
-            if (newClosestTargets.Count > 0)
+            closestTargetsContainer = GetTargetsForGameObjectsAndEntities(closestTargetsContainer);
+            new SortTargets
             {
-                closestTargets = newClosestTargets.OrderBy(target => target.distanceToRay).ToList();
-            }
-            else
+                newClosestTargets = closestTargetsContainer, 
+                favorDistanceToCameraInsteadDistanceToPointer = false,
+                comparer = new GeometryVisionUtilities.DistanceComparer()
+            }.Schedule().Complete();
+            closestTargets = new NativeSlice<GeometryDataModels.Target>(closestTargetsContainer,0,amountOfTargets);
+        }
+
+        [BurstCompile]
+        private struct SortTargets : IJob
+        {
+            public NativeArray<GeometryDataModels.Target> newClosestTargets;
+            public bool favorDistanceToCameraInsteadDistanceToPointer;
+            public GeometryVisionUtilities.DistanceComparer comparer;
+
+            public void Execute()
             {
-                closestTargets.Clear();
+                if (newClosestTargets.Length > 0)
+                {
+                    if (favorDistanceToCameraInsteadDistanceToPointer == false)
+                    {
+                        //TODO: Native list and burst compile in job this
+                        newClosestTargets.Sort(comparer);
+                    }
+                    else
+                    {
+                        //TODO: Native list and burst compile in job this
+                        //TODO:After 1.0 Find a good use case where this can be used and improve it.
+                        newClosestTargets.Sort(comparer);
+                    }
+                }
             }
         }
 
         /// <summary>
-        /// Move entity or closest target
+        /// Moves closest target with give instructions
         /// </summary>
-        /// <param name="newPosition"></param>
-        /// <param name="speedMultiplier"></param>
-        public void MoveClosestTarget(Vector3 newPosition, float speedMultiplier)
+        /// <param name="newPosition">Position to move</param>
+        /// <param name="speedMultiplier">Gives extra speed</param>
+        /// <param name="distanceToStop">0 value means it will travel to target. 1 value means it will stop 1 unit before reaching destination. If distance to stop is larger than distance to travel the target will not move.</param>
+        public void MoveClosestTargetToPosition(Vector3 newPosition, float speedMultiplier, float distanceToStop)
         {
-            float speedHoldUp = 0.05f; //Needs to offset speed otherwise its too fast
-            var closestTarget = GetClosestTarget(false);
-            float movementSpeed = closestTarget.distanceToCastOrigin * Time.deltaTime * speedHoldUp * speedMultiplier;
-            
+            var closestTarget = GetClosestTarget();
+            float movementSpeed = closestTarget.distanceToCastOrigin * Time.deltaTime * speedMultiplier;
+
             if (closestTarget.isEntity)
             {
-                StartCoroutine(MoveEntityTarget(newPosition, movementSpeed, closestTarget));
+                MainThreadDispatcher.StartUpdateMicroCoroutine(GeometryVisionUtilities.MoveEntityTarget(newPosition,
+                    movementSpeed,
+                    closestTarget, distanceToStop, transformEntitySystem, entityWorld, closestTargets));
             }
             else
             {
                 //Since target component is multi threading friendly it cannot store transform, so this just uses the geoInfoObject that is made for the game objects
                 var geoInfo = GetGeoInfoBasedOnHashCode(closestTarget.GeoInfoHashCode);
-                StartCoroutine(GeometryVisionUtilities.MoveTarget(geoInfo.transform, newPosition, movementSpeed));
+                MainThreadDispatcher.StartUpdateMicroCoroutine(
+                    GeometryVisionUtilities.MoveTarget(geoInfo.transform, newPosition, movementSpeed, distanceToStop));
             }
         }
 
@@ -823,14 +503,14 @@ namespace Plugins.GeometricVision
             {
                 if (transformEntitySystem == null)
                 {
-                    transformEntitySystem = entityWorld.CreateSystem<TransformEntitySystem>();
+                    transformEntitySystem = EntityWorld.CreateSystem<TransformEntitySystem>();
                 }
 
                 transformEntitySystem.DestroyTargetEntity(target);
             }
             else
             {
-                var geoInfo = GetGeoInfoBasedOnHashCode(GetClosestTarget(false).GeoInfoHashCode);
+                var geoInfo = GetGeoInfoBasedOnHashCode(target.GeoInfoHashCode);
                 Destroy(geoInfo.gameObject);
             }
         }
@@ -843,32 +523,19 @@ namespace Plugins.GeometricVision
                 yield break;
             }
 
-            float timeOut = 2f;
+            float timeOut = 1f;
             while (targetToBeDestroyed.distanceToCastOrigin > distanceToDestroyAt)
             {
-                if (this.closestTargets.Count != 0)
-                {
-                    targetToBeDestroyed = this.closestTargets.Select(targ =>
-                    {
-                        if (targetToBeDestroyed.entity.Index == targ.entity.Index &&
-                            targetToBeDestroyed.entity.Version == targ.entity.Version)
-                        {
-                            targetToBeDestroyed = targ;
-                        }
-
-                        return targetToBeDestroyed;
-                    }).First();
-                }
-                
                 if (timeOut < 0.1f)
                 {
                     DestroyTarget(targetToBeDestroyed);
+                    break;
                 }
 
-                timeOut -= 0.1f;
+                timeOut -= Time.deltaTime;
                 yield return null;
             }
-            
+
             DestroyTarget(targetToBeDestroyed);
         }
 
@@ -880,45 +547,34 @@ namespace Plugins.GeometricVision
             foreach (var targetingInstruction in targetingInstructions)
             {
                 var actions = targetingInstruction.TargetingActions;
-                StartCoroutine(TimedSpawnDespawn.TimedSpawnDeSpawnService(actions.StartActionObject, actions.StartDelay,
-                    actions.StartDuration, cachedTransform, GeometryVisionSettings.NameOfStartingEffect));
-
-                StartCoroutine(TimedSpawnDespawn.TimedSpawnDeSpawnService(actions.MainActionObject,
-                    actions.MainActionDelay, actions.MainActionDuration, cachedTransform,
-                    GeometryVisionSettings.NameOfMainEffect));
-
-                StartCoroutine(TimedSpawnDespawn.TimedSpawnDeSpawnService(actions.EndActionObject,
-                    actions.EndDelay, actions.EndDuration, cachedTransform, GeometryVisionSettings.NameOfEndEffect));
-            }
-        }
-
-        private IEnumerator MoveEntityTarget(Vector3 newPosition,
-            float speedMultiplier, GeometryDataModels.Target target)
-        {
-            if (transformEntitySystem == null)
-            {
-                transformEntitySystem = entityWorld.CreateSystem<TransformEntitySystem>();
-            }
-            float timeOut = 20f;
-            while (Vector3.Distance(target.position, newPosition) > 0.05f)
-            {
-                var animatedPoint =
-                    transformEntitySystem.MoveEntityToPosition(newPosition, target, speedMultiplier);
-
-                target.position = animatedPoint;
-                if (closestTargets.Count != 0)
+                if (actions == null)
                 {
-                    closestTargets[0] = target;
+                    continue;
                 }
 
-                if (timeOut < 0.1f)
+                if (actions.StartActionEnabled)
                 {
-                    break;
+                    MainThreadDispatcher.StartUpdateMicroCoroutine(TimedSpawnDespawn.TimedSpawnDeSpawnService(
+                        actions.StartActionObject, actions.StartDelay,
+                        actions.StartDuration, cachedTransform,
+                        GeometryVisionSettings.NameOfStartingEffect.ToString()));
                 }
 
-                timeOut -= 0.1f;
+                if (actions.MainActionEnabled)
+                {
+                    MainThreadDispatcher.StartUpdateMicroCoroutine(TimedSpawnDespawn.TimedSpawnDeSpawnService(
+                        actions.MainActionObject,
+                        actions.MainActionDelay, actions.MainActionDuration, cachedTransform,
+                        GeometryVisionSettings.NameOfMainEffect.ToString()));
+                }
 
-                yield return new WaitForSeconds(Time.deltaTime * 0.1f);
+                if (actions.EndActionEnabled)
+                {
+                    MainThreadDispatcher.StartUpdateMicroCoroutine(TimedSpawnDespawn.TimedSpawnDeSpawnService(
+                        actions.EndActionObject,
+                        actions.EndDelay, actions.EndDuration, cachedTransform,
+                        GeometryVisionSettings.NameOfEndEffect.ToString()));
+                }
             }
         }
 
@@ -926,9 +582,12 @@ namespace Plugins.GeometricVision
         /// Use to get list of targets containing data from entities and gameObjects. 
         /// </summary>
         /// <returns>List of target objects that can be used to find out closest target.</returns>
-        private List<GeometryDataModels.Target> GetTargetsForGameObjectsAndEntities()
+        private NativeArray<GeometryDataModels.Target> GetTargetsForGameObjectsAndEntities(
+            NativeArray<GeometryDataModels.Target> closestTargetsIn)
         {
-            List<GeometryDataModels.Target> newClosestTargets = new List<GeometryDataModels.Target>();
+            var offsetGameObjects = 0;
+            var offsetEntities = 0;
+
             foreach (var targetingInstruction in TargetingInstructions)
             {
                 if (targetingInstruction.IsTargetingEnabled.Value == false)
@@ -936,67 +595,120 @@ namespace Plugins.GeometricVision
                     continue;
                 }
 
-                newClosestTargets = GetGameObjectTargets(targetingInstruction);
-                closestEntityTargets = GetEntityTargets(targetingInstruction);
+                var gameObjects =
+                    new NativeArray<GeometryDataModels.Target>(GetGameObjectTargets(targetingInstruction).ToArray(),
+                        Allocator.TempJob);
+                var entities =GetEntityTargets(targetingInstruction);
+                
+                if (gameObjects.Length > 0)
+                {
+                    var job1 = new CombineEntityAndGameObjectTargets2();
+                    job1.offset = 0;
+                    job1.finalTargets = closestTargetsIn;
+                    job1.targetsToInsert = gameObjects;
+                    job1.target = new GeometryDataModels.Target();
+                    var handle = job1.Schedule();
+                    handle.Complete();
+                }
+
+                if (entities.Length > 0)
+                {
+                    var job2 = new CombineEntityAndGameObjectTargets2();
+                    job2.offset = gameObjects.Length;
+                    job2.finalTargets = closestTargetsIn;
+                    job2.targetsToInsert = entities;
+                    job2.target = new GeometryDataModels.Target();
+                    var handle = job2.Schedule();
+                    handle.Complete();
+                }
+
+                amountOfTargets = gameObjects.Length + entities.Length;
+
+                gameObjects.Dispose();
+                entities.Dispose();
+
+
             }
 
-            newClosestTargets = CombineEntityAndGameObjectTargets(newClosestTargets, closestEntityTargets);
-
-            return newClosestTargets;
-
+            return closestTargetsIn;
+            
             //
-            //Functions//
-            //
-
+            // Local functions//
+            // 
+            
             //Runs the gameObject implementation of the IGeoTargeting interface 
             List<GeometryDataModels.Target> GetGameObjectTargets(TargetingInstruction targetingInstruction)
             {
                 if (gameObjectProcessing.Value == true)
                 {
-                    newClosestTargets = targetingInstruction.TargetingSystemGameObjects.GetTargets(transform.position,
+                    return targetingInstruction.TargetingSystemGameObjects.GetTargets(
+                        transform.position,
                         ForwardWorldCoordinate, this, targetingInstruction);
-                }
-
-                return newClosestTargets;
-            }
-
-            //Runs the entity implementation of the IGeoTargeting interface 
-            List<GeometryDataModels.Target> GetEntityTargets(TargetingInstruction targetingInstruction)
-            {
-                if (entityBasedProcessing.Value == true)
-                {
-                    var entityTargets =
-                        targetingInstruction.TargetingSystemEntities.GetTargets(transform.position,
-                            ForwardWorldCoordinate, this, targetingInstruction).ToList();
-                    //Only update entities if the burst compiled job has finished its job OnUpdate
-                    //If it has not finished it returns empty list.
-
-                    return entityTargets;
                 }
 
                 return new List<GeometryDataModels.Target>();
             }
 
-            //Combines 2 lists of targets and return both list as one.
-            List<GeometryDataModels.Target> CombineEntityAndGameObjectTargets(
-                List<GeometryDataModels.Target> gameObjectTargets,
-                List<GeometryDataModels.Target> entityTargets)
+            //Runs the entity implementation of the IGeoTargeting interface 
+            NativeArray<GeometryDataModels.Target> GetEntityTargets(TargetingInstruction targetingInstruction)
             {
-                if (entityTargets.Count > 0)
+                if (entityProcessing.Value == true)
                 {
-                    gameObjectTargets.AddRange(entityTargets); //add range but arrays(closestEntityTargets);
+                    var closestentityTargetsIn =
+                        targetingInstruction.TargetingSystemEntities.GetTargetsAsNativeArray(transform.position,
+                            ForwardWorldCoordinate, this, targetingInstruction);
+                    //Only update entities if the burst compiled job has finished its job OnUpdate
+                    //If it has not finished it returns empty list.
+
+                    return closestentityTargetsIn;
                 }
 
-                return gameObjectTargets;
+                return new NativeArray<GeometryDataModels.Target>(0, Allocator.TempJob);
             }
         }
 
+        [BurstCompile]
+        struct CombineEntityAndGameObjectTargets2 : IJob
+        {
+            public NativeArray<GeometryDataModels.Target> finalTargets;
+            public NativeArray<GeometryDataModels.Target> targetsToInsert;
+            internal GeometryDataModels.Target target;
+            public int offset;
+            
 
-        public void ApplyDefaultTagToTargetingInstructions()
+            public void Execute()
+            {
+                for (int i = offset, j = 0; i < finalTargets.Length; i++, j++)
+                {
+                    if (j < targetsToInsert.Length)
+                    {
+                        finalTargets[i] = targetsToInsert[j];
+                    }
+                   
+                }
+            }
+        }
+
+        public void ApplyTagToTargetingInstructions(string tag)
         {
             foreach (var targetingInstruction in TargetingInstructions)
             {
-                targetingInstruction.TargetTag = defaultTag;
+                targetingInstruction.TargetTag = tag;
+            }
+        }
+
+        /// <summary>
+        /// Applies changes made to entity filter type by the user from outside
+        /// 
+        /// </summary>
+        /// <remarks>It seems like the object type of script doesn't get saved during build, so it needs to be saved to serializable string to hold up the information
+        /// about the script.</remarks>
+        /// <param name="entityQueryFilter"></param>
+        internal void ApplyEntityComponentFilterToTargetingInstructions(Object entityQueryFilter)
+        {
+            foreach (var targetingInstruction in targetingInstructions)
+            {
+                targetingInstruction.SetCurrentEntityFilterType(entityQueryFilter);
             }
         }
 
@@ -1038,10 +750,10 @@ namespace Plugins.GeometricVision
             set { debugMode = value; }
         }
 
-        public BoolReactiveProperty EntityBasedProcessing
+        public BoolReactiveProperty EntityProcessing
         {
-            get { return entityBasedProcessing; }
-            set { entityBasedProcessing = value; }
+            get { return entityProcessing; }
+            set { entityProcessing = value; }
         }
 
         public BoolReactiveProperty GameObjectBasedProcessing
@@ -1055,12 +767,35 @@ namespace Plugins.GeometricVision
             get { return eyes; }
         }
 
-        public string DefaultTag
+        public GeometryVisionRunner Runner
         {
-            get { return defaultTag; }
-            set { defaultTag = value; }
+            get { return runner; }
+            set { runner = value; }
         }
 
+        public int GetClosestTargetCount()
+        {
+            return closestTargets.Length;
+        }
+
+        public bool UseBounds
+        {
+            get { return useBounds; }
+            set { useBounds = value; }
+        }
+
+        public bool CollidersTargeted { get; set; }
+
+        public World EntityWorld
+        {
+            get { return entityWorld; }
+            set { entityWorld = value; }
+        }
+
+        public float CheckEnvironmentChangesTimeInterval
+        {
+            get { return checkEnvironmentChangesTimeInterval; }
+        }
 #if UNITY_EDITOR
 
         /// <summary>
@@ -1074,7 +809,7 @@ namespace Plugins.GeometricVision
                 HiddenUnityCamera.fieldOfView = this.fieldOfView;
             }
 
-            InitUnityCamera(false);
+            InitUnityCamera();
             RegenerateVisionArea(fieldOfView);
             if (!debugMode)
             {
@@ -1086,11 +821,11 @@ namespace Plugins.GeometricVision
 
             DrawTargets(closestTargets);
 
-            void DrawTargets(List<GeometryDataModels.Target> closestTargetsIn)
+            void DrawTargets(NativeSlice<GeometryDataModels.Target> closestTargetsIn)
             {
                 Handles.zTest = UnityEngine.Rendering.CompareFunction.LessEqual;
 
-                for (var i = 0; i < closestTargetsIn.Count; i++)
+                for (var i = 0; i < closestTargetsIn.Length; i++)
                 {
                     var closestTarget = closestTargetsIn[i];
                     if (closestTarget.distanceToCastOrigin == 0f)
@@ -1098,7 +833,7 @@ namespace Plugins.GeometricVision
                         continue;
                     }
 
-                    Vector3 resetToVector = Vector3.zero;
+                    float3 resetToVector = Vector3.zero;
                     var position = DrawTargetingVisualIndicators(closestTarget.position, transform.position,
                         closestTarget.distanceToCastOrigin, Color.blue);
                     DrawTargetingVisualIndicators(closestTarget.projectedTargetPosition, closestTarget.position,
@@ -1107,7 +842,7 @@ namespace Plugins.GeometricVision
                         closestTarget.distanceToCastOrigin, Color.red);
                     DrawTargetingInfo(closestTarget.position, Vector3.down, i);
 
-                    Vector3 DrawTargetingVisualIndicators(Vector3 spherePosition, Vector3 lineStartPosition,
+                    Vector3 DrawTargetingVisualIndicators(Vector3 spherePosition, float3 lineStartPosition,
                         float distance,
                         Color color)
                     {
@@ -1119,7 +854,7 @@ namespace Plugins.GeometricVision
                         return lineStartPosition;
                     }
 
-                    void DrawTargetingInfo(Vector3 textLocation, Vector3 offset, int order)
+                    void DrawTargetingInfo(float3 textLocation, float3 offset, int order)
                     {
                         Gizmos.DrawSphere(textLocation, 0.3f);
                         resetToVector = closestTarget.projectedTargetPosition - offset;

@@ -16,8 +16,7 @@ namespace Plugins.GeometricVision.Tests.TestScriptsForGameObjects
         {
             fielOfView =  25f,
             processGameObjects = true,
-            processGameObjectsEdges = false,
-            edgesTargeted = true
+            edgesTargeted = false,
         };
 
         
@@ -26,7 +25,12 @@ namespace Plugins.GeometricVision.Tests.TestScriptsForGameObjects
         {
             TestUtilities.PostCleanUpBuildSettings(TestSessionVariables.BuildScenes);
         }
-
+        
+        /// <summary>
+        /// Test for the renderer based search works
+        /// </summary>
+        /// <param name="scenePath"></param>
+        /// <returns></returns>
         [UnityTest, Performance, Version(version)]
         [Timeout(TestSettings.DefaultSmallTest)]
         [PrebuildSetup(typeof(SceneBuildSettingsSetupForGameObjects))]
@@ -38,8 +42,9 @@ namespace Plugins.GeometricVision.Tests.TestScriptsForGameObjects
                 yield return null;
             }
             int expectedObjectCount = GameObject.FindObjectsOfType<Renderer>().Length;
+            
             var geoVision = TestUtilities.SetupGeoVision(new Vector3(0f, 0f, -6f), new GeometryVisionFactory(factorySettings));
-
+            geoVision.GetComponent<GeometryVision>().UseBounds = true;
             yield return null;
             yield return null;
             
@@ -62,7 +67,7 @@ namespace Plugins.GeometricVision.Tests.TestScriptsForGameObjects
             int expectedObjectCount2 = 0;
             int expectedObjectCount3 = expectedObjectCount1;
             var geoVision = TestUtilities.SetupGeoVision(new Vector3(0f, 0f, -6f), new GeometryVisionFactory(factorySettings));
-            
+            geoVision.GetComponent<GeometryVision>().UseBounds = true;
             yield return null;
             yield return null;
             Assert.AreEqual(expectedObjectCount1, geoVision.GetComponent<GeometryVisionEye>().SeenGeoInfos.Count);
@@ -91,6 +96,7 @@ namespace Plugins.GeometricVision.Tests.TestScriptsForGameObjects
                 yield return null;
             }
             var geoVision = TestUtilities.SetupGeoVision(new Vector3(0f, 0f, -6f), new GeometryVisionFactory(factorySettings));
+            geoVision.GetComponent<GeometryVision>().UseBounds = true;
             yield return null;
             geoVision.transform.position = new Vector3(10f, 10f, 10f);
             yield return null;

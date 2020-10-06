@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using NUnit.Framework;
+using Unity.Collections;
 using Unity.PerformanceTesting;
 using UnityEditor;
 using UnityEngine;
@@ -17,7 +18,6 @@ namespace Plugins.GeometricVision.Tests.TestScriptsForGameObjects
         {
             fielOfView =  25f,
             processGameObjects = true,
-            processGameObjectsEdges = false,
             edgesTargeted = false,
             defaultTargeting = true,
             defaultTag = ""
@@ -29,7 +29,7 @@ namespace Plugins.GeometricVision.Tests.TestScriptsForGameObjects
             TestUtilities.PostCleanUpBuildSettings(TestSessionVariables.BuildScenes);
         }
 
-        [UnityTest, Performance, Version(TestSettings.Version)]
+        [UnityTest,  Version(TestSettings.Version)]
         [Timeout(TestSettings.DefaultPerformanceTests)]
         [PrebuildSetup(typeof(SceneBuildSettingsSetupForGameObjects))]
         public IEnumerator TargetingSystemGetsAddedIfTargetingEnabled([ValueSource(typeof(TestUtilities), nameof(TestUtilities.GetSimpleTestScenePathsForGameObjects))] string scenePath)
@@ -44,9 +44,8 @@ namespace Plugins.GeometricVision.Tests.TestScriptsForGameObjects
    
             int AmountOfTargetingSystemsRegistered = 0;
             int expectedObjectCount1 = 1;
-            Measure.Method(() => { AmountOfTargetingSystemsRegistered = geoVision.GetComponent<GeometryTargetingSystemsContainer>().GetTargetingProgramsCount(); }).Run();
-
-            Debug.Log("total targeting systems: " + AmountOfTargetingSystemsRegistered);
+            AmountOfTargetingSystemsRegistered = geoVision.GetComponent<GeometryTargetingSystemsContainer>().GetTargetingProgramsCount();;
+            
             Assert.AreEqual(expectedObjectCount1, AmountOfTargetingSystemsRegistered);
         }
         
@@ -60,17 +59,18 @@ namespace Plugins.GeometricVision.Tests.TestScriptsForGameObjects
             {
                 yield return null;
             }
+
+            factorySettings.defaultTag = "";
             var geoVision = TestUtilities.SetupGeoVision(new Vector3(0f, 0f, -6f), new GeometryVisionFactory(factorySettings));
             yield return null;
    
             GeometryDataModels.Target target = new GeometryDataModels.Target();
-            Measure.Method(() => { target = geoVision.GetComponent<GeometryVision>().GetClosestTarget(false); }).Run();
-
-            Debug.Log("found targeting system: " + target);
-                        
+            Measure.Method(() => { target = geoVision.GetComponent<GeometryVision>().GetClosestTarget(); }).Run();
+            
             Assert.True(target.isEntity == false);
             Assert.True(target.distanceToCastOrigin > 0);
         }
+        
         [UnityTest, Performance, Version(TestSettings.Version)]
         [Timeout(TestSettings.DefaultPerformanceTests)]
         [PrebuildSetup(typeof(SceneBuildSettingsSetupForGameObjects))]
@@ -87,12 +87,13 @@ namespace Plugins.GeometricVision.Tests.TestScriptsForGameObjects
             var geoVision =
                 TestUtilities.SetupGeoVision(new Vector3(0f, 0f, -6f), new GeometryVisionFactory(factorySettings));
             yield return null;
-            Assert.True(geoVision.GetComponent<GeometryVision>().GetClosestTargets().Count > 0);
+            Assert.True(geoVision.GetComponent<GeometryVision>().GetClosestTargets().Length > 0);
             //Move camera away so there is nothing to be seen
             geoVision.transform.position = new Vector3(34343f, 343434f, 3434343f);
             yield return null;
-            Assert.True(geoVision.GetComponent<GeometryVision>().GetClosestTargets().Count == 0);
+            Assert.True(geoVision.GetComponent<GeometryVision>().GetClosestTargets().Length == 0);
         }
+        
         [UnityTest, Performance, Version(TestSettings.Version)]
         [Timeout(TestSettings.DefaultPerformanceTests)]
         [PrebuildSetup(typeof(SceneBuildSettingsSetupForGameObjectsTargeting))]
@@ -109,11 +110,10 @@ namespace Plugins.GeometricVision.Tests.TestScriptsForGameObjects
             var geoVision = TestUtilities.SetupGeoVision(new Vector3(0f, 0f, -6f), new GeometryVisionFactory(factorySettings));
             yield return null;
             var geoVisionComponent = geoVision.GetComponent<GeometryVision>(); 
-            List<GeometryDataModels.Target> targets = new List<GeometryDataModels.Target>();
+            NativeSlice<GeometryDataModels.Target> targets = new NativeArray<GeometryDataModels.Target>();
             Measure.Method(() => { targets = geoVision.GetComponent<GeometryVision>().GetClosestTargets(); }).Run();
             foreach (var target in targets)
             {
-                Debug.Log("found targeting system: " + target);
                 var targeTransform =  geoVisionComponent.GetTransformBasedOnGeoHashCode(target.GeoInfoHashCode);
                 if (targeTransform.name.Contains("Cube"))
                 {
@@ -138,10 +138,9 @@ namespace Plugins.GeometricVision.Tests.TestScriptsForGameObjects
 
             var geoVision = TestUtilities.SetupGeoVision(new Vector3(0f, 0f, -6f), new GeometryVisionFactory(factorySettings));
             yield return null;
-            var geoVisionComponent = geoVision.GetComponent<GeometryVision>(); 
-            List<GeometryDataModels.Target> targets = new List<GeometryDataModels.Target>();
+            NativeSlice<GeometryDataModels.Target> targets = new NativeArray<GeometryDataModels.Target>();
             Measure.Method(() => { targets = geoVision.GetComponent<GeometryVision>().GetClosestTargets(); }).Run();
-            Assert.True(targets.Count >=3);//3 objects + possible left over by unity
+            Assert.True(targets.Length >=3);//3 objects + possible left over by unity
 
         }
     }

@@ -4,8 +4,9 @@ using GeometricVision;
 using Plugins.GeometricVision.ImplementationsGameObjects;
 using Plugins.GeometricVision.Utilities;
 using Unity.Collections;
+using Unity.Jobs;
 using UnityEngine;
-using static Plugins.GeometricVision.GeometryDataModels.Boolean;
+using UnityEngine.Jobs;
 
 namespace Plugins.GeometricVision.Interfaces.Implementations
 {
@@ -25,16 +26,14 @@ namespace Plugins.GeometricVision.Interfaces.Implementations
         [SerializeField] private bool hideEdgesOutsideFieldOfView = true;
         [SerializeField] private int lastCount = 0;
         [SerializeField] private List<GeometryDataModels.GeoInfo> seenGeoInfos = new List<GeometryDataModels.GeoInfo>();
-
-        [SerializeField] public HashSet<Transform> seenTransforms;
-
+        [SerializeField] public List<Transform> seenTransforms;
         [SerializeField, Tooltip(" Geometry is extracted from collider instead of renderers mesh")]
         private bool targetColliderMeshes;
-
+        private GeometryDataModels.GeoInfo[] newSeenGeometriesList = new GeometryDataModels.GeoInfo[500000];
         public GeometryVision GeoVision { get; set; }
 
         public GeometryVisionRunner Runner { get; set; }
-        
+
         void Reset()
         {
             Initialize();
@@ -49,7 +48,7 @@ namespace Plugins.GeometricVision.Interfaces.Implementations
         private void Initialize()
         {
             seenGeoInfos = new List<GeometryDataModels.GeoInfo>();
-            seenTransforms = new HashSet<Transform>();
+            seenTransforms = new List<Transform>();
         }
 
         public NativeArray<GeometryDataModels.Edge> GetSeenEdges()
@@ -58,7 +57,7 @@ namespace Plugins.GeometricVision.Interfaces.Implementations
             int visibleEdgeCount = 0;
             foreach (var geo in SeenGeoInfos)
             {
-                foreach (var edge1 in geo.edges.Where(edge => edge.isVisible == True))
+                foreach (var edge1 in geo.edges.Where(edge => edge.isVisible == true))
                 {
                     seenEdges.Add(edge1);
                     visibleEdgeCount += 1;
@@ -72,20 +71,22 @@ namespace Plugins.GeometricVision.Interfaces.Implementations
         /// <summary>
         /// Updates visibility of the objects in the eye and processor/manager
         /// </summary>
-        public void UpdateVisibility()
+        public void UpdateVisibility(bool useBounds)
         {
-            seenTransforms = UpdateTransformVisibility(Runner.GetProcessor<GeometryVisionProcessor>().GetAllTransforms(), seenTransforms);
-            SeenGeoInfos = UpdateRenderedMeshVisibility(GeoVision.Planes, Runner.GeoMemory.GeoInfos);
+            seenTransforms =
+                UpdateTransformVisibility(GeoVision.Runner.GetProcessor<GeometryVisionProcessor>().GetAllTransforms(),
+                    seenTransforms);
+            SeenGeoInfos = UpdateRenderedMeshVisibility(GeoVision.Planes, Runner.GeoMemory.GeoInfos, useBounds);
         }
 
 
         /// <summary>
         /// Update GameObject/transform visibility. Object that does not have Mesh or renderer in it
         /// </summary>
-        private HashSet<Transform> UpdateTransformVisibility(List<Transform> transformsToCheck,
-            HashSet<Transform> seenTransforms)
+        private List<Transform> UpdateTransformVisibility(List<Transform> transformsToCheck,
+            List<Transform> seenTransforms)
         {
-            seenTransforms = new HashSet<Transform>();
+            seenTransforms = new List<Transform>();
 
             seenTransforms = GetTransformsInsideFrustum(seenTransforms, transformsToCheck);
 
@@ -99,81 +100,100 @@ namespace Plugins.GeometricVision.Interfaces.Implementations
         /// </summary>
         /// <param name="planes"></param>
         /// <param name="allGeoInfos"></param>
-        private List<GeometryDataModels.GeoInfo> UpdateRenderedMeshVisibility(Plane[] planes, List<GeometryDataModels.GeoInfo> allGeoInfos)
+        /// <param name="useBounds"></param>
+        private List<GeometryDataModels.GeoInfo> UpdateRenderedMeshVisibility(Plane[] planes,
+            List<GeometryDataModels.GeoInfo> allGeoInfos, bool useBounds)
         {
             int geoCount = allGeoInfos.Count;
-            var newSeenGeometriesList = new List<GeometryDataModels.GeoInfo>();
-            var newGeoInfos = new List<GeometryDataModels.GeoInfo>(allGeoInfos);
-            UpdateSeenGeometryObjects(false);
+            int index2 = 0;
+            var newGeoInfos = new List<GeometryDataModels.GeoInfo>(allGeoInfos.Count);
+            newGeoInfos.AddRange(allGeoInfos);
+            UpdateSeenGeometryObjects();
 
             // Updates object collection containing geometry and data related to seen object. Usage is to internally update seen geometry objects by checking objects renderer bounds
             // against eyes/cameras frustum
-            void UpdateSeenGeometryObjects(bool useBounds)
+            void UpdateSeenGeometryObjects()
             {
+                var nameOfTransform = "";
+                Transform geoInfoTransform = null;
                 for (var i = 0; i < geoCount; i++)
                 {
-                    var geInfo = allGeoInfos[i];
+                    var geoInfo = allGeoInfos[i];
+                    geoInfoTransform = geoInfo.transform;
+                    if (!geoInfoTransform)
+                    {
+                        continue;
+                    }
 
-                    if (!geInfo.transform)
+                    if (useBounds)
                     {
-                        continue;
+                        AddVisibleRenderer(geoInfo,ref index2);
                     }
-                    var nameOfTransform = geInfo.transform.name;
-                    if (nameOfTransform.Length >= GeometryVisionSettings.NameOfStartingEffect.Length && nameOfTransform.Contains(GeometryVisionSettings.NameOfStartingEffect) ||
-                        nameOfTransform.Length >= GeometryVisionSettings.NameOfMainEffect.Length && nameOfTransform.Contains(GeometryVisionSettings.NameOfMainEffect) ||
-                        nameOfTransform.Length >= GeometryVisionSettings.NameOfEndEffect.Length && nameOfTransform.Contains(GeometryVisionSettings.NameOfEndEffect))
+                    else if (MeshUtilities.IsInsideFrustum(geoInfoTransform.position, GeoVision.Planes))
                     {
-                        continue;
-                    }
-                    
-                    if (useBounds && GeometryUtility.TestPlanesAABB(GeoVision.Planes, geInfo.renderer.bounds) &&
-                        hideEdgesOutsideFieldOfView)
-                    {
-                        if (!geInfo.renderer)
-                        {
-                            newGeoInfos.Remove(geInfo);
-                            continue;
-                        }
-                        newSeenGeometriesList.Add(geInfo);
-                    }
-                    else if ( useBounds == false && MeshUtilities.IsInsideFrustum(geInfo.transform.position, GeoVision.Planes))
-                    {
-                        newSeenGeometriesList.Add(geInfo);
+                        AddVisibleObject(geoInfo, ref index2);
                     }
                 }
 
                 allGeoInfos = newGeoInfos;
+                newGeoInfos = null;
             }
+            
+            return newSeenGeometriesList.Take(index2).ToList();
 
-            foreach (var geometryType in GeoVision.TargetingInstructions)
+            // Local functions
+            void AddVisibleRenderer(GeometryDataModels.GeoInfo geInfo, ref int index)
             {
-                if (geometryType.GeometryType == GeometryType.Lines && geometryType.Enabled)
+                string nameOfTransform;
+                if (!geInfo.renderer)
                 {
-                    MeshUtilities.UpdateEdgesVisibilityParallel(planes, newSeenGeometriesList);
+                    newGeoInfos.Remove(geInfo);
+                    return;
+                }
+
+                if (GeometryUtility.TestPlanesAABB(GeoVision.Planes, geInfo.renderer.bounds))
+                {
+                    nameOfTransform = geInfo.transform.name;
+                    if (GeometryVisionUtilities.TransformIsEffect(nameOfTransform))
+                    {
+                        return;
+                    }
+
+                    newSeenGeometriesList[index] =geInfo;
+                    index += 1;
                 }
             }
 
-            return newSeenGeometriesList;
+            void AddVisibleObject(GeometryDataModels.GeoInfo geInfo, ref int index)
+            {
+            
+                string nameOfTransform = geInfo.transform.name;
+                if (GeometryVisionUtilities.TransformIsEffect(nameOfTransform))
+                {
+                    return;
+                }
+
+                newSeenGeometriesList[index] =geInfo;
+                index += 1;
+            }
         }
-
-
-        private HashSet<Transform> GetTransformsInsideFrustum(HashSet<Transform> seenTransforms,
-            List<Transform> allTransforms)
+        
+        private List<Transform> GetTransformsInsideFrustum(List<Transform> seenTransforms, List<Transform> allTransforms)
         {
             List<Transform> allTempTransforms = new List<Transform>(allTransforms);
+            string transformName;
             foreach (var transformInProcess in allTransforms)
             {
                 if (transformInProcess)
                 {
-                    var nameOfTransform = transformInProcess.name;
-                    if (nameOfTransform.Contains(GeometryVisionSettings.NameOfStartingEffect) &&
-                        nameOfTransform.Contains(GeometryVisionSettings.NameOfMainEffect) &&
-                        nameOfTransform.Contains(GeometryVisionSettings.NameOfEndEffect))
-                    {
-                        continue;
-                    }
                     if (MeshUtilities.IsInsideFrustum(transformInProcess.position, GeoVision.Planes))
                     {
+                        transformName = transformInProcess.name;
+                        if (GeometryVisionUtilities.TransformIsEffect(transformName))
+                        {
+                            continue;
+                        }
+
                         seenTransforms.Add(transformInProcess);
                         lastCount = seenTransforms.Count;
                     }
@@ -187,7 +207,8 @@ namespace Plugins.GeometricVision.Interfaces.Implementations
             allTransforms = allTempTransforms;
             return seenTransforms;
         }
-
+          
+        
         public List<GeometryDataModels.GeoInfo> SeenGeoInfos
         {
             get { return seenGeoInfos; }

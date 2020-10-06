@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
-using UnityEngine.InputSystem;
 
 #if STEAMVR
 using Valve.VR;
@@ -15,6 +14,7 @@ namespace Plugins.GeometricVision.Examples.ObjectPicking
         [SerializeField] private float maxDistance;
         [SerializeField] private float radius;
         [SerializeField] private float pickingSpeed;
+        [SerializeField] private float distanceToStop =1f;
 
 #if STEAMVR
         public SteamVR_Action_Boolean grabPinchAction = SteamVR_Input.GetAction<SteamVR_Action_Boolean>("GrabPinch");
@@ -32,7 +32,11 @@ namespace Plugins.GeometricVision.Examples.ObjectPicking
         private void Update()
         {
 #if STEAMVR
-            if (grabPinchAction.GetStateDown(SteamVR_Input_Sources.RightHand))
+            if (grabPinchAction.GetStateUp(SteamVR_Input_Sources.RightHand))
+            {
+                Pick();
+            }
+            if (Input.GetMouseButtonUp(0))
             {
                 Pick();
             }
@@ -53,7 +57,7 @@ namespace Plugins.GeometricVision.Examples.ObjectPicking
 
         void Pick()
         {
-            var target = geoVision.GetClosestTarget(false);
+            var target = geoVision.GetClosestTarget();
             // if distances are zeroed it means there was no targets inside vision area and the system return default
             // target, because target struct cannot be null for it to work with entities
             if (target.distanceToCastOrigin > 0)
@@ -62,9 +66,9 @@ namespace Plugins.GeometricVision.Examples.ObjectPicking
                     && Vector3.Distance(target.projectedTargetPosition, target.position) < radius)
                 {
                     geoVision.TriggerTargetingActions();
-                    geoVision.MoveClosestTarget(transform.position, pickingSpeed);
-                    //Destroy target at 50cm(1.64041995 feet) close to the picker
-                    StartCoroutine(geoVision.DestroyTargetAtDistance(target, 0.5f));
+                    geoVision.MoveClosestTargetToPosition(transform.position, pickingSpeed, distanceToStop);
+                    //Destroy target at 1m(3.2808399 feet) close to the picker
+                    StartCoroutine(geoVision.DestroyTargetAtDistance(target, distanceToStop));
                 }
             }
         }
@@ -94,7 +98,13 @@ namespace Plugins.GeometricVision.Examples.ObjectPicking
                 Handles.zTest = UnityEngine.Rendering.CompareFunction.LessEqual;
                 Handles.color = Color.green;
                 Vector3 resetToVector = Vector3.zero;
+
+                if (geoVision == null)
+                {
+                   return; 
+                }
                 var geoVisionTransform = geoVision.transform;
+                
                 DrawTargetingVisualIndicators(geoVisionTransform.position, geoVision.ForwardWorldCoordinate,
                     Color.green);
 

@@ -7,8 +7,6 @@ using Plugins.GeometricVision.ImplementationsEntities;
 using Plugins.GeometricVision.ImplementationsGameObjects;
 using Plugins.GeometricVision.Interfaces;
 using Plugins.GeometricVision.Interfaces.Implementations;
-using Plugins.GeometricVision.Interfaces.ImplementationsEntities;
-using Plugins.GeometricVision.UI;
 using Unity.PerformanceTesting;
 using UnityEditor;
 using UnityEngine;
@@ -27,7 +25,8 @@ namespace Plugins.GeometricVision.Tests
             fielOfView = 25f,
             processGameObjects = true,
             processEntities = true,
-            processGameObjectsEdges = false,
+            defaultTargeting = true,
+            defaultTag = "",
         };
 
         [TearDown]
@@ -55,8 +54,9 @@ namespace Plugins.GeometricVision.Tests
             var geoVision = TestUtilities.SetupGeoVision(new Vector3(0f, 0f, -6f),
                 new GeometryVisionFactory(factorySettings));
             yield return null;
-            Assert.True(geoVision.GetComponent<GeometryVision>().TargetingInstructions.Count == 1);
-            Assert.True(geoVision.GetComponent<GeometryVision>().TargetingInstructions[0].TargetingActions.name ==
+            var geoVisionComponent = geoVision.GetComponent<GeometryVision>();
+            Assert.True(geoVisionComponent.TargetingInstructions.Count == 1);
+            Assert.True(geoVisionComponent.TargetingInstructions[0].TargetingActions.name ==
                         newActions.name);
         }
 
@@ -82,20 +82,20 @@ namespace Plugins.GeometricVision.Tests
             var geoVisionComponent = geoVision.GetComponent<GeometryVision>();
             geoVisionComponent.TriggerTargetingActions();
             //Check if there is a spawn
-            Assert.True(GameObject.Find(GeometryVisionSettings.NameOfStartingEffect) == null);
-            Assert.True(GameObject.Find(GeometryVisionSettings.NameOfMainEffect) == null);
-            Assert.True(GameObject.Find(GeometryVisionSettings.NameOfEndEffect) == null);
+            Assert.True(GameObject.Find(GeometryVisionSettings.NameOfStartingEffect.ToString()) == null);
+            Assert.True(GameObject.Find(GeometryVisionSettings.NameOfMainEffect.ToString()) == null);
+            Assert.True(GameObject.Find(GeometryVisionSettings.NameOfEndEffect.ToString()) == null);
             //Wait frame and check again, if there is a spawn
             yield return null;
-            Assert.True(GameObject.Find(GeometryVisionSettings.NameOfStartingEffect) == null);
-            Assert.True(GameObject.Find(GeometryVisionSettings.NameOfMainEffect) == null);
-            Assert.True(GameObject.Find(GeometryVisionSettings.NameOfEndEffect) == null);
+            Assert.True(GameObject.Find(GeometryVisionSettings.NameOfStartingEffect.ToString()) == null);
+            Assert.True(GameObject.Find(GeometryVisionSettings.NameOfMainEffect.ToString()) == null);
+            Assert.True(GameObject.Find(GeometryVisionSettings.NameOfEndEffect.ToString()) == null);
             //Wait few more frames just in case the coroutines haven't finished and check again, if there is a spawn
             yield return null;
             yield return null;
-            Assert.True(GameObject.Find(GeometryVisionSettings.NameOfStartingEffect) == null);
-            Assert.True(GameObject.Find(GeometryVisionSettings.NameOfMainEffect) == null);
-            Assert.True(GameObject.Find(GeometryVisionSettings.NameOfEndEffect) == null);
+            Assert.True(GameObject.Find(GeometryVisionSettings.NameOfStartingEffect.ToString()) == null);
+            Assert.True(GameObject.Find(GeometryVisionSettings.NameOfMainEffect.ToString()) == null);
+            Assert.True(GameObject.Find(GeometryVisionSettings.NameOfEndEffect.ToString()) == null);
         }
 
         [UnityTest, Performance, Version(version)]
@@ -124,9 +124,9 @@ namespace Plugins.GeometricVision.Tests
             var geoVisionComponent = geoVision.GetComponent<GeometryVision>();
             geoVisionComponent.TriggerTargetingActions();
             yield return null;
-            var startObject = GameObject.Find(GeometryVisionSettings.NameOfStartingEffect);
-            var mainObject = GameObject.Find(GeometryVisionSettings.NameOfMainEffect);
-            var endObject = GameObject.Find(GeometryVisionSettings.NameOfEndEffect);
+            var startObject = GameObject.Find(GeometryVisionSettings.NameOfStartingEffect.ToString());
+            var mainObject = GameObject.Find(GeometryVisionSettings.NameOfMainEffect.ToString());
+            var endObject = GameObject.Find(GeometryVisionSettings.NameOfEndEffect.ToString());
 
             //Wait few more frames just in case the coroutines haven't finished and check again, if there is a spawn
             yield return null;
@@ -137,16 +137,16 @@ namespace Plugins.GeometricVision.Tests
             //Check objects are spawned
             do
             {
-                startObject = GameObject.Find(GeometryVisionSettings.NameOfStartingEffect);
-                mainObject = GameObject.Find(GeometryVisionSettings.NameOfMainEffect);
-                endObject = GameObject.Find(GeometryVisionSettings.NameOfEndEffect);
+                startObject = GameObject.Find(GeometryVisionSettings.NameOfStartingEffect.ToString());
+                mainObject = GameObject.Find(GeometryVisionSettings.NameOfMainEffect.ToString());
+                endObject = GameObject.Find(GeometryVisionSettings.NameOfEndEffect.ToString());
 
                 yield return null;
                 Assert.True(startObject != null);
                 Assert.True(mainObject != null);
                 Assert.True(endObject != null);
                 totalTime += Time.deltaTime;
-            } while (totalTime < durationOfSpawn + 0.3f);
+            } while (totalTime < durationOfSpawn-0.1f);
 
             //Wait and check if objects are de spawned
             totalTime = 0;
@@ -156,9 +156,9 @@ namespace Plugins.GeometricVision.Tests
                 totalTime += Time.deltaTime;
             } while (totalTime < 0.3f);
 
-            startObject = GameObject.Find(GeometryVisionSettings.NameOfStartingEffect);
-            mainObject = GameObject.Find(GeometryVisionSettings.NameOfMainEffect);
-            endObject = GameObject.Find(GeometryVisionSettings.NameOfEndEffect);
+            startObject = GameObject.Find(GeometryVisionSettings.NameOfStartingEffect.ToString());
+            mainObject = GameObject.Find(GeometryVisionSettings.NameOfMainEffect.ToString());
+            endObject = GameObject.Find(GeometryVisionSettings.NameOfEndEffect.ToString());
             yield return null;
             Assert.True(startObject == null);
             Assert.True(mainObject == null);
@@ -187,9 +187,8 @@ namespace Plugins.GeometricVision.Tests
             var geoVision = TestUtilities.SetupGeoVision(new Vector3(0f, 0f, -6f),
                 new GeometryVisionFactory(factorySettings));
             yield return null;
-
-
             var geoVisionComponent = geoVision.GetComponent<GeometryVision>();
+            
             geoVisionComponent.TriggerTargetingActions();
             //Wait for frame just in case the coroutines haven't finished and check again, if there is a spawn
             yield return null;
@@ -198,7 +197,7 @@ namespace Plugins.GeometricVision.Tests
             var mainObject = GameObject.Find(GeometryVisionSettings.NameOfMainEffect);
             var endObject = GameObject.Find(GeometryVisionSettings.NameOfEndEffect);
 
-            DateTime utcNow = DateTime.UtcNow;
+            float totalTime = 0;
             do
             {
                 startObject = GameObject.Find(GeometryVisionSettings.NameOfStartingEffect);
@@ -208,31 +207,32 @@ namespace Plugins.GeometricVision.Tests
                 Assert.True(startObject == null);
                 Assert.True(mainObject == null);
                 Assert.True(endObject == null);
-            } while ((DateTime.UtcNow - utcNow).TotalSeconds < delay);
-
-
-            utcNow = DateTime.UtcNow;
+                totalTime += Time.deltaTime;
+            } while (totalTime < delay-0.1f);
+            
+            totalTime = 0;
             do
             {
+                //This should get the counter over the delay of 1 second. I think this way of measuring is not accurate
                 yield return null;
-            } while ((DateTime.UtcNow - utcNow).TotalSeconds < 0.6f
-            ); //This should get the counter over the delay of 1 second. I think this way of measuring is not accurate
-            //The delay seems to work on play mode as expected so this is just used to check that there is a spawn delay. 
-            //TODO: If there is a better way to check seconds replace this with that
+                totalTime += Time.deltaTime;
+            } while (totalTime < 0.1f);
 
-            utcNow = DateTime.UtcNow;
+                
+
+            //The delay seems to work on play mode as expected so this is just used to check that there is a spawn delay. 
+            totalTime = 0;
             do
             {
                 startObject = GameObject.Find(GeometryVisionSettings.NameOfStartingEffect);
                 mainObject = GameObject.Find(GeometryVisionSettings.NameOfMainEffect);
-                endObject = GameObject.Find(GeometryVisionSettings.NameOfEndEffect);
+                endObject = GameObject.Find(GeometryVisionSettings.NameOfEndEffect.ToString());
                 yield return null;
-
                 Assert.True(startObject != null);
                 Assert.True(mainObject != null);
                 Assert.True(endObject != null);
-            } while ((DateTime.UtcNow - utcNow).TotalSeconds < durationOfSpawn
-            );
+                totalTime += Time.deltaTime;
+            } while (totalTime < durationOfSpawn -0.1f);
         }
 
         private void ConfigureActionsTemplateObjectForSpawn(ActionsTemplateObject newActions, float durationOfSpawn,
@@ -240,12 +240,15 @@ namespace Plugins.GeometricVision.Tests
         {
             factorySettings.actionsTemplateObject = newActions;
             factorySettings.actionsTemplateObject.StartActionObject = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+            factorySettings.actionsTemplateObject.StartActionEnabled = true;
             factorySettings.actionsTemplateObject.StartDelay = delay;
             factorySettings.actionsTemplateObject.StartDuration = durationOfSpawn;
             factorySettings.actionsTemplateObject.MainActionObject = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+            factorySettings.actionsTemplateObject.MainActionEnabled = true;
             factorySettings.actionsTemplateObject.MainActionDelay = delay;
             factorySettings.actionsTemplateObject.MainActionDuration = durationOfSpawn;
             factorySettings.actionsTemplateObject.EndActionObject = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+            factorySettings.actionsTemplateObject.EndActionEnabled = true;
             factorySettings.actionsTemplateObject.EndDelay = delay;
             factorySettings.actionsTemplateObject.EndDuration = durationOfSpawn;
         }

@@ -6,6 +6,8 @@
       <Path>Library/PackageCache/com.unity.burst@1.3.1</Path>
       <Path>Library/PackageCache/com.unity.collections@0.9.0-preview.6</Path>
       <Path>Library/PackageCache/com.unity.dots.editor@0.8.0-preview.1</Path>
+      <Path>Library/PackageCache/com.unity.dots.editor@0.8.2-preview</Path>
+      <Path>Library/PackageCache/com.unity.dots.editor@0.9.0-preview.1</Path>
       <Path>Library/PackageCache/com.unity.editorcoroutines@1.0.0</Path>
       <Path>Library/PackageCache/com.unity.entities@0.11.1-preview.4</Path>
       <Path>Library/PackageCache/com.unity.ext.nunit@1.0.0</Path>
@@ -14,17 +16,21 @@
       <Path>Library/PackageCache/com.unity.inputsystem@1.0.0</Path>
       <Path>Library/PackageCache/com.unity.jobs@0.2.10-preview.12</Path>
       <Path>Library/PackageCache/com.unity.mathematics@1.1.0</Path>
+      <Path>Library/PackageCache/com.unity.mathematics@1.2.1</Path>
       <Path>Library/PackageCache/com.unity.nuget.newtonsoft-json@2.0.0</Path>
       <Path>Library/PackageCache/com.unity.platforms@0.3.0-preview.4</Path>
       <Path>Library/PackageCache/com.unity.postprocessing@2.3.0</Path>
       <Path>Library/PackageCache/com.unity.probuilder@4.2.3</Path>
       <Path>Library/PackageCache/com.unity.properties.ui@1.2.0-preview</Path>
+      <Path>Library/PackageCache/com.unity.properties.ui@1.3.1-preview</Path>
       <Path>Library/PackageCache/com.unity.properties@1.2.0-preview</Path>
+      <Path>Library/PackageCache/com.unity.properties@1.3.1-preview</Path>
       <Path>Library/PackageCache/com.unity.render-pipelines.core@8.2.0</Path>
-      <Path>Library/PackageCache/com.unity.rendering.hybrid@0.5.2-preview.4</Path>
+      <Path>Library/PackageCache/com.unity.rendering.hybrid@0.7.0-preview.24</Path>
       <Path>Library/PackageCache/com.unity.scriptablebuildpipeline@1.6.4-preview</Path>
       <Path>Library/PackageCache/com.unity.searcher@4.0.9</Path>
       <Path>Library/PackageCache/com.unity.serialization@1.2.0-preview</Path>
+      <Path>Library/PackageCache/com.unity.serialization@1.3.1-preview</Path>
       <Path>Library/PackageCache/com.unity.settings-manager@1.0.0</Path>
       <Path>Library/PackageCache/com.unity.subsystemregistration@1.0.6</Path>
       <Path>Library/PackageCache/com.unity.test-framework.performance@2.0.9-preview</Path>
@@ -37,6 +43,11 @@
       <Path>Library/PackageCache/nuget.mono-cecil@0.1.5-preview</Path>
       <Path>Packages</Path>
       <Path>ProjectSettings</Path>
+      <Path>../../Users/Crystalizer/AppData/Local/Unity/cache/packages/packages.unity.com/com.unity.burst@1.3.1</Path>
+      <Path>../../Users/Crystalizer/AppData/Local/Unity/cache/packages/packages.unity.com/com.unity.collections@0.9.0-preview.6</Path>
+      <Path>../../Users/Crystalizer/AppData/Local/Unity/cache/packages/packages.unity.com/com.unity.entities@0.11.1-preview.4</Path>
+      <Path>../../Users/Crystalizer/AppData/Local/Unity/cache/packages/packages.unity.com/com.unity.jobs@0.2.10-preview.12</Path>
+      <Path>../../Users/Crystalizer/AppData/Local/Unity/cache/packages/packages.unity.com/com.unity.platforms@0.3.0-preview.4</Path>
     </explicitIncludes>
     <explicitExcludes>
       <Path>.git</Path>

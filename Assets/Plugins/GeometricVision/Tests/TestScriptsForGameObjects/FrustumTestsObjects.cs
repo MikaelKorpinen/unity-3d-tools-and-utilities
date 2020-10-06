@@ -18,7 +18,6 @@ namespace Plugins.GeometricVision.Tests.TestScriptsForGameObjects
         {
             fielOfView =  25f,
             processGameObjects = true,
-            processGameObjectsEdges = false,
         };
         
         [TearDown]
@@ -46,6 +45,7 @@ namespace Plugins.GeometricVision.Tests.TestScriptsForGameObjects
             yield return null;
 
             var geoEye = geoVision.GetComponent<GeometryVision>().GetEye<GeometryVisionEye>();
+            //+1 from geovision manager/runner
             Assert.True( geoEye.seenTransforms.Count >= expectedObjectCount  &&  geoEye.seenTransforms.Count  <= expectedObjectCount + 1);
         }
         
