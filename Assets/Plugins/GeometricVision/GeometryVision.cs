@@ -36,9 +36,11 @@ namespace Plugins.GeometricVision
 
         [SerializeField, Tooltip("Enables editor drawings for seeing targeting data")]
         private bool debugMode;
-
-        [SerializeField] private float fieldOfView = 25f;
-        [SerializeField] private float farDistanceOfView = 1500f;
+        
+        [SerializeField, Tooltip("Area view width used in filtering targets. Targets only exists inside this angle")] 
+        private float fieldOfView = 25f;
+        [SerializeField, Tooltip("Howl far the component sees targets. Targets only exists inside this distance")] 
+        private float farDistanceOfView = 1500f;
 
         [SerializeField, Tooltip("User given parameters as set of targeting instructions")]
         private List<TargetingInstruction> targetingInstructions;
@@ -56,7 +58,7 @@ namespace Plugins.GeometricVision
         private Plane[] planes = new Plane[6];
         private Vector3 forwardWorldCoordinate = Vector3.zero;
         private Transform cachedTransform;
-        private NativeArray<GeometryDataModels.Target> closestTargetsContainer;
+        private NativeList<GeometryDataModels.Target> closestTargetsContainer;
         private NativeSlice<GeometryDataModels.Target> closestTargets;
         private NativeSlice<GeometryDataModels.Target> closestEntityTargets;
         private NativeSlice<GeometryDataModels.Target> closestGameObjectTargets;
@@ -66,14 +68,16 @@ namespace Plugins.GeometricVision
         private bool favorDistanceToCameraInsteadDistanceToPointer = false;
         private bool useBounds = false;
         private string defaultTag = "";
-        [SerializeField] private int maxTargets = 100000;
-        private int amountOfTargets = 0;
+        
+        //Initial amount of estimated targets the system has available. Bigger numbers mean more targets can be stored, but will cost more memory.
+        private int maxTargets = 100000;
 
-        [SerializeField,
-         Tooltip(
-             "How often system will check for object scene changes like new or destroyed game objects. This can improve performance in case you have many GameObjects and the scene doesn't get a lot of changes like gameObjects spawning in and out. Zero is checks every frame.")]
+
+        [SerializeField, Tooltip(
+             "How often system will check for object scene changes like new or destroyed game objects. This can improve performance in case you have many GameObjects and the scene doesn't get a lot of changes like gameObjects spawning in and out. Zero checks every frame.")]
         private float checkEnvironmentChangesTimeInterval = 0.0f;
-
+        //This variable is used to make a slice of the targeting container. It should not be altered.
+        private int amountOfTargets = 0;
         void Reset()
         {
             InitializeGeometricVision(new List<GeometryType>());
@@ -92,7 +96,7 @@ namespace Plugins.GeometricVision
             {
                 maxTargets = 1000000;
             }
-            closestTargetsContainer = new NativeArray<GeometryDataModels.Target>(maxTargets, Allocator.Persistent);
+            closestTargetsContainer = new NativeList<GeometryDataModels.Target>(maxTargets, Allocator.Persistent);
         }
 
         // Start is called before the first frame update
@@ -126,7 +130,7 @@ namespace Plugins.GeometricVision
         void OnValidate()
         {
             cachedTransform = transform;
-            targetingInstructions = AddDefaultInstructionIfNone(targetingInstructions, entityProcessing.Value,
+            targetingInstructions = AddDefaultTargetingInstructionIfNone(targetingInstructions, entityProcessing.Value,
                 gameObjectProcessing.Value);
             targetingInstructions = GeometryVisionUtilities.ValidateTargetingSystems(targetingInstructions,
                 gameObjectProcessing.Value, entityProcessing.Value, entityWorld);
@@ -163,38 +167,6 @@ namespace Plugins.GeometricVision
             }
         }
 
-        internal List<TargetingInstruction> AddDefaultInstructionIfNone(
-            List<TargetingInstruction> targetingInstructionsIn, bool entityBased, bool gameObjectBased)
-        {
-            if (targetingInstructionsIn == null)
-            {
-                targetingInstructionsIn = new List<TargetingInstruction>();
-            }
-
-            if (targetingInstructionsIn.Count == 0)
-            {
-                GeometryEntitiesObjectTargeting entityTargeting = null;
-                GeometryObjectTargeting objectTargeting = null;
-
-                if (entityBased)
-                {
-                    var world = World.DefaultGameObjectInjectionWorld;
-                    entityTargeting = world.CreateSystem<GeometryEntitiesObjectTargeting>();
-                }
-
-                if (gameObjectBased)
-                {
-                    objectTargeting = new GeometryObjectTargeting();
-                }
-
-                targetingInstructionsIn.Add(
-                    new TargetingInstruction(GeometryType.Objects, defaultTag, (entityTargeting, objectTargeting), true,
-                        null));
-            }
-
-            return targetingInstructionsIn;
-        }
-
         /// <summary>
         /// Inits unity camera which provides some needed features for geometric vision like Gizmos, planes and matrices.
         /// </summary>
@@ -219,7 +191,7 @@ namespace Plugins.GeometricVision
         }
 
         /// <summary>
-        /// Gets closest entity or gameObject as target according to parameters set by the user from this component.
+        /// Gets closest entity or gameObject as target according to parameters set by the user from GeometryVision component.
         /// If there is no targets it tries to first update the closest target list.
         /// </summary>
         /// <returns>GeometryDataModels.Target that contain information about gameObject or entity</returns>
@@ -323,8 +295,12 @@ namespace Plugins.GeometricVision
         /// <typeparam name="T"></typeparam>
         public void RemoveEntityEye<T>() where T : ComponentSystemBase
         {
-            InterfaceUtilities.RemoveInterfaceImplementationsOfTypeFromList(typeof(T), ref eyes);
-
+            // Currently only one system
+            var eye = GetEye<GeometryVisionEntityEye>();
+            if (eye != null)
+            {
+                InterfaceUtilities.RemoveInterfaceImplementationsOfTypeFromList(typeof(T), ref eyes);
+            }
             var system = EntityWorld.GetExistingSystem<T>();
             if (system != null )
             {
@@ -371,26 +347,6 @@ namespace Plugins.GeometricVision
         }
 
         /// <summary>
-        /// Adds eye/camera component to the list and makes sure that the implementation to be added is unique.
-        /// Does not add duplicate implementation.
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        public void AddEntityEye<T>() where T : ComponentSystemBase, IGeoEye, new()
-        {
-            GeometryVisionUtilities.HandleEntityImplementationAddition(GetEye<T>(), eyes, EntityWorld, InitEye);
-
-            //local functions//
-
-            void InitEye()
-            {
-                var addedEye = (IGeoEye) GetEye<T>();
-                addedEye.Runner = runner;
-                addedEye.Id = new Hash128().ToString();
-                addedEye.GeoVision = this;
-            }
-        }
-
-        /// <summary>
         /// Gets the first targeting instruction matching the give type as GeometryType.
         /// </summary>
         /// <param name="geometryType">Targeting instruction search parameter. GeometryType to look for. Default use case is GeometryType.Objects</param>
@@ -421,7 +377,7 @@ namespace Plugins.GeometricVision
             {
                 newClosestTargets = closestTargetsContainer, 
                 favorDistanceToCameraInsteadDistanceToPointer = false,
-                comparer = new GeometryVisionUtilities.DistanceComparer()
+                comparerToViewDirection = new GeometryVisionUtilities.DistanceComparerToViewDirection()
             };
             sortJob.Schedule().Complete();
             closestTargetsContainer = sortJob.newClosestTargets;
@@ -440,7 +396,8 @@ namespace Plugins.GeometricVision
             {
                 newClosestTargets = closestTargetsContainer, 
                 favorDistanceToCameraInsteadDistanceToPointer = false,
-                comparer = new GeometryVisionUtilities.DistanceComparer()
+                comparerToViewDirection = new GeometryVisionUtilities.DistanceComparerToViewDirection(),
+                favorDistanceToCameraComparerToViewDirection = new GeometryVisionUtilities.DistanceComparerToCamera()
             }.Schedule().Complete();
             closestTargets = new NativeSlice<GeometryDataModels.Target>(closestTargetsContainer,0,amountOfTargets);
         }
@@ -448,9 +405,10 @@ namespace Plugins.GeometricVision
         [BurstCompile]
         private struct SortTargets : IJob
         {
-            public NativeArray<GeometryDataModels.Target> newClosestTargets;
+            public NativeList<GeometryDataModels.Target> newClosestTargets;
             public bool favorDistanceToCameraInsteadDistanceToPointer;
-            public GeometryVisionUtilities.DistanceComparer comparer;
+            public GeometryVisionUtilities.DistanceComparerToViewDirection comparerToViewDirection;
+            public GeometryVisionUtilities.DistanceComparerToCamera favorDistanceToCameraComparerToViewDirection;
 
             public void Execute()
             {
@@ -459,14 +417,119 @@ namespace Plugins.GeometricVision
                     if (favorDistanceToCameraInsteadDistanceToPointer == false)
                     {
                         //TODO: Native list and burst compile in job this
-                        newClosestTargets.Sort(comparer);
+                        newClosestTargets.Sort(comparerToViewDirection);
                     }
                     else
                     {
                         //TODO: Native list and burst compile in job this
                         //TODO:After 1.0 Find a good use case where this can be used and improve it.
-                        newClosestTargets.Sort(comparer);
+                        newClosestTargets.Sort(favorDistanceToCameraComparerToViewDirection);
                     }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Use to get list of targets containing data from entities and gameObjects. 
+        /// </summary>
+        /// <returns>List of target objects that can be used to find out closest target.</returns>
+        private NativeList<GeometryDataModels.Target> GetTargetsForGameObjectsAndEntities(NativeList<GeometryDataModels.Target> closestTargetsIn)
+        {
+            var offsetGameObjects = 0;
+            var offsetEntities = 0;
+
+            foreach (var targetingInstruction in TargetingInstructions)
+            {
+                if (targetingInstruction.IsTargetingEnabled.Value == false)
+                {
+                    continue;
+                }
+
+                var gameObjects = new NativeArray<GeometryDataModels.Target>(GetGameObjectTargets(targetingInstruction).ToArray(), Allocator.TempJob);
+                var entities =GetEntityTargets(targetingInstruction);
+                AddSpaceToContainerIfNeeded(gameObjects, entities);
+                AddTargetsToContainer(closestTargetsIn, gameObjects, 0);
+                AddTargetsToContainer(closestTargetsIn, entities, gameObjects.Length);
+
+                amountOfTargets = gameObjects.Length + entities.Length;
+
+                gameObjects.Dispose();
+                entities.Dispose();
+            }
+
+            return closestTargetsIn;
+            
+            //
+            // Local functions//
+            // 
+
+            //Runs the gameObject implementation of the IGeoTargeting interface 
+            List<GeometryDataModels.Target> GetGameObjectTargets(TargetingInstruction targetingInstruction)
+            {
+                if (gameObjectProcessing.Value == true && targetingInstruction.TargetingSystemGameObjects != null)
+                {
+                    return targetingInstruction.TargetingSystemGameObjects.GetTargets(transform.position, ForwardWorldCoordinate, this, targetingInstruction);
+                }
+
+                return new List<GeometryDataModels.Target>();
+            }
+
+            //Runs the entity implementation of the IGeoTargeting interface 
+            NativeArray<GeometryDataModels.Target> GetEntityTargets(TargetingInstruction targetingInstruction)
+            {
+                if (entityProcessing.Value == true&& targetingInstruction.TargetingSystemEntities != null)
+                {
+                    var closestentityTargetsIn =
+                        targetingInstruction.TargetingSystemEntities.GetTargetsAsNativeArray(transform.position,
+                            ForwardWorldCoordinate, this, targetingInstruction);
+                    //Only update entities if the burst compiled job has finished its job OnUpdate
+                    //If it has not finished it returns empty list.
+                    return closestentityTargetsIn;
+                }
+
+                return new NativeArray<GeometryDataModels.Target>(0, Allocator.TempJob);
+            }
+                        
+            void AddTargetsToContainer(NativeList<GeometryDataModels.Target> nativeList, NativeArray<GeometryDataModels.Target> nativeArray, int offset)
+            {
+                if (nativeArray.Length > 0)
+                {
+                    var job1 = new CombineEntityAndGameObjectTargets
+                    {
+                        offset = offset, targetingContainer = nativeList, targetsToInsert = nativeArray
+                    };
+                    var handle = job1.Schedule();
+                    handle.Complete();
+                }
+            }
+
+            void AddSpaceToContainerIfNeeded(NativeArray<GeometryDataModels.Target> gameObjects, NativeArray<GeometryDataModels.Target> entities)
+            {
+                if (gameObjects.Length + entities.Length > closestTargetsContainer.Length)
+                {
+                    closestTargetsContainer.Resize((gameObjects.Length + entities.Length) * 2,
+                        NativeArrayOptions.UninitializedMemory);
+                }
+            }
+        }
+
+        [BurstCompile]
+        struct CombineEntityAndGameObjectTargets : IJob
+        {
+            public NativeArray<GeometryDataModels.Target> targetingContainer;
+            public NativeArray<GeometryDataModels.Target> targetsToInsert;
+            public int offset;
+            
+
+            public void Execute()
+            {
+                for (int i = offset, j = 0; i < targetingContainer.Length; i++, j++)
+                {
+                    if (j < targetsToInsert.Length)
+                    {
+                        targetingContainer[i] = targetsToInsert[j];
+                    }
+                   
                 }
             }
         }
@@ -486,7 +549,7 @@ namespace Plugins.GeometricVision
             {
                 MainThreadDispatcher.StartUpdateMicroCoroutine(GeometryVisionUtilities.MoveEntityTarget(newPosition,
                     movementSpeed,
-                    closestTarget, distanceToStop, transformEntitySystem, entityWorld, closestTargets));
+                    closestTarget, distanceToStop, transformEntitySystem, entityWorld, closestTargetsContainer));
             }
             else
             {
@@ -574,108 +637,6 @@ namespace Plugins.GeometricVision
                         actions.EndActionObject,
                         actions.EndDelay, actions.EndDuration, cachedTransform,
                         GeometryVisionSettings.NameOfEndEffect.ToString()));
-                }
-            }
-        }
-
-        /// <summary>
-        /// Use to get list of targets containing data from entities and gameObjects. 
-        /// </summary>
-        /// <returns>List of target objects that can be used to find out closest target.</returns>
-        private NativeArray<GeometryDataModels.Target> GetTargetsForGameObjectsAndEntities(NativeArray<GeometryDataModels.Target> closestTargetsIn)
-        {
-            var offsetGameObjects = 0;
-            var offsetEntities = 0;
-
-            foreach (var targetingInstruction in TargetingInstructions)
-            {
-                if (targetingInstruction.IsTargetingEnabled.Value == false)
-                {
-                    continue;
-                }
-
-                var gameObjects = new NativeArray<GeometryDataModels.Target>(GetGameObjectTargets(targetingInstruction).ToArray(), Allocator.TempJob);
-                var entities =GetEntityTargets(targetingInstruction);
-                
-                if (gameObjects.Length > 0)
-                {
-                    var job1 = new CombineEntityAndGameObjectTargets2();
-                    job1.offset = 0;
-                    job1.finalTargets = closestTargetsIn;
-                    job1.targetsToInsert = gameObjects;
-                    var handle = job1.Schedule();
-                    handle.Complete();
-                }
-
-                if (entities.Length > 0)
-                {
-                    var job2 = new CombineEntityAndGameObjectTargets2();
-                    job2.offset = gameObjects.Length;
-                    job2.finalTargets = closestTargetsIn;
-                    job2.targetsToInsert = entities;
-                    var handle = job2.Schedule();
-                    handle.Complete();
-                }
-
-                amountOfTargets = gameObjects.Length + entities.Length;
-
-                gameObjects.Dispose();
-                entities.Dispose();
-            }
-
-            return closestTargetsIn;
-            
-            //
-            // Local functions//
-            // 
-            
-            //Runs the gameObject implementation of the IGeoTargeting interface 
-            List<GeometryDataModels.Target> GetGameObjectTargets(TargetingInstruction targetingInstruction)
-            {
-                if (gameObjectProcessing.Value == true)
-                {
-                    return targetingInstruction.TargetingSystemGameObjects.GetTargets(
-                        transform.position,
-                        ForwardWorldCoordinate, this, targetingInstruction);
-                }
-
-                return new List<GeometryDataModels.Target>();
-            }
-
-            //Runs the entity implementation of the IGeoTargeting interface 
-            NativeArray<GeometryDataModels.Target> GetEntityTargets(TargetingInstruction targetingInstruction)
-            {
-                if (entityProcessing.Value == true)
-                {
-                    var closestentityTargetsIn =
-                        targetingInstruction.TargetingSystemEntities.GetTargetsAsNativeArray(transform.position,
-                            ForwardWorldCoordinate, this, targetingInstruction);
-                    //Only update entities if the burst compiled job has finished its job OnUpdate
-                    //If it has not finished it returns empty list.
-                    return closestentityTargetsIn;
-                }
-
-                return new NativeArray<GeometryDataModels.Target>(0, Allocator.TempJob);
-            }
-        }
-
-        [BurstCompile]
-        struct CombineEntityAndGameObjectTargets2 : IJob
-        {
-            public NativeArray<GeometryDataModels.Target> finalTargets;
-            public NativeArray<GeometryDataModels.Target> targetsToInsert;
-            public int offset;
-            
-
-            public void Execute()
-            {
-                for (int i = offset, j = 0; i < finalTargets.Length; i++, j++)
-                {
-                    if (j < targetsToInsert.Length)
-                    {
-                        finalTargets[i] = targetsToInsert[j];
-                    }
-                   
                 }
             }
         }
@@ -787,6 +748,39 @@ namespace Plugins.GeometricVision
         {
             get { return checkEnvironmentChangesTimeInterval; }
         }
+        
+        internal List<TargetingInstruction> AddDefaultTargetingInstructionIfNone(
+            List<TargetingInstruction> targetingInstructionsIn, bool entityBased, bool gameObjectBased)
+        {
+            if (targetingInstructionsIn == null)
+            {
+                targetingInstructionsIn = new List<TargetingInstruction>();
+            }
+
+            if (targetingInstructionsIn.Count == 0)
+            {
+                GeometryEntitiesObjectTargeting entityTargeting = null;
+                GeometryObjectTargeting objectTargeting = null;
+
+                if (entityBased)
+                {
+                    var world = World.DefaultGameObjectInjectionWorld;
+                    entityTargeting = world.CreateSystem<GeometryEntitiesObjectTargeting>();
+                }
+
+                if (gameObjectBased)
+                {
+                    objectTargeting = new GeometryObjectTargeting();
+                }
+
+                targetingInstructionsIn.Add(
+                    new TargetingInstruction(GeometryType.Objects, defaultTag, (entityTargeting, objectTargeting), true,
+                        null));
+            }
+
+            return targetingInstructionsIn;
+        }
+
 #if UNITY_EDITOR
 
         /// <summary>

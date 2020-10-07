@@ -45,7 +45,10 @@ namespace Plugins.GeometricVision.Examples.CustomScriptTargetIndicators
                 var go = geoVision.GetGeoInfoBasedOnHashCode(target.GeoInfoHashCode);
                 if (go.gameObject)
                 {
-                    text.text = geoVision.GetGeoInfoBasedOnHashCode(target.GeoInfoHashCode).gameObject.name;
+                    if (text != null)
+                    {
+                        text.text = geoVision.GetGeoInfoBasedOnHashCode(target.GeoInfoHashCode).gameObject.name;
+                    }
                 }
             }
 
@@ -90,9 +93,10 @@ namespace Plugins.GeometricVision.Examples.CustomScriptTargetIndicators
         private void OnDrawGizmos()
         {
             Gizmos.color = Color.green;
-            if (geoVision == null)
+            if (this.geoVision == null)
             {
-                geoVision = GetComponent<GeometryVision>();
+                this.geoVision = GetComponent<GeometryVision>();
+                return;
             }
 
             if (Selection.activeTransform == this.transform)
@@ -105,7 +109,6 @@ namespace Plugins.GeometricVision.Examples.CustomScriptTargetIndicators
             {
                 Handles.zTest = UnityEngine.Rendering.CompareFunction.LessEqual;
                 Handles.color = Color.blue;
-                Vector3 resetToVector = Vector3.zero;
                 var geoVisionTransform = geoVision.transform;
                 var position = geoVisionTransform.position;
                 DrawTargetingVisualIndicators(position, geoVision.ForwardWorldCoordinate,

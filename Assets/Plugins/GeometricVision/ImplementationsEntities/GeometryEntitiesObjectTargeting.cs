@@ -68,6 +68,12 @@ namespace Plugins.GeometricVision.ImplementationsEntities
             }
         }
 
+        protected override void OnDestroy()
+        {
+            base.OnDestroy();
+            
+        }
+
         [BurstCompile]
         public struct GetTargetsInParallel : IJobParallelFor
         {

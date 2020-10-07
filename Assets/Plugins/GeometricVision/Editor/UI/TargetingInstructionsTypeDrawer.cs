@@ -99,15 +99,11 @@ namespace Plugins.GeometricVision.UI
 
             EditorGUI.LabelField(labelRectTargeting, "Targeting:");
             EditorGUI.PropertyField(toggleRectTargeting, property.FindPropertyRelative("isTargetingEnabled"), GUIContent.none);
-
-            var istarget = property.FindPropertyRelative("isTargetActionsTemplateSlotVisible").boolValue;
-
-            if (istarget)
-            {
-                EditorGUI.LabelField(labelRectOnTargetFound, "Trigger actions:");
-                EditorGUI.PropertyField(onSomethingHappenedEvent, property.FindPropertyRelative("targetingActions"),
-                    GUIContent.none);
-            }
+            
+            EditorGUI.LabelField(labelRectOnTargetFound, "Trigger actions:");
+            EditorGUI.PropertyField(onSomethingHappenedEvent, property.FindPropertyRelative("targetingActions"),
+                GUIContent.none);
+            
 
 
             EditorGUI.indentLevel = intend;

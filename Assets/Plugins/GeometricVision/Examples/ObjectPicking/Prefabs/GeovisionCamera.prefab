@@ -12,6 +12,7 @@ GameObject:
   - component: {fileID: 50745782936226271}
   - component: {fileID: 50745782936226264}
   - component: {fileID: 50745782936226267}
+  - component: {fileID: 4600169223623112017}
   m_Layer: 0
   m_Name: GeovisionCamera
   m_TagString: Untagged
@@ -27,7 +28,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 50745782936226266}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 4.5, z: 0}
+  m_LocalPosition: {x: -8.04, y: 4.5, z: -24.4}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
@@ -73,7 +74,7 @@ Camera:
     width: 1
     height: 1
   near clip plane: 0.3
-  far clip plane: 125
+  far clip plane: 1500
   field of view: 25
   orthographic: 0
   orthographic size: 5
@@ -105,3 +106,33 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   debugMode: 0
+--- !u!114 &4600169223623112017
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 50745782936226266}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 84690430d6c8ee143a89537d2671a277, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  debugMode: 0
+  fieldOfView: 25
+  farDistanceOfView: 1500
+  targetingInstructions:
+  - geometryType: 2
+    isTargetingEnabled:
+      value: 1
+    targetTag: Respawn
+    entityQueryFilter: {fileID: 11500000, guid: a1949d2deba66734786115c52849092f,
+      type: 3}
+    entityQueryFilterName: RotationSpeed_SpawnAndRemove
+    entityQueryFilterNameSpace: Plugins.GeometricVision.EntityScripts.FromUnity
+    targetingActions: {fileID: 0}
+  gameObjectProcessing:
+    value: 1
+  entityProcessing:
+    value: 1
+  checkEnvironmentChangesTimeInterval: 0

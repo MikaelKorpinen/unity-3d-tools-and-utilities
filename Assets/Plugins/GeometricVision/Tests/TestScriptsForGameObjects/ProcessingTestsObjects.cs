@@ -117,7 +117,7 @@ namespace Plugins.GeometricVision.Tests.TestScriptsForGameObjects
             int expectedObjectCount1 = TestUtilities.GetObjectCountFromScene();
             Measure.Method(() =>
             {
-                geoVision.GetComponent<GeometryVision>().Runner.GetProcessor<GeometryVisionProcessor>().GetTransformsFromRootObjects(rootGameObjects,ref result);
+                result= geoVision.GetComponent<GeometryVision>().Runner.GetProcessor<GeometryVisionProcessor>().GetTransformsFromRootObjects(rootGameObjects, result);
             }).Run();
             
             Assert.AreEqual(expectedObjectCount1, result.Count);

@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using GeometricVision;
 using Plugins.GeometricVision.ImplementationsGameObjects;
@@ -39,6 +40,11 @@ namespace Plugins.GeometricVision.Interfaces.Implementations
             Initialize();
         }
 
+        private void Awake()
+        {
+            this.hideFlags = HideFlags.HideInInspector;
+        }
+
         // Start is called before the first frame update
         void Start()
         {
@@ -51,63 +57,33 @@ namespace Plugins.GeometricVision.Interfaces.Implementations
             seenTransforms = new List<Transform>();
         }
 
-        public NativeArray<GeometryDataModels.Edge> GetSeenEdges()
-        {
-            List<GeometryDataModels.Edge> seenEdges = new List<GeometryDataModels.Edge>();
-            int visibleEdgeCount = 0;
-            foreach (var geo in SeenGeoInfos)
-            {
-                foreach (var edge1 in geo.edges.Where(edge => edge.isVisible == true))
-                {
-                    seenEdges.Add(edge1);
-                    visibleEdgeCount += 1;
-                }
-            }
-
-            return new NativeArray<GeometryDataModels.Edge>(seenEdges.ToArray(), Allocator.Temp);
-        }
-
-
         /// <summary>
         /// Updates visibility of the objects in the eye and processor/manager
         /// </summary>
         public void UpdateVisibility(bool useBounds)
         {
-            seenTransforms =
-                UpdateTransformVisibility(GeoVision.Runner.GetProcessor<GeometryVisionProcessor>().GetAllTransforms(),
-                    seenTransforms);
-            SeenGeoInfos = UpdateRenderedMeshVisibility(GeoVision.Planes, Runner.GeoMemory.GeoInfos, useBounds);
+            SeenGeoInfos = UpdateGeometryInfoVisibilities(GeoVision.Planes, Runner.GeoMemory.GeoInfos, useBounds);
         }
 
-
-        /// <summary>
-        /// Update GameObject/transform visibility. Object that does not have Mesh or renderer in it
-        /// </summary>
-        private List<Transform> UpdateTransformVisibility(List<Transform> transformsToCheck,
-            List<Transform> seenTransforms)
+        public NativeArray<GeometryDataModels.Edge> GetSeenEdges()
         {
-            seenTransforms = new List<Transform>();
-
-            seenTransforms = GetTransformsInsideFrustum(seenTransforms, transformsToCheck);
-
-
-            return seenTransforms;
+            throw new NotImplementedException();
         }
 
         /// <summary>
-        /// Checks all the object that contain render component if they are visible by testing their bounding box
-        /// Hides Edges, vertices, geometryObject outside th frustum
+        /// Updates Data structures made for Game Objects visibility.
         /// </summary>
         /// <param name="planes"></param>
         /// <param name="allGeoInfos"></param>
         /// <param name="useBounds"></param>
-        private List<GeometryDataModels.GeoInfo> UpdateRenderedMeshVisibility(Plane[] planes,
+        private List<GeometryDataModels.GeoInfo> UpdateGeometryInfoVisibilities(Plane[] planes,
             List<GeometryDataModels.GeoInfo> allGeoInfos, bool useBounds)
         {
             int geoCount = allGeoInfos.Count;
             int index2 = 0;
             var newGeoInfos = new List<GeometryDataModels.GeoInfo>(allGeoInfos.Count);
             newGeoInfos.AddRange(allGeoInfos);
+            this.seenTransforms = new List<Transform>();
             UpdateSeenGeometryObjects();
 
             // Updates object collection containing geometry and data related to seen object. Usage is to internally update seen geometry objects by checking objects renderer bounds
@@ -127,9 +103,9 @@ namespace Plugins.GeometricVision.Interfaces.Implementations
 
                     if (useBounds)
                     {
-                        AddVisibleRenderer(geoInfo,ref index2);
+                        AddVisibleRenderer(geoInfo, ref index2);
                     }
-                    else if (MeshUtilities.IsInsideFrustum(geoInfoTransform.position, GeoVision.Planes))
+                    else if (MeshUtilities.IsInsideFrustum(geoInfoTransform.position, planes))
                     {
                         AddVisibleObject(geoInfo, ref index2);
                     }
@@ -153,27 +129,25 @@ namespace Plugins.GeometricVision.Interfaces.Implementations
 
                 if (GeometryUtility.TestPlanesAABB(GeoVision.Planes, geInfo.renderer.bounds))
                 {
-                    nameOfTransform = geInfo.transform.name;
-                    if (GeometryVisionUtilities.TransformIsEffect(nameOfTransform))
+                   
+                    if (GeometryVisionUtilities.TransformIsEffect(geInfo.transform.name))
                     {
                         return;
                     }
-
-                    newSeenGeometriesList[index] =geInfo;
+                    this.seenTransforms.Add(geInfo.transform);
+                    this.newSeenGeometriesList[index] =geInfo;
                     index += 1;
                 }
             }
 
             void AddVisibleObject(GeometryDataModels.GeoInfo geInfo, ref int index)
             {
-            
-                string nameOfTransform = geInfo.transform.name;
-                if (GeometryVisionUtilities.TransformIsEffect(nameOfTransform))
+                if (GeometryVisionUtilities.TransformIsEffect(geInfo.transform.name))
                 {
                     return;
                 }
-
-                newSeenGeometriesList[index] =geInfo;
+                this.seenTransforms.Add(geInfo.transform);
+                this.newSeenGeometriesList[index] =geInfo;
                 index += 1;
             }
         }

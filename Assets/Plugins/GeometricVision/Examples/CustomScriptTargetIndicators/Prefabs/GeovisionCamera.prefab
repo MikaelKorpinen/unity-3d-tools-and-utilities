@@ -106,11 +106,10 @@ GameObject:
   m_Component:
   - component: {fileID: 3617801984777026105}
   - component: {fileID: 3617801984777026104}
-  - component: {fileID: 3617801984777026111}
-  - component: {fileID: 3617801984777026108}
   - component: {fileID: 3617801984777026107}
-  - component: {fileID: 1027085260}
-  - component: {fileID: 1027085261}
+  - component: {fileID: 618405715}
+  - component: {fileID: 618405714}
+  - component: {fileID: 618405716}
   m_Layer: 0
   m_Name: GeovisionCamera
   m_TagString: Untagged
@@ -149,7 +148,23 @@ MonoBehaviour:
   radius: 4
   pickingSpeed: 1.38
   distanceToStop: 1
---- !u!20 &3617801984777026111
+--- !u!114 &3617801984777026107
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3617801984777026109}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6a05205137194b843bb6228d5931df98, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  targetingIndicator: {fileID: 7778599722054069298, guid: 5895b1075b4cbf2449b9daf9ce355613,
+    type: 3}
+  maxDistance: 1500
+  radius: 4
+--- !u!20 &618405715
 Camera:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -180,7 +195,7 @@ Camera:
   m_Depth: 0
   m_CullingMask:
     serializedVersion: 2
-    m_Bits: 0
+    m_Bits: 4294967295
   m_RenderingPath: -1
   m_TargetTexture: {fileID: 0}
   m_TargetDisplay: 0
@@ -192,7 +207,7 @@ Camera:
   m_OcclusionCulling: 1
   m_StereoConvergence: 10
   m_StereoSeparation: 0.022
---- !u!114 &3617801984777026108
+--- !u!114 &618405714
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -205,39 +220,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   debugMode: 0
---- !u!114 &3617801984777026107
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3617801984777026109}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 6a05205137194b843bb6228d5931df98, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  targetingIndicator: {fileID: 7778599722054069298, guid: 5895b1075b4cbf2449b9daf9ce355613,
-    type: 3}
-  maxDistance: 1500
-  radius: 4
---- !u!114 &1027085260
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3617801984777026109}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4793effb83309e1a0b913382cc52118f, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  debugMode: 0
-  hideEdgesOutsideFieldOfView: 1
-  lastCount: 0
-  targetColliderMeshes: 0
---- !u!114 &1027085261
+--- !u!114 &618405716
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -256,15 +239,14 @@ MonoBehaviour:
   - geometryType: 2
     isTargetingEnabled:
       value: 1
-    isTargetActionsTemplateSlotVisible: 1
     targetTag: Respawn
     entityQueryFilter: {fileID: 11500000, guid: a1949d2deba66734786115c52849092f,
       type: 3}
     entityQueryFilterName: RotationSpeed_SpawnAndRemove
     entityQueryFilterNameSpace: Plugins.GeometricVision.EntityScripts.FromUnity
-    targetingActions: {fileID: 11400000, guid: 5b87b5d89f739374a932b670a14f04ce, type: 2}
+    targetingActions: {fileID: 0}
   gameObjectProcessing:
     value: 1
-  entityBasedProcessing:
+  entityProcessing:
     value: 1
-  checkEnvironmentChangesInterval: 0.1
+  checkEnvironmentChangesTimeInterval: 0
