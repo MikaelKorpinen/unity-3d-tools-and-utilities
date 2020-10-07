@@ -896,6 +896,7 @@ MonoBehaviour:
   debugMode: 0
   hideEdgesOutsideFieldOfView: 1
   lastCount: 0
+  seenTransforms: []
   targetColliderMeshes: 0
 --- !u!114 &805844142
 MonoBehaviour:
@@ -925,9 +926,10 @@ MonoBehaviour:
     targetingActions: {fileID: 1393718144}
   gameObjectProcessing:
     value: 1
-  entityBasedProcessing:
+  entityProcessing:
     value: 1
-  checkEnvironmentChangesInterval: 0.1
+  maxTargets: 100000
+  checkEnvironmentChangesTimeInterval: 0
 --- !u!114 &942330569
 MonoBehaviour:
   m_ObjectHideFlags: 0

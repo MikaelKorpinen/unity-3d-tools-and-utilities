@@ -47,7 +47,7 @@ namespace Plugins.GeometricVision.Utilities
         internal static IEnumerator MoveEntityTarget(Vector3 newPosition,
             float speedMultiplier, GeometryDataModels.Target target, float distanceToStop,
             TransformEntitySystem transformEntitySystem, World entityWorld,
-            NativeSlice<GeometryDataModels.Target> closestTargets)
+            NativeList<GeometryDataModels.Target> closestTargets)
         {
             if (transformEntitySystem == null)
             {
@@ -86,7 +86,7 @@ namespace Plugins.GeometricVision.Utilities
         }
 
         //Usage: this.targets.Sort<GeometryDataModels.Target, DistanceComparer>(new DistanceComparer());
-        public struct DistanceComparer : IComparer<GeometryDataModels.Target>
+        public struct DistanceComparerToViewDirection : IComparer<GeometryDataModels.Target>
         {
             public int Compare(GeometryDataModels.Target x, GeometryDataModels.Target y)
             {
@@ -116,6 +116,36 @@ namespace Plugins.GeometricVision.Utilities
             }
         }
 
+        //Usage: this.targets.Sort<GeometryDataModels.Target, DistanceComparer>(new DistanceComparer());
+        public struct DistanceComparerToCamera : IComparer<GeometryDataModels.Target>
+        {
+            public int Compare(GeometryDataModels.Target x, GeometryDataModels.Target y)
+            {
+                if (x.distanceToCastOrigin == 0f && y.distanceToCastOrigin != 0f)
+                {
+                    return 1;
+                }
+
+                if (x.distanceToCastOrigin != 0f && y.distanceToCastOrigin == 0f)
+                {
+                    return -1;
+                }
+
+                if (x.distanceToCastOrigin < y.distanceToCastOrigin)
+                {
+                    return -1;
+                }
+
+                else if (x.distanceToCastOrigin > y.distanceToCastOrigin)
+                {
+                    return 1;
+                }
+                else
+                {
+                    return 0;
+                }
+            }
+        }
         internal static bool TransformIsEffect(string nameOfTransform)
         {
             if (nameOfTransform.Length < GeometryVisionSettings.NameOfEndEffect.Length

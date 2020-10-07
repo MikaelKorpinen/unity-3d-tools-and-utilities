@@ -25,7 +25,7 @@ namespace Plugins.GeometricVision.ImplementationsGameObjects
             {
                 foreach (var geoInfoAsTarget in geoVision.GetEye<GeometryVisionEye>().SeenGeoInfos)
                 {
-                    if (geoInfoAsTarget.gameObject && geoInfoAsTarget.gameObject.CompareTag(targetingInstruction.TargetTag))
+                    if (geoInfoAsTarget.gameObject.CompareTag(targetingInstruction.TargetTag))
                     {
                         gameObjectTargets.Add(GetDataForTarget(geoInfoAsTarget));
                     }

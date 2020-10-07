@@ -135,9 +135,10 @@ namespace Plugins.GeometricVision
         {
             geoVision.AddComponent<GeometryVision>();
             var geoVisionComponent = geoVision.GetComponent<GeometryVision>();
+
+            geoVisionComponent.InitializeGeometricVision(geoTypes); //Runs the init again but parametrized
             geoVisionComponent.EntityProcessing.Value = settings.processEntities;
             geoVisionComponent.GameObjectBasedProcessing.Value = settings.processGameObjects;
-            geoVisionComponent.InitializeGeometricVision(geoTypes); //Runs the init again but parametrized
             geoVisionComponent.ApplyTagToTargetingInstructions(settings.defaultTag);
             geoVisionComponent.ApplyEntityComponentFilterToTargetingInstructions(settings.entityComponentQueryFilter);
             geoVisionComponent.ApplyActionsTemplateObject(settings.actionsTemplateObject);
@@ -208,7 +209,7 @@ namespace Plugins.GeometricVision
                 if (Application.isPlaying && entitiesEnabled == false)
                 {
                     geoVision.Runner.RemoveEntityProcessor<GeometryVisionEntityProcessor>();
-                    DisableEntityEye(geoVision);
+                    geoVision.RemoveEntityEye<GeometryVisionEntityEye>();
 
                     if (geoVision.EntityWorld.GetExistingSystem<TransformEntitySystem>() != null)
                     {
@@ -226,13 +227,17 @@ namespace Plugins.GeometricVision
                             targetinginstruction.TargetingSystemEntities = null;
                         }
                     }
-                    geoVision.UpdateClosestTargets();
+
+                    if (Application.isPlaying)
+                    {
+                        geoVision.UpdateClosestTargets();
+                    }
                 }
             }
             
             void InitGeometryEyeForEntities(World world)
             {
-                DisableEntityEye(geoVision);
+                geoVision.RemoveEntityEye<GeometryVisionEntityEye>();
                 GeometryVisionEntityEye eEey = world.CreateSystem<GeometryVisionEntityEye>();
 
                 InterfaceUtilities.AddImplementation(eEey, geoVision.Eyes);
@@ -242,19 +247,6 @@ namespace Plugins.GeometricVision
                 eye.Update();
             }
 
-        }
-                
-        /// <summary>
-        /// Remove entity eye/camera eye so the Runner won't be iterating through them.
-        /// </summary>
-        private void DisableEntityEye(GeometryVision geoVision)
-        {
-            // Currently only one system
-            var eye = geoVision.GetEye<GeometryVisionEntityEye>();
-            if (eye != null)
-            {
-                geoVision.RemoveEntityEye<GeometryVisionEntityEye>();
-            }
         }
 
         
@@ -280,6 +272,17 @@ namespace Plugins.GeometricVision
                 var geoEye = geoVision.GetEye<GeometryVisionEye>();
                 if (gameObjectBasedProcessing == true)
                 {
+
+                    EnableGameObjects();
+                }
+                if (gameObjectBasedProcessing == false)
+                {
+                    DisableGameObjects();
+                }
+                
+                //Local functions
+                void EnableGameObjects()
+                {
                     if (geoEye == null)
                     {
                         geoVision.AddGameObjectEye<GeometryVisionEye>();
@@ -288,11 +291,15 @@ namespace Plugins.GeometricVision
                     InitGeometryProcessorForGameObjects();
                     IfNoDefaultTargetingAddOne(geoVision, new GeometryObjectTargeting());
                 }
-                else if (gameObjectBasedProcessing == false)
+
+                void DisableGameObjects()
                 {
                     geoVision.Runner.RemoveGameObjectProcessor<GeometryVisionProcessor>();
                     geoVision.RemoveEye<GeometryVisionEye>();
-                    geoVision.UpdateClosestTargets();
+                    if (Application.isPlaying)
+                    {
+                        geoVision.UpdateClosestTargets();  
+                    }
                 }
             }
 
@@ -312,9 +319,9 @@ namespace Plugins.GeometricVision
         // Handles target initialization. Adds needed components and subscribes changing variables to logic that updates the targeting system.
         internal List<TargetingInstruction> InitializeTargeting(List<TargetingInstruction> theTargetingInstructionsIn, GeometryVision geoVision, BoolReactiveProperty entityBasedProcessing, BoolReactiveProperty gameObjectProcessing)
         {
-            var geoTargetingSystemsContainer = HandleAddingGeometryTargetingComponent();
+            var geoTargetingSystemsContainer = HandleAddingGeometryTargetingSystemsContainer();
 
-            theTargetingInstructionsIn = geoVision.AddDefaultInstructionIfNone(theTargetingInstructionsIn,
+            theTargetingInstructionsIn = geoVision.AddDefaultTargetingInstructionIfNone(theTargetingInstructionsIn,
                 entityBasedProcessing.Value,
                 gameObjectProcessing.Value);
 
@@ -340,7 +347,7 @@ namespace Plugins.GeometricVision
             }
 
             //This container is needed so all the targeting systems can be run from a list by the runner/manager.
-            GeometryTargetingSystemsContainer HandleAddingGeometryTargetingComponent()
+            GeometryTargetingSystemsContainer HandleAddingGeometryTargetingSystemsContainer()
             {
                 var geoTargeting = geoVision.GetComponent<GeometryTargetingSystemsContainer>();
                 if (geoVision.GetComponent<GeometryTargetingSystemsContainer>() == null)
@@ -371,7 +378,6 @@ namespace Plugins.GeometricVision
                 {
                     targetingInstruction.IsTargetingEnabled.Subscribe(targeting =>
                     {
-                        targetingInstruction.IsTargetActionsTemplateSlotVisible = targeting;
                         if (targeting == true)
                         {
                             AddTargetingPrograms(geoTargetingSystemsContainer);
@@ -421,7 +427,7 @@ namespace Plugins.GeometricVision
                     .TargetingSystemEntities);
             }
         }
-
+        
         /// <summary>
         /// Provides Needed default object targeting for the system in case there is none. Otherwise replaces one from the current users
         /// targeting instructions. 

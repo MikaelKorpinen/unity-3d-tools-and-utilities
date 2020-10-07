@@ -23,11 +23,6 @@ namespace Plugins.GeometricVision
 
         [SerializeField] private BoolReactiveProperty isTargetingEnabled = new BoolReactiveProperty();
 
-        //Cannot get Reactive value from serialized property, so this boolean variable handles its job on the inspector gui behind the scenes.
-        //See UI/VisionTypeDrawer.cs
-        //It is not visible on the inspector but removing serialization makes it un findable
-        [SerializeField] private bool isTargetActionsTemplateSlotVisible;
-
         [SerializeField, Tooltip("Choose what tag from unity tags settings to use")]
         private string targetTag;
 
@@ -73,8 +68,6 @@ namespace Plugins.GeometricVision
 #endif
             
             isTargetingEnabled.Value = targetingEnabled;
-            isTargetActionsTemplateSlotVisible = targetingEnabled;
-
             AssignTargetingSystem(targetingSystems.Item2);
             AssignTargetingSystem(targetingSystems.Item1);
         }
@@ -104,10 +97,8 @@ namespace Plugins.GeometricVision
             isTargetingEnabled.Value = settings.defaultTargeting;
             AssignTargetingSystem(targetingSystem);
             TargetingActions = settings.actionsTemplateObject;
-            isTargetActionsTemplateSlotVisible = settings.defaultTargeting;
-
-
         }
+        
         void AssignTargetingSystem(IGeoTargeting targetingSystem)
         {
             if (targetingSystem != null && targetingSystem.IsForEntities())
@@ -160,22 +151,6 @@ namespace Plugins.GeometricVision
         {
             get { return isTargetingEnabled; }
             set { isTargetingEnabled = value; }
-        }
-
-        public bool Enabled
-        {
-            get { return enabled; }
-            set { enabled = value; }
-        }
-        
-        /// <summary>
-        /// This boolean variable handles it job on the inspector gui under the hood.
-        /// </summary>
-        /// <remarks>The other way is to find out how to get reactive value out of serialized property. Shows option for adding actions template from the inspector GUI</remarks>
-        public bool IsTargetActionsTemplateSlotVisible
-        {
-            get { return isTargetActionsTemplateSlotVisible; }
-            set { isTargetActionsTemplateSlotVisible = value; }
         }
 
         public Object EntityQueryFilter

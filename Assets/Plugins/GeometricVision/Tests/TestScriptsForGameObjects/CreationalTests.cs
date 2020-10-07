@@ -23,7 +23,7 @@ namespace Plugins.GeometricVision.Tests.TestScriptsForGameObjects
             fielOfView = 25f,
             processGameObjects = true,
             processEntities = false,
-            defaultTargeting = false
+            defaultTargeting = true
         };
 
         [TearDown]
