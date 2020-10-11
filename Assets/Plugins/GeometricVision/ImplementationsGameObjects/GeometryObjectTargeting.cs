@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using Plugins.GeometricVision.Interfaces;
-using Plugins.GeometricVision.Interfaces.Implementations;
 using Unity.Collections;
 using Unity.Mathematics;
 using UnityEngine;
@@ -28,7 +27,7 @@ namespace Plugins.GeometricVision.ImplementationsGameObjects
                     if (geoInfoAsTarget.gameObject.CompareTag(targetingInstruction.TargetTag))
                     {
                         gameObjectTargets.Add(GetDataForTarget(geoInfoAsTarget));
-                    }
+                    } 
                 }
             }
             else 

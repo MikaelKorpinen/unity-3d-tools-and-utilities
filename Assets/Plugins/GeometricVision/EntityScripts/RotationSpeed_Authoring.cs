@@ -2,6 +2,7 @@
 using Unity.Entities;
 using UnityEngine;
 
+//Code originally from Unity ecs repo licensed under MIT
 namespace Plugins.GeometricVision.EntityScripts
 {
     [RequiresEntityConversion]

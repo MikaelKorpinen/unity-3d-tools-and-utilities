@@ -4,10 +4,10 @@ namespace Plugins.GeometricVision.Tests.TestAssets.Scenes.GameObjects.StressTest
 {
     public class CubeSpawner : MonoBehaviour
     {
-        [SerializeField] private float cubesPerRow;
-        [SerializeField] private float cubesPerColumn;
-        [SerializeField] private float distanceMultiplier;
-        [SerializeField] private GameObject modelToSpawn;
+        [SerializeField] private float cubesPerRow = 1;
+        [SerializeField] private float cubesPerColumn = 1;
+        [SerializeField] private float distanceMultiplier = 1;
+        [SerializeField] private GameObject modelToSpawn = null;
     
         // Start is called before the first frame update
         void Start()

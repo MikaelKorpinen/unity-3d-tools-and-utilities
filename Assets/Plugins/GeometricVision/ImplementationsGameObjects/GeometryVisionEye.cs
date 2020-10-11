@@ -1,15 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using GeometricVision;
-using Plugins.GeometricVision.ImplementationsGameObjects;
+using Plugins.GeometricVision.Interfaces;
 using Plugins.GeometricVision.Utilities;
 using Unity.Collections;
-using Unity.Jobs;
 using UnityEngine;
-using UnityEngine.Jobs;
 
-namespace Plugins.GeometricVision.Interfaces.Implementations
+namespace Plugins.GeometricVision.ImplementationsGameObjects
 {
     /// <summary>
     /// Class that is responsible for seeing objects and geometry.
@@ -24,8 +21,6 @@ namespace Plugins.GeometricVision.Interfaces.Implementations
     {
         public string Id { get; set; }
         [SerializeField] private bool debugMode;
-        [SerializeField] private bool hideEdgesOutsideFieldOfView = true;
-        [SerializeField] private int lastCount = 0;
         [SerializeField] private List<GeometryDataModels.GeoInfo> seenGeoInfos = new List<GeometryDataModels.GeoInfo>();
         [SerializeField] public List<Transform> seenTransforms;
         [SerializeField, Tooltip(" Geometry is extracted from collider instead of renderers mesh")]
@@ -90,7 +85,6 @@ namespace Plugins.GeometricVision.Interfaces.Implementations
             // against eyes/cameras frustum
             void UpdateSeenGeometryObjects()
             {
-                var nameOfTransform = "";
                 Transform geoInfoTransform = null;
                 for (var i = 0; i < geoCount; i++)
                 {
@@ -120,7 +114,6 @@ namespace Plugins.GeometricVision.Interfaces.Implementations
             // Local functions
             void AddVisibleRenderer(GeometryDataModels.GeoInfo geInfo, ref int index)
             {
-                string nameOfTransform;
                 if (!geInfo.renderer)
                 {
                     newGeoInfos.Remove(geInfo);
@@ -151,55 +144,11 @@ namespace Plugins.GeometricVision.Interfaces.Implementations
                 index += 1;
             }
         }
-        
-        private List<Transform> GetTransformsInsideFrustum(List<Transform> seenTransforms, List<Transform> allTransforms)
-        {
-            List<Transform> allTempTransforms = new List<Transform>(allTransforms);
-            string transformName;
-            foreach (var transformInProcess in allTransforms)
-            {
-                if (transformInProcess)
-                {
-                    if (MeshUtilities.IsInsideFrustum(transformInProcess.position, GeoVision.Planes))
-                    {
-                        transformName = transformInProcess.name;
-                        if (GeometryVisionUtilities.TransformIsEffect(transformName))
-                        {
-                            continue;
-                        }
-
-                        seenTransforms.Add(transformInProcess);
-                        lastCount = seenTransforms.Count;
-                    }
-                }
-                else
-                {
-                    allTempTransforms.Remove(transformInProcess);
-                }
-            }
-
-            allTransforms = allTempTransforms;
-            return seenTransforms;
-        }
-          
-        
+ 
         public List<GeometryDataModels.GeoInfo> SeenGeoInfos
         {
             get { return seenGeoInfos; }
             set { seenGeoInfos = value; }
-        }
-
-        public bool DebugMode
-        {
-            get { return debugMode; }
-            set { debugMode = value; }
-        }
-
-
-        public bool TargetColliderMeshes
-        {
-            get { return targetColliderMeshes; }
-            set { targetColliderMeshes = value; }
         }
     }
 }

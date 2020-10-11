@@ -1,12 +1,10 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using GeometricVision;
 using Plugins.GeometricVision.EntityScripts;
 using Plugins.GeometricVision.ImplementationsEntities;
 using Plugins.GeometricVision.ImplementationsGameObjects;
 using Plugins.GeometricVision.Interfaces;
-using Plugins.GeometricVision.Interfaces.Implementations;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;

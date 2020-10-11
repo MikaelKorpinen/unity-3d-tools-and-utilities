@@ -109,21 +109,7 @@ namespace Plugins.GeometricVision.ImplementationsEntities
         {
             return currentObjectCount;
         }
-
-        public HashSet<Transform> GetTransforms(List<GameObject> objs)
-        {
-            throw new System.NotImplementedException();
-        }
-
-        public void Debug(GeometryVision geoVisions)
-        {
-        }
-
-        public List<Transform> GetAllTransforms()
-        {
-            throw new System.NotImplementedException();
-        }
-
+        
         public GeometryVision GeoVision
         {
             get { return geoVision; }

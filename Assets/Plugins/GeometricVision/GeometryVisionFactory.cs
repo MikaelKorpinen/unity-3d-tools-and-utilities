@@ -1,12 +1,10 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using GeometricVision;
 using Plugins.GeometricVision.EntityScripts;
 using Plugins.GeometricVision.ImplementationsEntities;
 using Plugins.GeometricVision.ImplementationsGameObjects;
 using Plugins.GeometricVision.Interfaces;
-using Plugins.GeometricVision.Interfaces.Implementations;
 using Plugins.GeometricVision.UniRx.Scripts.UnityEngineBridge;
 using UniRx;
 using Unity.Entities;
@@ -137,6 +135,11 @@ namespace Plugins.GeometricVision
             var geoVisionComponent = geoVision.GetComponent<GeometryVision>();
 
             geoVisionComponent.InitializeGeometricVision(geoTypes); //Runs the init again but parametrized
+            if (settings.fielOfView != 0)
+            {
+                geoVisionComponent.FieldOfView = settings.fielOfView;
+            }
+
             geoVisionComponent.EntityProcessing.Value = settings.processEntities;
             geoVisionComponent.GameObjectBasedProcessing.Value = settings.processGameObjects;
             geoVisionComponent.ApplyTagToTargetingInstructions(settings.defaultTag);
@@ -227,11 +230,8 @@ namespace Plugins.GeometricVision
                             targetinginstruction.TargetingSystemEntities = null;
                         }
                     }
-
-                    if (Application.isPlaying)
-                    {
-                        geoVision.UpdateClosestTargets();
-                    }
+                    
+                    geoVision.UpdateClosestTargets( false, true);
                 }
             }
             
@@ -296,10 +296,7 @@ namespace Plugins.GeometricVision
                 {
                     geoVision.Runner.RemoveGameObjectProcessor<GeometryVisionProcessor>();
                     geoVision.RemoveEye<GeometryVisionEye>();
-                    if (Application.isPlaying)
-                    {
-                        geoVision.UpdateClosestTargets();  
-                    }
+                    geoVision.UpdateClosestTargets(true, false);
                 }
             }
 

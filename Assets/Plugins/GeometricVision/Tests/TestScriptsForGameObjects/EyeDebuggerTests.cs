@@ -2,7 +2,6 @@
 using System.Linq;
 using NUnit.Framework;
 using Plugins.GeometricVision.ImplementationsGameObjects;
-using Plugins.GeometricVision.Interfaces.Implementations;
 using Plugins.GeometricVision.Utilities;
 using Unity.PerformanceTesting;
 using UnityEngine;

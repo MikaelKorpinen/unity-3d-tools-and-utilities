@@ -2,7 +2,7 @@
 using UnityEditor;
 using UnityEngine;
 
-namespace Plugins.GeometricVision.UI.Editor
+namespace Plugins.GeometricVision.Editor.UI
 {
     /// <summary>
     /// Community script taken from https://answers.unity.com/questions/1378822/list-of-tags-in-the-inspector.html

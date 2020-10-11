@@ -14,7 +14,8 @@ namespace Plugins.GeometricVision.ImplementationsGameObjects
     [DisallowMultipleComponent]
     public class GeometryVisionProcessor : MonoBehaviour, IGeoProcessor
     {
-        [SerializeField] private int lastCount = 0;
+        private int lastCount = 0;
+        private string currentTag = "";
 
 
         private HashSet<Transform> allTransforms { get; set; }
@@ -61,12 +62,13 @@ namespace Plugins.GeometricVision.ImplementationsGameObjects
 
             void UpdateSceneChanges(int currentObjectCountIn)
             {
-                if (currentObjectCountIn != lastCount)
+                if (currentObjectCountIn != lastCount || geoVision.TargetingInstructions[0].TargetTag != currentTag)
                 {
+                    currentTag = geoVision.TargetingInstructions[0].TargetTag;
                     if (geoVision.TargetingInstructions[0].TargetTag.Length == 0)
                     {
                         UpdateSceneTransforms(RootObjects);
-                        /// gets all the game objects from scene root objects
+                        
                         void UpdateSceneTransforms(List<GameObject> rootObjects)
                         {
                             this.allTransforms=  GetTransformsFromRootObjects(rootObjects, this.allTransforms);
@@ -86,11 +88,6 @@ namespace Plugins.GeometricVision.ImplementationsGameObjects
                         geoVision.TargetingInstructions, geoVision.CollidersTargeted, geoVision.UseBounds);
                 }
             }
-        }
-
-        public void Debug(GeometryVision geoVisions)
-        {
-            
         }
 
         /// <summary>

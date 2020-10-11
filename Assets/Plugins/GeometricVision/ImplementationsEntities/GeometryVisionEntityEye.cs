@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using Plugins.GeometricVision.Debugging;
 using Plugins.GeometricVision.Interfaces;
 using Plugins.GeometricVision.Utilities;
 using Unity.Burst;

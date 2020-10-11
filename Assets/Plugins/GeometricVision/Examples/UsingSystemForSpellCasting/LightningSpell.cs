@@ -88,6 +88,11 @@ namespace Plugins.GeometricVision.Examples.UsingSystemForSpellCasting
                 Handles.zTest = UnityEngine.Rendering.CompareFunction.LessEqual;
                 Handles.color = Color.green;
                 Vector3 resetToVector = Vector3.zero;
+                if (geoVision == null)
+                {
+                    geoVision = GetComponent<GeometryVision>();
+                    return;
+                }
                 var geoVisionTransform = geoVision.transform;
                 DrawTargetingVisualIndicators(geoVisionTransform.position, geoVision.ForwardWorldCoordinate,
                     Color.green);

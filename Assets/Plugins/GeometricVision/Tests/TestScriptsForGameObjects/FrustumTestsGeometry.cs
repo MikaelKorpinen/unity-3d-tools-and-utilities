@@ -1,6 +1,6 @@
 ﻿using System.Collections;
 using NUnit.Framework;
-using Plugins.GeometricVision.Interfaces.Implementations;
+using Plugins.GeometricVision.ImplementationsGameObjects;
 using Unity.PerformanceTesting;
 using UnityEngine;
 using UnityEngine.TestTools;

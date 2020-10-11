@@ -2,7 +2,6 @@
 //       the samples in this project are run in both modes for testing purposes.
 //       In a normal game project this ifdef is not required.
 
-using GeometricVision;
 using Plugins.GeometricVision;
 using Plugins.GeometricVision.Utilities;
 using Unity.Collections;

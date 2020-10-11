@@ -2,10 +2,7 @@
 using System.Reflection;
 using Plugins.GeometricVision.Interfaces;
 using Plugins.GeometricVision.UniRx.Scripts.UnityEngineBridge;
-using Plugins.GeometricVision.UtilitiesAndPlugins;
-using UnityEditor;
 using UnityEngine;
-using UnityEngine.Events;
 using Object = UnityEngine.Object;
 
 namespace Plugins.GeometricVision
@@ -16,7 +13,6 @@ namespace Plugins.GeometricVision
     [Serializable]
     public class TargetingInstruction
     {
-        private bool enabled = true;
 
         [SerializeField, Tooltip("Choose what geometry to target or use. Default is Objects")]
         private GeometryType geometryType = GeometryType.Objects;

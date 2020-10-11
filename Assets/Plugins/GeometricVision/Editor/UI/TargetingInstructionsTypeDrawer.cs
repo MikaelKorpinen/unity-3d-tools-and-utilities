@@ -1,21 +1,9 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
-using System.Text.RegularExpressions;
-using GeometricVision;
-using Plugins.GeometricVision;
-using Plugins.GeometricVision.Interfaces.Implementations;
-using Plugins.GeometricVision.UniRx.Scripts.UnityEngineBridge;
-using UniRx;
+﻿using Plugins.GeometricVision.ImplementationsGameObjects;
 using Unity.EditorCoroutines.Editor;
 using UnityEditor;
-using UnityEditor.UIElements;
 using UnityEngine;
-using UnityEngine.UIElements;
 
-namespace Plugins.GeometricVision.UI
+namespace Plugins.GeometricVision.Editor.UI
 {
     /// <summary>
     /// Checks if user removes GeometricVision component and if it does cleans up all the dependencies
