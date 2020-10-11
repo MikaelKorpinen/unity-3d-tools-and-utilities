@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace Plugins.GeometricVision
 {
-    [CreateAssetMenu(fileName = "Actions", menuName = "ScriptableObjects/ActionsForTargeting", order = 1)]
+    [CreateAssetMenu(fileName = "Actions", menuName = "ScriptableObjects/GeometricVision/ActionsForTargeting", order = 1)]
     public class ActionsTemplateObject : ScriptableObject
     {
         [Header("Hand effect Settings")]

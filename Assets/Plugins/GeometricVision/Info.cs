@@ -1,4 +1,4 @@
-﻿namespace GeometricVision
+﻿namespace Plugins.GeometricVision
 {
     /// <summary>
     /// Holds static variables

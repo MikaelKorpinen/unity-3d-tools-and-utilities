@@ -1,0 +1,6 @@
+UniRX ReactiveExtensions
+/UtilitiesAndPlugins/
+MIT
+
+few Unity scripts
+MIT

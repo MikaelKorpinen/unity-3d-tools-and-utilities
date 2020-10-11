@@ -1,9 +1,8 @@
 ﻿using System.IO;
-using Plugins.GeometricVision.UI;
 using UnityEditor;
 using UnityEngine;
 
-namespace Plugins.GeometricVision.Editor.UI.Editor
+namespace Plugins.GeometricVision.Editor.UI
 {        [CustomEditor(typeof(GeometryVision))]
 
         internal class GeometryVisionHeaderImageDrawer : UnityEditor.Editor

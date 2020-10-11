@@ -4,7 +4,6 @@ using NUnit.Framework;
 using Plugins.GeometricVision.ImplementationsEntities;
 using Plugins.GeometricVision.ImplementationsGameObjects;
 using Plugins.GeometricVision.Interfaces;
-using Plugins.GeometricVision.Interfaces.Implementations;
 using Unity.PerformanceTesting;
 using UnityEditor;
 using UnityEngine;
@@ -16,8 +15,6 @@ namespace Plugins.GeometricVision.Tests.TestScriptsForGameObjects
     public class CreationalTests : MonoBehaviour
     {
         private const string version = TestSettings.Version;
-        private Tuple<GeometryVisionFactory, EditorBuildSettingsScene[]> factoryAndOriginalScenes;
-
         private GeometryDataModels.FactorySettings factorySettings = new GeometryDataModels.FactorySettings
         {
             fielOfView = 25f,
@@ -236,7 +233,6 @@ namespace Plugins.GeometricVision.Tests.TestScriptsForGameObjects
             var geoVision =
                 TestUtilities.SetupGeoVision(new Vector3(0f, 0f, -6f), new GeometryVisionFactory(factorySettings));
             yield return null;
-            int amountOfObjectsInScene = 0;
 
             geoVision.GetComponent<GeometryVision>().EntityProcessing.Value = true;
             yield return null;

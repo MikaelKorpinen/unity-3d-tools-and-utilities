@@ -33,7 +33,7 @@ namespace Plugins.GeometricVision.Examples.ObjectPicking
 
         private Vector3 targetingSystemPosition;
 
-        [SerializeField] private ParticleSystem targetParticlesEffect;
+        [SerializeField] private ParticleSystem targetParticlesEffect = null;
 
         // Start is called before the first frame update
         void Start()

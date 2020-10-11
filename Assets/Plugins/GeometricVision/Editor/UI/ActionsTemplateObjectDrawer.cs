@@ -1,12 +1,8 @@
 ﻿using System.IO;
-using System.Security.Permissions;
-using GeometricVision;
 using UnityEditor;
-
-
 using UnityEngine;
 
-namespace Plugins.GeometricVision.UI
+namespace Plugins.GeometricVision.Editor.UI
 {
 
     [CustomEditor(typeof(ActionsTemplateObject))]

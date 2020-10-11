@@ -5,6 +5,9 @@ using UnityEngine;
 
 namespace Plugins.GeometricVision.Examples.CustomScriptTargetIndicators
 {
+    /// <summary>
+    /// Example script with purpose to show on how the targeting data could be used to create a targeting indicator.
+    /// </summary>
     public class TargetingIndicator : MonoBehaviour
     {
         private GeometryVision geoVision;
@@ -12,7 +15,6 @@ namespace Plugins.GeometricVision.Examples.CustomScriptTargetIndicators
         private GameObject spawnedTargetingIndicator;
         [SerializeField] private float maxDistance =0;
         [SerializeField] private float radius=0;
-
         private TextMesh text;
 
         // Start is called before the first frame update
@@ -26,28 +28,43 @@ namespace Plugins.GeometricVision.Examples.CustomScriptTargetIndicators
         // Update is called once per frame
         void Update()
         {
+            if (geoVision == null)
+            {
+                geoVision = GetComponent<GeometryVision>();
+                return;
+            }
             var target = geoVision.GetClosestTarget();
 
             if (target.isEntity)
             {
-                if (World.DefaultGameObjectInjectionWorld.EntityManager.HasComponent<Name>(target.entity))
+                AssignEntityName();
+                
+                void AssignEntityName()
                 {
-                    text.text = World.DefaultGameObjectInjectionWorld.EntityManager
-                        .GetComponentData<Name>(target.entity).Value.ToString();
-                }
-                else
-                {
-                    text.text = "Unknown";
+                    if (World.DefaultGameObjectInjectionWorld.EntityManager.HasComponent<Name>(target.entity))
+                    {
+                        text.text = World.DefaultGameObjectInjectionWorld.EntityManager
+                            .GetComponentData<Name>(target.entity).Value.ToString();
+                    }
+                    else
+                    {
+                        text.text = "Unknown";
+                    }
                 }
             }
             else
             {
-                var go = geoVision.GetGeoInfoBasedOnHashCode(target.GeoInfoHashCode);
-                if (go.gameObject)
+                AssignGameObjectsName();
+                
+                void AssignGameObjectsName()
                 {
-                    if (text != null)
+                    var go = geoVision.GetGeoInfoBasedOnHashCode(target.GeoInfoHashCode);
+                    if (go.gameObject)
                     {
-                        text.text = geoVision.GetGeoInfoBasedOnHashCode(target.GeoInfoHashCode).gameObject.name;
+                        if (text != null)
+                        {
+                            text.text = geoVision.GetGeoInfoBasedOnHashCode(target.GeoInfoHashCode).gameObject.name;
+                        }
                     }
                 }
             }

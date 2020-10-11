@@ -1,36 +1,35 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using System.Xml.Linq;
-using GeometricVision;
-using Plugins.GeometricVision;
+﻿using System.Collections.Generic;
 using UnityEngine;
 
-public class EdgeComparer : IEqualityComparer<GeometryDataModels.Edge>
+namespace Plugins.GeometricVision
 {
-    public bool Equals(GeometryDataModels.Edge x, GeometryDataModels.Edge y)
+    public class EdgeComparer : IEqualityComparer<GeometryDataModels.Edge>
     {
-        var distance1 = Vector3.Distance(x.firstVertex, y.firstVertex);
-        var distance2 = Vector3.Distance(x.secondVertex, y.secondVertex);
-        
-        if (distance1 < 0.1f && distance2 < 0.1f)
+        public bool Equals(GeometryDataModels.Edge x, GeometryDataModels.Edge y)
         {
-            return true;
-        }
-        var distance3 = Vector3.Distance(x.firstVertex, y.secondVertex);
-        var distance4 = Vector3.Distance(x.secondVertex, y.firstVertex);
+            var distance1 = Vector3.Distance(x.firstVertex, y.firstVertex);
+            var distance2 = Vector3.Distance(x.secondVertex, y.secondVertex);
         
-        if (distance3 < 0.1f && distance4 < 0.1f)
-        {
-            return true;
+            if (distance1 < 0.1f && distance2 < 0.1f)
+            {
+                return true;
+            }
+            var distance3 = Vector3.Distance(x.firstVertex, y.secondVertex);
+            var distance4 = Vector3.Distance(x.secondVertex, y.firstVertex);
+        
+            if (distance3 < 0.1f && distance4 < 0.1f)
+            {
+                return true;
+            }
+
+            return false;
         }
 
-        return false;
-    }
-
-    public int GetHashCode(GeometryDataModels.Edge edge)
-    {
-        int firstIndexHashCode = edge.firstEdgePointIndex.GetHashCode();
-        int secondIndexHashCode = edge.secondEdgePointIndex.GetHashCode();
-        return firstIndexHashCode ^ secondIndexHashCode;
+        public int GetHashCode(GeometryDataModels.Edge edge)
+        {
+            int firstIndexHashCode = edge.firstEdgePointIndex.GetHashCode();
+            int secondIndexHashCode = edge.secondEdgePointIndex.GetHashCode();
+            return firstIndexHashCode ^ secondIndexHashCode;
+        }
     }
 }

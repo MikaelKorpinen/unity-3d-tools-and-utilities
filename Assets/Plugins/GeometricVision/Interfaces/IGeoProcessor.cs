@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using GeometricVision;
 using UniRx;
 using UnityEngine;
 
@@ -9,28 +8,17 @@ namespace Plugins.GeometricVision.Interfaces
     {
     
         /// <summary>
-        /// Counts all the scene objects in the current active scene. Not including objects on Dont destroy on load atm.
+        /// Counts all the scene objects in the current active scene. Not including objects from other scenes.
         /// </summary>
         /// <returns></returns>
         int CountSceneObjects();
-    
+        
         /// <summary>
-        /// Gets all the transforms from list of objects
+        /// Checks if there are new game objects or entities on the scene and then updates the situation.
+        /// Use only if you cant wait for a frame.
         /// </summary>
-        /// <param name="objs"></param>
-
-        /// <returns></returns>
-        HashSet<Transform> GetTransforms(List<GameObject> objs);
-    
-        List<Transform> GetAllTransforms();
-
-        /// <summary>
-        /// Ask the manager brain to update it knowledge about targeted geometries
-        /// </summary>
-        /// <param name="geoVision"></param>
+        /// <param name="geoVision"> GeometryVision component to use for scene checking</param>
         void CheckSceneChanges(GeometryVision geoVision);
-        void Debug(GeometryVision geoVision);
-        
-        
+ 
     }
 }

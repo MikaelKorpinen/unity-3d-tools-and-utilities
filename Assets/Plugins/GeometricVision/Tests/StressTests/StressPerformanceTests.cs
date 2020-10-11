@@ -1,7 +1,7 @@
 ﻿using System.Collections;
 using NUnit.Framework;
 using Plugins.GeometricVision.ImplementationsEntities;
-using Plugins.GeometricVision.Interfaces.Implementations;
+using Plugins.GeometricVision.ImplementationsGameObjects;
 using Unity.PerformanceTesting;
 using UnityEngine;
 using UnityEngine.TestTools;
@@ -55,7 +55,7 @@ namespace Plugins.GeometricVision.Tests.StressTests
             yield return null;
             var target = new GeometryDataModels.Target();
 
-            Measure.Method(() => { geoVision.GetComponent<GeometryVision>().UpdateClosestTargets(); }).Run();
+            Measure.Method(() => { geoVision.GetComponent<GeometryVision>().UpdateClosestTargets(true, true); }).Run();
             target = geoVision.GetComponent<GeometryVision>().GetClosestTarget();
             Assert.True(target.distanceToCastOrigin != 0f);
         }
@@ -79,7 +79,7 @@ namespace Plugins.GeometricVision.Tests.StressTests
             yield return null;
             var target = new GeometryDataModels.Target();
 
-            Measure.Method(() => { geoVision.GetComponent<GeometryVision>().UpdateClosestTargets(); }).Run();
+            Measure.Method(() => { geoVision.GetComponent<GeometryVision>().UpdateClosestTargets(true,true); }).Run();
             target = geoVision.GetComponent<GeometryVision>().GetClosestTarget();
             Assert.True(target.distanceToCastOrigin != 0f);
         }
