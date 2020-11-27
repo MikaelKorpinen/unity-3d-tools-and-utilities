@@ -1,5 +1,9 @@
-# unity-3d-tools-and-utilities
-tools and utilities to accelerate development of virtual reality games and applications
+# Targeting system plugin 1.0.
+Plugin is under plugins folder.
+
+Project contains plugin for getting closest targets.
+This repo is made for demo purposes of the plugin and the full version will include much more in the future.
+Such as multiple targeting systems support.
 
 -Enhance user experience by giving tools and utilities to things like easy object picking from distance.
 -Get data about entities/gameobjects and also to give data about their whereabouts to the user.
