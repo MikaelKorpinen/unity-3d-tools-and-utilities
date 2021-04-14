@@ -1,3 +1,7 @@
+// Plugin provides targeting capabilities for anyone interested in getting some speed in development of
+// new content.
+// Copyright © 2020-2021 Mikael Korpinen(Finland). All Rights Reserved.
+
 # Targeting system plugin 1.0.
 Plugin is under plugins folder.
 
