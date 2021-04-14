@@ -5,11 +5,25 @@
       <e p="Assets" t="Include">
         <e p="Plugins" t="Include">
           <e p="GeometricVision" t="Include">
+            <e p="3rdPartyLicences.txt" t="Include" />
+            <e p="ActionsTemplateObject.cs" t="Include" />
             <e p="Debugging" t="Include">
               <e p="EyeDebugger.cs" t="Include" />
             </e>
             <e p="EdgeComparer.cs" t="Include" />
+            <e p="Editor" t="Include">
+              <e p="UI" t="Include">
+                <e p="ActionsTemplateObjectDrawer.cs" t="Include" />
+                <e p="GeometryVisionHeaderImageDrawer.cs" t="Include" />
+                <e p="TagSelectorPropertyDrawer.cs" t="Include" />
+                <e p="TargetingInstructionsTypeDrawer.cs" t="Include" />
+              </e>
+              <e p="UIEditorDrawers.asmdef" t="Include" />
+            </e>
             <e p="EntityScripts" t="Include">
+              <e p="Components" t="Include">
+                <e p="EntityName.cs" t="Include" />
+              </e>
               <e p="FromUnity" t="Include">
                 <e p="RotationSpeed_SpawnAndRemove.cs" t="Include" />
                 <e p="SpawnerAuthoring_SpawnAndRemove.cs" t="Include" />
@@ -17,14 +31,12 @@
                 <e p="SpawnerSystem_SpawnAndRemove.cs" t="Include" />
               </e>
               <e p="MeshTargetAuthoring.cs" t="Include" />
+              <e p="Name_Authoring.cs" t="Include" />
               <e p="RotationSpeed_Authoring.cs" t="Include" />
               <e p="TransformEntitySystem.cs" t="Include" />
             </e>
             <e p="Examples" t="Include">
               <e p="CustomScriptTargetIndicators" t="Include">
-                <e p="Prefabs" t="Include">
-                  <e p="TargetingCursorSurfaceShader.shader" t="Include" />
-                </e>
                 <e p="TargetingIndicator.cs" t="Include" />
               </e>
               <e p="ObjectPicking" t="Include">
@@ -32,6 +44,9 @@
                 <e p="PickingMiddleEffect.cs" t="Include" />
                 <e p="PickingStartingEffect.cs" t="Include" />
                 <e p="PickObjectScript.cs" t="Include" />
+              </e>
+              <e p="UsingSystemForSpellCasting" t="Include">
+                <e p="LightningSpell.cs" t="Include" />
               </e>
             </e>
             <e p="GeometricVision.asmdef" t="Include" />
@@ -63,18 +78,24 @@
               <e p="IGeoProcessor.cs" t="Include" />
               <e p="IGeoTargeting.cs" t="Include" />
             </e>
-            <e p="Jobs" t="Include">
-              <e p="EdgeJobs.cs" t="Include" />
-            </e>
             <e p="TargetingInstruction.cs" t="Include" />
+            <e p="TargetingInstructionSave.cs" t="Include" />
             <e p="Tests" t="Include">
               <e p="ActionsTemplateSpawningTests.cs" t="Include" />
               <e p="CreationalTestsGameObjectsAndEntitiesSimultaneously.cs" t="Include" />
-              <e p="GeoUtilitiesTests.cs" t="Include" />
               <e p="SceneBuildSettingsSetupForGameObjects.cs" t="Include" />
               <e p="StressTests" t="Include">
                 <e p="MemoryUsage.cs" t="Include" />
-                <e p="Performance.cs" t="Include" />
+                <e p="StressPerformanceTests.cs" t="Include" />
+              </e>
+              <e p="TestAssets" t="Include">
+                <e p="Scenes" t="Include">
+                  <e p="GameObjects" t="Include">
+                    <e p="StressTests" t="Include">
+                      <e p="CubeSpawner.cs" t="Include" />
+                    </e>
+                  </e>
+                </e>
               </e>
               <e p="Tests.asmdef" t="Include" />
               <e p="TestScriptsForEntities" t="Include">
@@ -94,19 +115,12 @@
               <e p="TestSettings.cs" t="Include" />
               <e p="TestUtilities.cs" t="Include" />
             </e>
-            <e p="UI" t="Include">
-              <e p="ActionsTemplateObject.cs" t="Include" />
-              <e p="Editor" t="Include">
-                <e p="GeometryVisionHeaderImageDrawer.cs" t="Include" />
-                <e p="TagSelectorPropertyDrawer.cs" t="Include" />
-                <e p="TargetingInstructionsTypeDrawer.cs" t="Include" />
-              </e>
-            </e>
             <e p="UtilitiesAndPlugins" t="Include">
               <e p="GeometryVisionUtilities.cs" t="Include" />
               <e p="InterfaceUtilities.cs" t="Include" />
               <e p="JobUtilities.cs" t="Include" />
               <e p="MeshUtilities.cs" t="Include" />
+              <e p="ScriptableObjectUtility.cs" t="Include" />
               <e p="UniRx" t="Include">
                 <e p="Examples" t="Include">
                   <e p="Sample01_ObservableWWW.cs" t="Include" />
@@ -400,11 +414,12 @@
       <e p="Packages" t="ExcludeRecursive" />
       <e p="Temp\bin" t="ExcludeRecursive" />
       <e p="Tests.csproj" t="IncludeRecursive" />
+      <e p="UIEditorDrawers.csproj" t="IncludeRecursive" />
       <e p="UniRx.csproj" t="IncludeRecursive" />
       <e p="UniRx.Examples.csproj" t="IncludeRecursive" />
       <e p="unity-3d-tools-and-utilities.sln" t="IncludeFlat" />
     </e>
-    <e p="C:\Users\Crystalizer\AppData\Local\JetBrains\Rider2020.1\extResources" t="IncludeRecursive" />
-    <e p="C:\Users\Crystalizer\AppData\Local\JetBrains\Rider2020.1\resharper-host\Local\Transient\ReSharperHost\v201\SolutionCaches\_unity-3d-tools-and-utilities.-1664064511.00" t="ExcludeRecursive" />
+    <e p="C:\Users\Crystalizer\AppData\Local\JetBrains\Rider2020.3\extResources" t="IncludeRecursive" />
+    <e p="C:\Users\Crystalizer\AppData\Local\JetBrains\Rider2020.3\resharper-host\Local\Transient\Rider\v203\SolutionCaches\_unity-3d-tools-and-utilities.-1664064511.00" t="ExcludeRecursive" />
   </component>
 </project>

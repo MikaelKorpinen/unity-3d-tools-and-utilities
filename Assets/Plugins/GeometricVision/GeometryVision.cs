@@ -1,4 +1,9 @@
-﻿using System;
+﻿// Plugin provides targeting capabilities for anyone interested in getting some speed in development of
+// new content.
+// Copyright © 2020-2021 Mikael Korpinen(Finland). All Rights Reserved.
+
+
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
