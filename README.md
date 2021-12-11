@@ -39,3 +39,12 @@ Plugin contains several example project that you can use to get idea how to use 
 The first version is to include targeting system.
 Targeting system is based on vector mathematics and can give information about gameobjects and entities for easy object location.
 It also has object culling in frustum space, which means that the targeting system only processes stuff that happen inside its own area rather than at world level.
+
+## Techologies used and requirements for unity project.
+- System is build around game objects and new high perormanceECS/DOTS framework. For this reason the plugin will require entity packages and renderer to work. See documentation in the plugins folder for know packages that work.
+- Plugin contains reference UnirRx provides some extensions to coroutines and ui elements that speed up development. This does not require any extra work since its inside the plugins folder.
+
+## improvements in the upcoming version 2.0
+- Multiple systems and jobs are vectorized.
+- target culling based on colliders.
+- More filtering and support for many instructions and effects.
