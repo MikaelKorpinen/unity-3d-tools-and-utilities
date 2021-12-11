@@ -21,7 +21,7 @@ but in case where the closest point needs to be measured for example form a user
 Move plugin to your project folder. Add component called GeometricVision to your game object. The geometric vision component will then initialize the system.
 After that you can use the familiar unity way.
 ```csharp
-###gameObject.GetComponen<GeometricVision>.GetClosestTarget();
+gameObject.GetComponen<GeometricVision>.GetClosestTarget();
 ```
 
 
