@@ -35,4 +35,4 @@ Plugin contains several example project that you can use to get idea how to use 
 
 The first version is to include targeting system.
 Targeting system is based on vector mathematics and can give information about gameobjects and entities for easy object location.
-It also has object culling in frustum space, which means that the targeting system only processes stuff that happen inside its own area rather than at scene level.
+It also has object culling in frustum space, which means that the targeting system only processes stuff that happen inside its own area rather than at world level.
