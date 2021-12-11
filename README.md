@@ -47,4 +47,6 @@ It also has object culling in frustum space, which means that the targeting syst
 ## improvements in the upcoming version 2.0
 - Multiple systems and jobs are vectorized.
 - target culling based on colliders.
-- More filtering and support for many instructions and effects.
+- As many filtering layers(targeting instruction) as needed and support for many instructions and effects.
+- Many more example projects demonstrating various use cases
+
