@@ -30,7 +30,7 @@ This will give you the closes target component that contains information about t
 Plugin contains several example project that you can use to get idea how to use the plugin in several use cases.
 
 ## Use cases
--To enhance user experience by giving tools and utilities to things like easy object picking from distance, snapping and making weapons, spells and tools for applications.
+-To enhance user experience by giving tools and utilities to things like easy object picking from distance, snapping and making weapons, spells and tools for applications.\n
 -Turret, cameras, gaze based object location.
 
 The first version is to include targeting system.
