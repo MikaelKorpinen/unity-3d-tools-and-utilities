@@ -21,9 +21,10 @@ but in case where the closest point needs to be measured for example form a user
 Move plugin to your project folder. Add component called GeometricVision to your game object. The geometric vision component will then initialize the system.
 After that you can use the familiar unity way.
 ```csharp
-gameObject.GetComponen<GeometricVision>.GetClosestTarget();
+var closestTarget = gameObject.GetComponen<GeometricVision>.GetClosestTarget();
 ```
-
+This will give you the closes target component that contains information about the target.
+Plugin contains several example project that you can use to get idea how to use the plugin in several use cases.
 
 -Enhance user experience by giving tools and utilities to things like easy object picking from distance.
 -Get data about entities/gameobjects and also to give data about their whereabouts to the user.
