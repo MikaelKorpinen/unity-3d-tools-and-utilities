@@ -15,7 +15,7 @@ Such as multiple targeting systems support.
 If you play or have played games you might know aim assist in fps games. Aim assist provides a way to get the opponent or enemy closest to the cursor.
 There are many ways to achieve this, but the targeting system 1.0 uses the most accurate method I know. Projection in 3d-space and distance comparison between target and generated point from the projection.
 ![This is an image](https://github.com/MikaelKorpinen/unity-3d-tools-and-utilities/blob/master/TargetingExampleImage%20copy.jpg)
-* * In the image you can see a 2d illustration of the targeting system in action.
+*In the image you can see a 2d illustration of the targeting system in action.*
 
 Other way to do this kind of thing would be to project point to screen and measure distance to middle of the screen in flat sceen fps games. This only works in some cases,
 but in case where the closest point needs to be measured for example form a users hand it stops providing accurate result. For this reason the targeting system 1.0 provides the best and performant way to get the closest target.
